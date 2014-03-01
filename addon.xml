@@ -20,7 +20,7 @@
     <description lang="de">Ihre Video-on-Demand-Streaming-Plattform aus US-TV-Networks</description>
     <disclaimer lang="en">Some parts of this addon may not be legal in your country of residence - please check with your local laws before installing.</disclaimer>
     <disclaimer lang="de">Einige Teile dieses Addons sind möglicherweise in Ihrem Land nicht legal - bitte prüfen Sie Ihre lokal gültigen Gesetze vor der Installation.</disclaimer>
-    <source>https://github.com/moneymaker365/plugin.video.ustvvod</source>
+    <source>https://github.com/moneymaker365/xbmcplus-xbmc-plugins-beta/tree/master/plugin.video.free.cable-beta</source>
     <forum>http://forum.xbmc.org/showthread.php?tid=166099</forum>
   </extension>
 </addon>

@@ -11,12 +11,12 @@ import xbmcplugin
 
 pluginHandle = int(sys.argv[1])
 
-__plugin__ = 'USTV VoD'
+__plugin__ = 'FREE CABLE'
 __authors__ = 'BlueCop'
 __credits__ = 'moneymaker, slices, zero'
-__version__ = '1.0.0'
+__version__ = '0.8.1'
 
-print '\n\n\n start of USTV VoD plugin'
+print '\n\n\n start of FREE CABLE plugin'
 
 def modes():
 	if sys.argv[2] == '':
