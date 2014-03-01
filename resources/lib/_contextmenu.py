@@ -77,7 +77,8 @@ def select_quality():
 	exec 'list = sitemodule.%s()' % qmode
 	select = xbmcgui.Dialog()
 	title = xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39022)
-	ret = select.select(title, [str(quality[0]) for quality in sorted(list)])
+	list = sorted(list)
+	ret = select.select(title, [str(quality[0]) for quality in list])
 	bitrate = list[ret][1]
 	setattr(_common.args, 'name', base64.b64decode(displayname))
 	setattr(_common.args, 'quality', bitrate)
