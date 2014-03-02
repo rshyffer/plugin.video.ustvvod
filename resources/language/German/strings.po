@@ -98,12 +98,12 @@ msgid "Proxy"
 msgstr "Proxy"
 
 msgctxt "#31005"
-msgid "Tunlr"
-msgstr "Tunlr"
+msgid "DNS Proxy IP 1"
+msgstr "DNS Proxy IP 1"
 
 msgctxt "#31006"
-msgid "DNS Proxy IP"
-msgstr "DNS Proxy IP"
+msgid "DNS Proxy IP 2"
+msgstr "DNS Proxy IP 2"
 
 msgctxt "#31007"
 msgid "Proxy IP"
@@ -120,10 +120,6 @@ msgstr "Benutzername"
 msgctxt "#31010"
 msgid "Password"
 msgstr "Passwort"
-
-msgctxt "#31011"
-msgid "API Key"
-msgstr "API Schlüssel"
 
 msgctxt "#32000"
 msgid "Views"

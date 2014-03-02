@@ -64,8 +64,6 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 			urllib2.install_opener(prepare_dns_proxy(cj))
 		elif int(connectiontype) == 2:
 			urllib2.install_opener(prepare_us_proxy(cj))
-		#elif int(connectiontype) == 3:
-		#	urllib2.install_opener(prepare_tunlr_dns(cj))
 		print '_connection :: getURL :: url = ' + url
 		if values is None:
 			req = urllib2.Request(bytes(url))
