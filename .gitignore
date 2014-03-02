@@ -1,2 +1,7 @@
 resources/images/Thumbs.db
 Thumbs.db
+*.pyo
+*.srt
+*.m3u8
+*.key
+cookie.txt
