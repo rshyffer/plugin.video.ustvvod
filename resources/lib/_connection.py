@@ -34,6 +34,7 @@ class MyHTTPHandler(urllib2.HTTPHandler):
 def prepare_dns_proxy(cj):
 	dnsproxy = []
 	dnsproxy.append(_addoncompat.get_setting('dns_proxy'))
+	dnsproxy.append(_addoncompat.get_setting('dns_proxy_2'))
 	MyHTTPHandler._dnsproxy = dnsproxy
 	opener = urllib2.build_opener(MyHTTPHandler, urllib2.HTTPCookieProcessor(cj))
 	return opener

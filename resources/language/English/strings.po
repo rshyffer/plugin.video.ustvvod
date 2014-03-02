@@ -102,7 +102,7 @@ msgid "Tunlr"
 msgstr ""
 
 msgctxt "#31006"
-msgid "DNS Proxy IP"
+msgid "DNS Proxy IP 1"
 msgstr ""
 
 msgctxt "#31007"
@@ -123,6 +123,10 @@ msgstr ""
 
 msgctxt "#31011"
 msgid "API Key"
+msgstr ""
+
+msgctxt "#31012"
+msgid "DNS Proxy IP 2"
 msgstr ""
 
 msgctxt "#32000"
