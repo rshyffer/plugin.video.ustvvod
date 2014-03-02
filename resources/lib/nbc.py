@@ -3,6 +3,11 @@
 import _addoncompat
 import _common
 import _connection
+import _m3u8
+import os
+import base64
+import HTMLParser
+import time
 import re
 import simplejson
 import sys
@@ -10,21 +15,21 @@ import urllib
 import xbmc
 import xbmcgui
 import xbmcplugin
+
 from bs4 import BeautifulSoup, SoupStrainer
 
 pluginHandle = int(sys.argv[1])
 
 SITE = 'nbc'
 SHOWS = 'http://www.nbc.com/shows'
-SEASONS = 'http://www.nbc.com/assets/esp/video/playerfeed/getRelatedDetail/.json?showCode=%s&contentType=%s&perPage=20&page=1'
-TYPES = ['Full Episode', 'Web Exclusive', 'Current Preview', 'Highlight', 'Interview', 'Sneak Peek', 'Behind the Scenes']
-EPISODES = 'http://www.nbc.com/assets/esp/video/playerfeed/getRelatedDetail/.json?showCode=%s&perPage=100&page=1&contentType=%s'
+EPISODES = 'http://www.nbc.com/data/node/%s/video_carousel'
 VIDEOPAGE = 'http://videoservices.nbcuni.com/player/clip?clear=true&domainReq=www.nbc.com&geoIP=US&clipId=%s'
 SMIL_BASE = 'http://video.nbcuni.com/'
 RTMP = 'cp37307.edgefcs.net'
 APP = 'ondemand'
 IDENTURL = 'http://%s/fcs/ident' % RTMP
 SWFURL = 'http://video.nbcuni.com/core/6.6.1/OSMFPlayer.swf'
+SMIL = 'http://link.theplatform.com/s/NnzsPC/%s?mbr=true&player=Onsite%%20Player&policy=43674&manifest=m3u&format=SMIL&Tracking=true&Embedded=true'
 
 def masterlist():
 	master_db = []
@@ -48,70 +53,58 @@ def rootlist():
 	_common.set_view('tvshows')
 
 def seasons(season_url = _common.args.url):
+	season_url = season_url + '/video'
 	season_data = _connection.getURL(season_url)
-	show_code = re.compile("sect=([a-z]{3,});").findall(season_data)[0]
-	for type in TYPES:
-		type_data = _connection.getURL(SEASONS % (show_code, urllib.quote_plus(type)))
-		season_menu = simplejson.loads(type_data)
-		if season_menu is not None:
-			correct_type = False
-			for season_item in season_menu['pageRecords']:
-				if type == season_item['contentType']:
-					correct_type = True
-			if correct_type:
-				if type[-1] != 's':
-					display_name = type + 's'
-				else:
-					display_name = type
-				_common.add_directory(display_name, SITE, 'episodes', EPISODES % (show_code, urllib.quote_plus(type)))
+	season_tree  = BeautifulSoup(season_data, 'html5lib')
+	season_menu = season_tree.find_all('div', class_ = 'nbc_mpx_carousel')
+	for season in season_menu:
+		season_title = season.h2.text.strip()
+		season_title = re.sub(' +',' ', season_title)
+		season_id = season['id']
+		season_node = season_id.split('_')[-1]
+		_common.add_directory(season_title, SITE, 'episodes',  EPISODES % season_node)
 	_common.set_view('seasons')
 
 def episodes(episode_url = _common.args.url):
-	try:
-		episode_data = _connection.getURL(episode_url)
-		type = urllib.unquote_plus(episode_url.split('contentType=')[1])
-		episode_json = simplejson.loads(episode_data)
-		page = int(episode_json['page'])
-		total_pages = int(episode_json['totalPages'])
-		episode_menu = episode_json['pageRecords']
-		for episode_item in episode_menu:
-			if episode_item['contentType'] == type:
-				url = VIDEOPAGE % episode_item['id']
-				try:
-					episode_duration = int(_common.format_seconds(episode_item['duration']))
-				except:
-					episode_duration = -1
-				episode_plot = episode_item['description']
-				episode_airdate = episode_item['airDate']
-				episode_name = episode_item['title']
-				try:
-					season_number = int(episode_item['season'])
-				except:
-					season_number = -1
-				try:
-					episode_number = int(episode_item['episodeNumber'])
-				except:
-					episode_number = -1
-				try:
-					episode_thumb = episode_item['editorialThumbnailUrl'].replace('/129x72xR', '')
-				except:
-					episode_thumb = None
-				u = sys.argv[0]
-				u += '?url="' + urllib.quote_plus(url) + '"'
-				u += '&mode="' + SITE + '"'
-				u += '&sitemode="play_video"'
-				infoLabels={	'title' : episode_name,
-								'durationinseconds' : episode_duration,
-								'season' : season_number,
-								'episode' : episode_number,
-								'plot' : episode_plot,
-								'premiered' : episode_airdate }
-				_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-		if page < total_pages and page < int(_addoncompat.get_setting('maxpages')):
-			episode_url = episode_url.replace('page=' + str(page), 'page=' + str(page + 1))
-			episodes(episode_url)
-	except:
-		pass
+	episode_data = _connection.getURL(episode_url)
+	episode_json = simplejson.loads(episode_data)
+	episode_menu = episode_json['entries']
+	for episode_item in episode_menu:
+		pid = episode_item['media$content'][0]['plfile$releases'][0]['plrelease$pid']	
+		url = SMIL % pid	
+		try:
+			episode_duration = int(episode_item['plfile$duration'].replace(' min','')) * 60
+		except:
+			episode_duration = -1
+		episode_plot = HTMLParser.HTMLParser().unescape(episode_item['description'])
+		epoch = int(episode_item['pubDate']) / 1000
+		episode_airdate = _common.format_date(epoch = epoch)
+		episode_name = HTMLParser.HTMLParser().unescape(episode_item['title'])
+		show_title = episode_item['showShortName']
+		try:
+			season_number = int(episode_item['pl1$seasonNumber'])
+		except:
+			season_number = -1
+		try:
+			episode_number = int(episode_item['pl1$episodeNumber'])
+		except:
+			episode_number = -1
+		try:
+			episode_thumb = episode_item['plmedia$defaultThumbnailUrl']['big']
+		except:
+			episode_thumb = None
+		u = sys.argv[0]
+		u += '?url="' + urllib.quote_plus(url) + '"'
+		u += '&mode="' + SITE + '"'
+		u += '&sitemode="play_video"'
+		infoLabels={	'title' : episode_name,
+						'durationinseconds' : episode_duration,
+						'season' : season_number,
+						'episode' : episode_number,
+						'plot' : episode_plot,
+						'premiered' : episode_airdate,
+						'TVShowTitle' : show_title}
+		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 	_common.set_view('episodes')
 
 def play_video(video_url = _common.args.url):
@@ -121,45 +114,90 @@ def play_video(video_url = _common.args.url):
 		qbitrate = None
 	closedcaption = None
 	video_data = _connection.getURL(video_url)
-	video_tree = BeautifulSoup(video_data, 'html.parser')
-	clip_url = SMIL_BASE + video_tree.clipurl.string
+	smil_tree = BeautifulSoup(video_data, 'html.parser')
+	video_url2 = smil_tree.video['src']	
 	try:
-		closedcaption = video_tree.find('fileurl').string
+		closedcaption = smil_tree.textstream['src']
 	except:
 		pass
-	smil_data = _connection.getURL(clip_url)
-	smil_tree = BeautifulSoup(smil_data, 'html.parser')
-	base_url = get_rtmp()
-	print "TREE",smil_tree
-	video_url2 = smil_tree.switch.find_all('video')
-	hbitrate = -1
-	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
-	if qbitrate is None:
-		for video_index in video_url2:
-			bitrate = int(video_index['system-bitrate'])
-			if bitrate > hbitrate and bitrate <= sbitrate:
-				hbitrate = bitrate
-				playpath_url = video_index['src']
+	clip_id = smil_tree.video.find('param', attrs = {'name' : 'clipId'})
+	if clip_id is not None:
+		clip_id = clip_id['value']
+		video_url = VIDEOPAGE % clip_id
+		video_data = _connection.getURL(video_url)
+		video_tree = BeautifulSoup(video_data, 'html.parser')
+		clip_url = SMIL_BASE + video_tree.clipurl.string
+		smil_data = _connection.getURL(clip_url)
+		smil_tree = BeautifulSoup(smil_data, 'html.parser')
+		base_url = get_rtmp()
+		hbitrate = -1
+		sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+		if qbitrate is None:
+			video_url2 = smil_tree.find_all('video')
+			for video_index in video_url2:
+				bitrate = int(video_index['system-bitrate'])
+				if bitrate > hbitrate and bitrate <= sbitrate:
+					hbitrate = bitrate
+					playpath_url = video_index['src']
+		else:
+			playpath_url = smil_tree.switch.find('video', attrs = {'system-bitrate' : qbitrate})['src']
+		if '.mp4' in playpath_url:
+			playpath_url = 'mp4:' + playpath_url
+		else:
+			playpath_url = playpath_url.replace('.flv', '')
+		finalurl = base_url + ' playpath=' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
 	else:
-		playpath_url = smil_tree.switch.find('video', attrs = {'system-bitrate' : qbitrate})['src']
-	if '.mp4' in playpath_url:
-		playpath_url = 'mp4:' + playpath_url
-	else:
-		playpath_url = playpath_url.replace('.flv', '')
+		m3u_master_data = _connection.getURL(video_url2, savecookie = True)
+		m3u_master = _m3u8.parse(m3u_master_data)
+		hbitrate = -1
+		sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+		for video_index in m3u_master.get('playlists'):
+			bitrate = int(video_index.get('stream_info')['bandwidth'])
+			if qbitrate is None:
+				if bitrate > hbitrate and bitrate <= sbitrate:
+					hbitrate = bitrate
+					m3u8_url =  video_index.get('uri')
+			elif  bitrate == qbitrate:
+				m3u8_url =  video_index.get('uri')
+		m3u_data = _connection.getURL(m3u8_url, loadcookie = True)
+		key_url = re.compile('URI="(.*?)"').findall(m3u_data)[0]
+		key_data = _connection.getURL(key_url, loadcookie = True)		
+		key_file = open(_common.KEYFILE, 'wb')
+		key_file.write(key_data)
+		key_file.close()
+		video_url5 = re.compile('(http:.*?)\n').findall(m3u_data)
+		for i, video_item in enumerate(video_url5):
+			newurl = base64.b64encode(video_item)
+			newurl = urllib.quote_plus(newurl)
+			m3u_data = m3u_data.replace(video_item, 'http://127.0.0.1:12345/foxstation/' + newurl)
+		localhttpserver = True
+		filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
+		xbmc.executebuiltin(filestring)
+		time.sleep(20)
+		m3u_data = m3u_data.replace(key_url, 'http://127.0.0.1:12345/play.key')
+		playfile = open(_common.PLAYFILE, 'w')
+		playfile.write(m3u_data)
+		playfile.close()
+		finalurl = _common.PLAYFILE
 	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
-				convert_subtitles(closedcaption)
-	finalurl = base_url + ' playpath=' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
+		convert_subtitles(closedcaption)
 	item = xbmcgui.ListItem(path = finalurl)
 	if qbitrate is not None:
 		item.setThumbnailImage(_common.args.thumb)
 		item.setInfo('Video', {	'title' : _common.args.name,
 						'season' : _common.args.season_number,
-						'episode' : _common.args.episode_number})
+						'episode' : _common.args.episode_number,
+						'TVShowTitle' : _common.args.show_title})
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
+	if ((_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None))  or localhttpserver is True:
 		while not xbmc.Player().isPlaying():
 			xbmc.sleep(100)
+	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
 		xbmc.Player().setSubtitles(_common.SUBTITLE)
+	if localhttpserver is True:
+		while xbmc.Player().isPlaying():
+			xbmc.sleep(1000)
+		_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
 
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')
@@ -180,13 +218,22 @@ def convert_subtitles(closedcaption):
 	subtitle_data = BeautifulSoup(subtitle_data, 'html.parser', parse_only = SoupStrainer('div'))
 	srt_output = ''
 	lines = subtitle_data.find_all('p')
-	for i, line in enumerate(lines):
+	i = 0
+	last_start_time = ''
+	last_end_time = ''
+	for line in lines:
 		try:
 			if line is not None:
 				sub = clean_subs(_common.smart_utf8(line))
 				start_time = _common.smart_utf8(line['begin'].replace('.', ','))
 				end_time = _common.smart_utf8(line['end'].replace('.', ','))
-				str_output += str(i + 1) + '\n' + start_time + ' --> ' + end_time + '\n' + sub + '\n\n'
+				if start_time != last_start_time and end_time != last_end_time:
+					str_output += '\n' + str(i + 1) + '\n' + start_time + ' --> ' + end_time + '\n' + sub + '\n'
+					i = i + 1
+					last_end_time = end_time
+					last_start_time = start_time
+				else:
+					str_output +=  sub + '\n\n'
 		except:
 			pass
 	file = open(_common.SUBTITLE, 'w')
@@ -203,13 +250,32 @@ def get_rtmp():
 def list_qualities(video_url = _common.args.url):
 	bitrates = []
 	video_data = _connection.getURL(video_url)
-	video_tree = BeautifulSoup(video_data, 'html.parser')
-	clip_url = SMIL_BASE + video_tree.clipurl.string
-	smil_data = _connection.getURL(clip_url)
-	smil_tree = BeautifulSoup(smil_data, 'html.parser')
-	video_url2 = smil_tree.switch.find_all('video')
-	for video_index in video_url2:
-		bitrate = int(video_index['system-bitrate'])
-		display = int(bitrate)/1024
-		bitrates.append((display, bitrate))
+	smil_tree = BeautifulSoup(video_data, 'html.parser')
+	video_url2 = smil_tree.video['src']
+	clip_id = smil_tree.video.find('param', attrs = {'name' : 'clipId'})
+	if clip_id is not None:
+		clip_id = clip_id['value']
+		video_url = VIDEOPAGE % clip_id
+		video_data = _connection.getURL(video_url)
+		video_tree = BeautifulSoup(video_data, 'html.parser')
+		clip_url = SMIL_BASE + video_tree.clipurl.string	
+		smil_data = _connection.getURL(clip_url)
+		smil_tree = BeautifulSoup(smil_data, 'html.parser')
+		video_url2 = smil_tree.find_all('video')
+		for video_index in video_url2:
+			bitrate = int(video_index['system-bitrate'])
+			display = int(bitrate)/1024
+			bitrates.append((display, bitrate))
+	else:
+		m3u_master_data = _connection.getURL(video_url2)
+		m3u_master = _m3u8.parse(m3u_master_data)
+		for video_index in m3u_master.get('playlists'):
+			try:
+				codecs =  video_index.get('stream_info')['codecs']
+			except:
+				codecs = ''
+			if  codecs != 'mp4a.40.2':
+				bitrate = int(video_index.get('stream_info')['bandwidth'])
+				display = int(bitrate)/1024
+				bitrates.append((display, bitrate))
 	return bitrates
