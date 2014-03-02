@@ -11,9 +11,6 @@ import xbmc
 from dns.resolver import Resolver
 from httplib import HTTPConnection
 
-TUNLRURL = 'http://tunlr.net/tunapi.php?action=getdns&version=1&format=json'
-TUNLRCHECK = 'http://gatekeeper-api.tunlr.net/api_v1/check_activation'
-TUNLRUPDATE = 'http://gatekeeper-api.tunlr.net/api_v1/update_ip/%s'
 PLUGINPATH = xbmc.translatePath(_addoncompat.get_path())
 RESOURCESPATH = os.path.join(PLUGINPATH,'resources')
 CACHEPATH = os.path.join(RESOURCESPATH,'cache')
@@ -37,30 +34,6 @@ class MyHTTPHandler(urllib2.HTTPHandler):
 def prepare_dns_proxy(cj):
 	dnsproxy = []
 	dnsproxy.append(_addoncompat.get_setting('dns_proxy'))
-	MyHTTPHandler._dnsproxy = dnsproxy
-	opener = urllib2.build_opener(MyHTTPHandler, urllib2.HTTPCookieProcessor(cj))
-	return opener
-
-def prepare_tunlr_dns(cj):
-	dnsproxy = []
-	tunlr_key = _addoncompat.get_setting('tunlr_key')
-	if tunlr_key != '':
-		request = urllib2.Request(TUNLRCHECK)
-		response = urllib2.urlopen(request)
-		checkdata = response.read()
-		response.close()
-		tunlr_check = simplejson.loads(checkdata)
-		if tunlr_check['success'] and not tunlr_check['activated']:
-			request = urllib2.Request(TUNLRUPDATE % tunlr_key)
-			response = urllib2.urlopen(request)
-			response.close()
-	request = urllib2.Request(TUNLRURL)
-	response = urllib2.urlopen(request)
-	dnsdata = response.read()
-	response.close()
-	tunlr_dns = simplejson.loads(dnsdata)
-	dnsproxy.append(tunlr_dns['dns1'])
-	dnsproxy.append(tunlr_dns['dns2'])
 	MyHTTPHandler._dnsproxy = dnsproxy
 	opener = urllib2.build_opener(MyHTTPHandler, urllib2.HTTPCookieProcessor(cj))
 	return opener
@@ -90,8 +63,8 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 			urllib2.install_opener(prepare_dns_proxy(cj))
 		elif int(connectiontype) == 2:
 			urllib2.install_opener(prepare_us_proxy(cj))
-		elif int(connectiontype) == 3:
-			urllib2.install_opener(prepare_tunlr_dns(cj))
+		#elif int(connectiontype) == 3:
+		#	urllib2.install_opener(prepare_tunlr_dns(cj))
 		print '_connection :: getURL :: url = ' + url
 		if values is None:
 			req = urllib2.Request(bytes(url))
@@ -135,8 +108,6 @@ def getRedirect(url, values = None , header = {}, connectiontype = _addoncompat.
 			urllib2.install_opener(prepare_dns_proxy(cj))
 		elif int(connectiontype) == 2:
 			urllib2.install_opener(prepare_us_proxy(cj))
-		elif int(connectiontype) == 3:
-			urllib2.install_opener(prepare_tunlr_dns(cj))
 		print '_connection :: getRedirect :: url = ' + url
 		if values is None:
 			req = urllib2.Request(bytes(url))
