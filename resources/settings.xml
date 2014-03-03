@@ -16,6 +16,7 @@
 		<setting id="us_proxy_port" type="number" label="31008" default="" visible="eq(-4,2)" />
 		<setting id="us_proxy_user" type="text" label="31009" default="" visible="eq(-5,2)" />
 		<setting id="us_proxy_pass" type="text" label="31010" default="" visible="eq(-6,2)" />
+		<setting id="us_proxy_socks5" type="bool" label="31011" default="0" visible="eq(-7,2)" />
 		<setting type="sep" />
 	</category>
 	<category label="32000">

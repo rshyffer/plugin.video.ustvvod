@@ -121,6 +121,10 @@ msgctxt "#31010"
 msgid "Password"
 msgstr ""
 
+msgctxt "#31011"
+msgid "Socks5 Server"
+msgstr ""
+
 msgctxt "#32000"
 msgid "Views"
 msgstr ""

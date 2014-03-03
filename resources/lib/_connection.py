@@ -6,6 +6,7 @@ import os
 import simplejson
 import urllib
 import urllib2
+import socks
 import socket
 import xbmc
 from dns.resolver import Resolver
@@ -31,6 +32,30 @@ class MyHTTPHandler(urllib2.HTTPHandler):
 		MyHTTPConnection._dnsproxy = self._dnsproxy 
 		return self.do_open(MyHTTPConnection, req)
 
+class SocksiPyConnection(HTTPConnection):
+    def __init__(self, proxytype, proxyaddr, proxyport = None, rdns = True, username = None, password = None, *args, **kwargs):
+        self.proxyargs = (proxytype, proxyaddr, proxyport, rdns, username, password)
+        HTTPConnection.__init__(self, *args, **kwargs)
+ 
+    def connect(self):
+        self.sock = socks.socksocket()
+        self.sock.setproxy(*self.proxyargs)
+        if isinstance(self.timeout, float):
+            self.sock.settimeout(self.timeout)
+        self.sock.connect((self.host, self.port))
+            
+class SocksiPyHandler(urllib2.HTTPHandler):
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kw = kwargs
+        urllib2.HTTPHandler.__init__(self)
+ 
+    def http_open(self, req):
+        def build(host, port=None, strict=None, timeout=0):    
+            conn = SocksiPyConnection(*self.args, host = host, port = port, strict = strict, timeout = timeout, **self.kw)
+            return conn
+        return self.do_open(build, req)
+
 def prepare_dns_proxy(cj):
 	dnsproxy = []
 	dnsproxy.append(_addoncompat.get_setting('dns_proxy'))
@@ -40,17 +65,25 @@ def prepare_dns_proxy(cj):
 	return opener
 
 def prepare_us_proxy(cj):
-	us_proxy = 'http://' + _addoncompat.get_setting('us_proxy') + ':' + _addoncompat.get_setting('us_proxy_port')
-	proxy_handler = urllib2.ProxyHandler({'http':us_proxy})
-	if ((_addoncompat.get_setting('us_proxy_pass') is not '') and (_addoncompat.get_setting('us_proxy_user') is not '')):
-		print 'Using authenticated proxy: ' + us_proxy
-		password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
-		password_mgr.add_password(None, us_proxy, _addoncompat.get_setting('us_proxy_user'), _addoncompat.get_setting('us_proxy_pass'))
-		proxy_auth_handler = urllib2.ProxyBasicAuthHandler(password_mgr)
-		opener = urllib2.build_opener(proxy_handler, proxy_auth_handler, urllib2.HTTPCookieProcessor(cj))
-	else:
-		print 'Using proxy: ' + us_proxy
-		opener = urllib2.build_opener(proxy_handler, urllib2.HTTPCookieProcessor(cj))
+	if (_addoncompat.get_setting('us_proxy_socks5') == 'true'):
+		if ((_addoncompat.get_setting('us_proxy_pass') is not '') and (_addoncompat.get_setting('us_proxy_user') is not '')):
+			print 'Using socks5 authenticated proxy: ' + _addoncompat.get_setting('us_proxy') + ':' + _addoncompat.get_setting('us_proxy_port')
+			opener = urllib2.build_opener(SocksiPyHandler(socks.PROXY_TYPE_SOCKS5, _addoncompat.get_setting('us_proxy'), int(_addoncompat.get_setting('us_proxy_port')), True, _addoncompat.get_setting('us_proxy_user'), _addoncompat.get_setting('us_proxy_pass')))
+		else:
+			print 'Using socks5 proxy: ' + _addoncompat.get_setting('us_proxy') + ':' + _addoncompat.get_setting('us_proxy_port')
+			opener = urllib2.build_opener(SocksiPyHandler(socks.PROXY_TYPE_SOCKS5, _addoncompat.get_setting('us_proxy'), int(_addoncompat.get_setting('us_proxy_port'))))
+	elif (_addoncompat.get_setting('us_proxy_socks5') == 'false'):
+		us_proxy = 'http://' + _addoncompat.get_setting('us_proxy') + ':' + _addoncompat.get_setting('us_proxy_port')
+		proxy_handler = urllib2.ProxyHandler({'http' : us_proxy})
+		if ((_addoncompat.get_setting('us_proxy_pass') is not '') and (_addoncompat.get_setting('us_proxy_user') is not '')):
+			print 'Using authenticated proxy: ' + us_proxy
+			password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+			password_mgr.add_password(None, us_proxy, _addoncompat.get_setting('us_proxy_user'), _addoncompat.get_setting('us_proxy_pass'))
+			proxy_auth_handler = urllib2.ProxyBasicAuthHandler(password_mgr)
+			opener = urllib2.build_opener(proxy_handler, proxy_auth_handler, urllib2.HTTPCookieProcessor(cj))
+		else:
+			print 'Using proxy: ' + us_proxy
+			opener = urllib2.build_opener(proxy_handler, urllib2.HTTPCookieProcessor(cj))
 	return opener
 
 def getURL(url, values = None, header = {}, amf = False, savecookie = False, loadcookie = False, connectiontype = _addoncompat.get_setting('connectiontype')):
