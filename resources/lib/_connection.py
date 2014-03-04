@@ -8,6 +8,7 @@ import urllib
 import urllib2
 import socks
 import socket
+import time
 import xbmc
 from dns.resolver import Resolver
 from httplib import HTTPConnection
@@ -16,6 +17,9 @@ PLUGINPATH = xbmc.translatePath(_addoncompat.get_path())
 RESOURCESPATH = os.path.join(PLUGINPATH,'resources')
 CACHEPATH = os.path.join(RESOURCESPATH,'cache')
 COOKIE = os.path.join(CACHEPATH,'cookie.txt')
+DNS_REFESH_DELAY = 10
+IPURL = 'http://icanhazip.com'
+IPFILE = os.path.join(CACHEPATH,'ip.txt')
 
 class MyHTTPConnection(HTTPConnection):
 	_dnsproxy = []
@@ -57,6 +61,28 @@ class SocksiPyHandler(urllib2.HTTPHandler):
         return self.do_open(build, req)
 
 def prepare_dns_proxy(cj):
+	update_url = _addoncompat.get_setting('dns_update_url')
+	if update_url:
+		try:
+			t = os.path.getmtime(IPFILE)
+			now = time.time()
+			elapsed = now - t
+		except:
+			elapsed = -1
+		try:
+			file = open(IPFILE, 'r')
+			oldip = file.read()
+			file.close()
+		except:
+			oldip = ''
+		if elapsed > DNS_REFESH_DELAY or elapsed == -1:
+			myip = getURL(IPURL, connectiontype = 0)
+			if myip != oldip:
+				oldip = myip
+				getURL(update_url, connectiontype = 0)
+		newfile = file = open(IPFILE, 'w')
+		file.write(oldip)
+		file.close()
 	dnsproxy = []
 	dnsproxy.append(_addoncompat.get_setting('dns_proxy'))
 	dnsproxy.append(_addoncompat.get_setting('dns_proxy_2'))
