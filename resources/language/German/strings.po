@@ -125,6 +125,10 @@ msgctxt "#31011"
 msgid "Socks5 Server"
 msgstr "Socks5 Server"
 
+msgctxt "#31012"
+msgid "Update URL"
+msgstr "Update URL"
+
 msgctxt "#32000"
 msgid "Views"
 msgstr "Ansicht"
