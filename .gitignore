@@ -5,3 +5,5 @@ Thumbs.db
 *.m3u8
 *.key
 cookie.txt
+*.smi
+resources/cache/ip.txt

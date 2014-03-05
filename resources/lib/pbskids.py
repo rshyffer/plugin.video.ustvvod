@@ -82,6 +82,7 @@ def episodes(episode_url = _common.args.url):
 def play_video(guid = _common.args.url):
 	video_url =  VIDEO % guid
 	hbitrate = -1
+	lbitrate = -1
 	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
 	closedcaption = None
 	video_url2 = None
@@ -101,11 +102,23 @@ def play_video(guid = _common.args.url):
 		video_url3 = simplejson.loads(video_data2)['url']
 		video_data3 = _connection.getURL(video_url3)
 		video_url4 = _m3u8.parse(video_data3)
+		uri = None
 		for video_index in video_url4.get('playlists'):
-			bitrate = int(video_index.get('stream_info')['bandwidth'])
-			if bitrate > hbitrate and bitrate <= sbitrate:
-				hbitrate = bitrate
-				finalurl = video_url3.rsplit('/', 1)[0] + '/' + video_index.get('uri')
+			try:
+				codecs =  video_index.get('stream_info')['codecs']
+			except:
+				codecs = ''
+			if  codecs != 'mp4a.40.5':
+				bitrate = int(video_index.get('stream_info')['bandwidth'])
+				if bitrate < lbitrate or lbitrate == -1:
+					lbitrate = bitrate
+					luri = video_index.get('uri')
+				if bitrate > hbitrate and bitrate <= sbitrate:
+					hbitrate = bitrate
+					uri = video_index.get('uri')
+		if uri is None:
+			uri = luri
+		finalurl = video_url3.rsplit('/', 1)[0] + '/' + uri
 	except:
 		flash_url = video_item['videos']['flash']['url']
 		video_data2 = _connection.getURL(flash_url + '?format=json')
