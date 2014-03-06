@@ -188,6 +188,7 @@ def episodes(SITE):
 def play_video(SITE, BRANDID, PARTNERID):
 	video_id, video_type = _common.args.url.split('#')
 	hbitrate = -1
+	lbitrate = -1
 	sbitrate = int(_addoncompat.get_setting('quality'))
 	localhttpserver = False
 	video_auth = get_authorization(BRANDID, video_id, video_type)
@@ -218,6 +219,7 @@ def play_video(SITE, BRANDID, PARTNERID):
 					playpath_url = video_index.get('uri')
 			finalurl = playpath_url
 		elif  video_format == 'MOV':
+			playpath_url = None
 			video_url = PLAYLISTMOV % (PARTNERID, PARTNERID) + video_id
 			video_data = _connection.getURL(video_url)
 			video_tree = BeautifulSoup(video_data)
@@ -225,9 +227,14 @@ def play_video(SITE, BRANDID, PARTNERID):
 			video_url2 = video_tree.findAll('media')
 			for video_index in video_url2:
 				bitrate = int(video_index['bitrate'])
+				if bitrate < lbitrate or lbitrate == -1:
+					lbitrate = bitrate
+					lplaypath_url = video_index['url']	
 				if bitrate > hbitrate and bitrate <= sbitrate:
 					hbitrate = bitrate
 					playpath_url = video_index['url']
+			if playpath_url is None:
+				playpath_url = lplaypath_url
 			finalurl = base_url + ' playpath=' + playpath_url + ' swfUrl=' + SWFURL + ' swfVfy=true'
 	else:
 		video_url = VIDEOLIST % BRANDID + '002/-1/-1/-1/' + video_id + '/-1/-1'
