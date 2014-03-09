@@ -37,7 +37,7 @@ def masterlist():
 	master_tree = BeautifulSoup(master_data, 'html5lib')
 	master_menu = master_tree.footer.find_all('li', class_ = 'views-row')
 	for master_item in master_menu:
-		master_name = master_item.text
+		master_name = _common.smart_utf8(master_item.text.strip())
 		season_url = master_item.a['href']
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
@@ -47,7 +47,7 @@ def rootlist():
 	root_tree = BeautifulSoup(root_data, 'html5lib')
 	root_menu = root_tree.footer.find_all('li', class_ = 'views-row')
 	for root_item in root_menu:
-		root_name = root_item.text
+		root_name = _common.smart_utf8(root_item.text.strip())
 		season_url = root_item.a['href']
 		_common.add_show(root_name, SITE, 'seasons', season_url)
 	_common.set_view('tvshows')
