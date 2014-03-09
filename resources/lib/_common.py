@@ -639,7 +639,7 @@ def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = No
 	item.setProperty('fanart_image', fanart)
 	item.setInfo(type = 'Video', infoLabels = infoLabels)
 	contextmenu = []
-	refresh_u = sys.argv[0] + '?url="<join>"' + sys.argv[0] + '?url="' + '&mode="_contextmenu"' + '&sitemode="refresh_db"' 
+	refresh_u = sys.argv[0] + '?url="<join>"' + sys.argv[0] + '?url="' + '&mode=_contextmenu' + '&sitemode=refresh_db' 
 	contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39021)), 'XBMC.RunPlugin(%s)' % refresh_u))
 	item.addContextMenuItems(contextmenu)
 	xbmcplugin.addDirectoryItem(pluginHandle, url = u, listitem = item, isFolder = True)
