@@ -33,7 +33,7 @@ def masterlist():
 		season_url = FULLEPISODES % master_item['ID']
 		master_dict[master_name] = season_url
 		master_db.append((master_name, SITE, 'seasons', season_url))
-		master_db.append(('Crackle Movies', SITE, 'movielist', MOVIES))
+	master_db.append(('Crackle Movies', SITE, 'movielist', MOVIES))
 	return master_db
 
 def rootlist():	
