@@ -7,7 +7,7 @@ PARTNERID = '585231'
 SITE = 'abc'
 
 def masterlist():
-	_main_abcdisney.masterlist(SITE, BRANDID)
+	return _main_abcdisney.masterlist(SITE, BRANDID)
 
 def rootlist():
 	_main_abcdisney.rootlist(SITE, BRANDID)
