@@ -15,7 +15,7 @@ import xbmcplugin
 pluginHandle = int (sys.argv[1])
 
 SITE = 'pbskids'
-SHOWS = 'http://pbskids.org/pbsk/video/api/getShows/?fields=title'
+SHOWS = 'http://pbskids.org/pbsk/video/api/getShows'
 SWFURL = 'http://www-tc.pbs.org/video/media/swf/PBSPlayer.swf?video=%s&player=viral'
 TYPES = ['Episode', 'Segment', 'Clip', 'Promotion', 'Interstitial', 'Other']
 SEASON = 'http://pbskids.org/pbsk/video/api/getVideos/?program=%s&endindex=1&encoding=&orderby=-airdate&status=available&category=&type=%s'
@@ -26,14 +26,14 @@ def masterlist():
 	master_start = 0
 	master_count = 200
 	master_db = []
-	master_menu = simplejson.loads(_connection.getURL(SHOWS, header = {'X-Requested-With' : 'XMLHttpRequest'}))
+	master_menu = simplejson.loads(_connection.getURL(SHOWS))
 	for master_item in master_menu['items']:
 		master_name = _common.smart_utf8(master_item['title'])
 		master_db.append((master_name, SITE, 'seasons', urllib.quote_plus(master_name)))
 	return master_db
 
 def rootlist():
-	root_menu = simplejson.loads(_connection.getURL(SHOWS, header = {'X-Requested-With' : 'XMLHttpRequest'}))
+	root_menu = simplejson.loads(_connection.getURL(SHOWS))
 	for root_item in root_menu['items']:
 		root_name = _common.smart_utf8(root_item['title'])
 		_common.add_show(root_name,  SITE, 'seasons', urllib.quote_plus(root_name))
