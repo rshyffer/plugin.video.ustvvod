@@ -60,7 +60,6 @@ def rootlist():
 	_common.set_view('tvshows')
 
 def seasons(season_url = _common.args.url):
-	print season_url
 	if ',' in season_url:
 		multiSeason = True
 	else:
@@ -83,17 +82,18 @@ def seasons(season_url = _common.args.url):
 					_common.add_directory(season_name, SITE, 'episodes', season_url2)
 			except:
 				pass	
-		season_item = season_tree.find('a', text = 'Video Clips')		
-		season_name2 = season_item.text
-		if BASE not in season_item['href']:
-			season_url3 = BASE + season_item['href']
-		else:
-			season_url3 = season_item['href']
-		if not multiSeason:
-			_common.add_directory(season_name2, SITE, 'episodes', season_url3)
-		else:
-			title = season_tree.find('title').string.split('|')[0].strip()
-			_common.add_directory(title + ' ' + season_name2, SITE, 'episodes', season_url3)
+		season_item = season_tree.find('a', text = 'Video Clips')	
+		if season_item is not None:
+			season_name2 = season_item.text
+			if BASE not in season_item['href']:
+				season_url3 = BASE + season_item['href']
+			else:
+				season_url3 = season_item['href']
+			if not multiSeason:
+				_common.add_directory(season_name2, SITE, 'episodes', season_url3)
+			else:
+				title = season_tree.find('title').string.split('|')[0].strip()
+				_common.add_directory(title + ' ' + season_name2, SITE, 'episodes', season_url3)
 	_common.set_view('seasons')
 
 def episodes(episode_url = _common.args.url):
@@ -118,9 +118,12 @@ def episodes(episode_url = _common.args.url):
 			add_clips(episode_tree2)
 	else:
 		try:
-			add_fullepisodes(episode_tree, _common.args.name.split(' ')[1])
+			add_fullepisodes(episode_tree, int(_common.args.name.split(' ')[1]))
 		except:
-			add_fullepisodes(episode_tree, _common.args.name)
+			try:
+				add_fullepisodes(episode_tree, int(_common.args.name))
+			except:
+				add_fullepisodes(episode_tree)
 		if episode_tree.find('div', class_ = 'pagination') is not None:
 			episode_items2 = episode_tree.find('div', class_ = 'pagination').find_all('a')
 			for episode_item2 in episode_items2:
@@ -128,9 +131,12 @@ def episodes(episode_url = _common.args.url):
 					episode_data3 = _connection.getURL(episode_item2['href'])
 					episode_tree3 = BeautifulSoup(episode_data3)
 					try:
-						add_fullepisodes(episode_tree3, _common.args.name.split(' ')[1])
+						add_fullepisodes(episode_tree3, int(_common.args.name.split(' ')[1]))
 					except:
-						add_fullepisodes(episode_tree3, _common.args.name)
+						try:
+							add_fullepisodes(episode_tree3, int(_common.args.name))
+						except:
+							add_fullepisodes(episode_tree3)
 	_common.set_view('episodes')
 
 def add_fullepisodes(episode_tree, season_number = -1):
@@ -145,7 +151,12 @@ def add_fullepisodes(episode_tree, season_number = -1):
 			try:
 				episode_number = int(episode_item.find('a', class_ = 'title').contents[1].split('Episode ' + season_number)[1])
 			except:
-				episode_number = -1
+				try:
+					episode_number = int(url.split('-0')[1])
+				except:
+					episode_number = -1
+			if season_number == -1:
+				season_number = int(url.split('-')[-3])
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'
 			u += '&mode="' + SITE + '"'
