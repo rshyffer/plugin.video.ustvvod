@@ -16,7 +16,6 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
-from datetime import datetime
 
 pluginHandle=int(sys.argv[1])
 
@@ -68,7 +67,7 @@ def episodes(episode_url = _common.args.url):
 	episode_menu = simplejson.loads(episode_data.replace('}{', '},{'))['results']
 	for episode_item in episode_menu:
 		episode_airdate = _common.format_date(episode_item['airdate'],'%Y-%m-%d', '%d.%m.%Y')
-		if ((datetime.now() - datetime.strptime(episode_item['airdate'], '%Y-%m-%d')).days  >= 8) or (_common.args.name == 'Clips'):
+		if (episode_item['authEndDate'] is None or time.time() >= long(episode_item['authEndDate'])/1000) or (_common.args.name == 'Clips'):
 			show_name = _common.args.name
 			url = episode_item['videoURL']
 			episode_duration = int(episode_item['length'])
