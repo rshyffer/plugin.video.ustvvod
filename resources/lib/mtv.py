@@ -12,6 +12,8 @@ from bs4 import BeautifulSoup, SoupStrainer
 pluginHandle = int(sys.argv[1])
 
 SITE = 'mtv'
+NAME = 'MTV'
+DESCRIPTION = "MTV is Music Television. It is the music authority where young adults turn to find out what's happening and what's next in music and popular culture. MTV reaches 412 million households worldwide, and is the #1 Media Brand in the world. Only MTV can offer the consistently fresh, honest, groundbreaking, fun and inclusive youth-oriented programming found nowhere else in the world. MTV is a network that transcends all the clutter, reaching out beyond barriers to everyone who's got eyes, ears and a television set."
 BASE = 'http://www.mtv.com'
 SHOWS = 'http://www.mtv.com/ontv/all/'
 POPULAR = 'http://www.mtv.com/ontv/'

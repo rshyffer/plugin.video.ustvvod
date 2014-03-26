@@ -14,6 +14,8 @@ from pyamf import remoting
 pluginHandle = int (sys.argv[1])
 
 SITE = 'marvelkids'
+NAME = 'Marvel Kids'
+DESCRIPTION = "Marvel started in 1939 as Timely Publications, and by the early 1950s had generally become known as Atlas Comics. Marvel\'s modern incarnation dates from 1961, the year that the company launched Fantastic Four and other superhero titles created by Stan Lee, Jack Kirby, Steve Ditko, and others. Marvel counts among its characters such well-known properties as Spider-Man, the X-Men, the Fantastic Four, Iron Man, the Hulk, Thor, Captain America and Daredevil; antagonists such as the Green Goblin, Magneto, Doctor Doom, Galactus, and the Red Skull. Most of Marvel\'s fictional characters operate in a single reality known as the Marvel Universe, with locations that mirror real-life cities such as New York, Los Angeles and Chicago."
 BASE = 'http://marvelkids.marvel.com'
 SHOWS = 'http://marvelkids.marvel.com/shows'
 CONST = '4c1b306cc23230173e7dfc04e68329d3c0c354cb'

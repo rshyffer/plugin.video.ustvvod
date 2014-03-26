@@ -15,6 +15,8 @@ from bs4 import BeautifulSoup, SoupStrainer
 pluginHandle = int(sys.argv[1])
 
 SITE = 'aetv'
+NAME = 'A&E'
+DESCRIPTION = "A&E is Real Life. Drama.  Now reaching more than 99 million homes, A&E is television that you can't turn away from; where unscripted shows are dramatic and scripted dramas are authentic.  A&E offers a diverse mix of high quality entertainment ranging from the network's original scripted series to signature non-fiction franchises, including the Emmy-winning \'Intervention,\' \'Dog The Bounty Hunter,\' \'Hoarders,\' \'Paranormal State\' and \'Criss Angel Mindfreak,\' and the most successful justice shows on cable, including \'The First 48\' and \'Manhunters.\'  The A&E website is located at www.aetv.com."
 SHOWS = 'http://www.aetv.com/allshows.jsp'
 BASE  = 'http://www.aetv.com'
 SEASONSCLIPS = 'http://www.aetv.com/minisite/videoajx.jsp?homedir=%s&pfilter=CLIPS'

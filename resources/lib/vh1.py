@@ -11,6 +11,8 @@ from bs4 import BeautifulSoup, SoupStrainer
 pluginHandle = int(sys.argv[1])
 
 SITE = 'vh1'
+NAME = 'VH1'
+DESCRIPTION = "VH1 connects viewers to the music, artists and pop culture that matter to them most with series, specials, live events, exclusive online content and public affairs initiatives. VH1 is available in 90 million households in the U.S. VH1 also has an array of digital services including VH1 Classic, VH1 Soul and VSPOT, VH1's broadband channel. Connect with VH1 at www.VH1.com."
 BASE = 'http://www.vh1.com'
 SHOWS = 'http://www.vh1.com/shows/all_vh1_shows.jhtml'
 
