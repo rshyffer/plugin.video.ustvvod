@@ -15,6 +15,8 @@ from bs4 import BeautifulSoup, SoupStrainer
 pluginHandle = int(sys.argv[1])
 
 SITE = 'cbs'
+NAME = 'CBS'
+DESCRIPTION = "CBS was established in 1928, when founder William Paley purchased 16 independent radio stations and christened them the Columbia Broadcast System. Today, with more than 200 television stations and affiliates reaching virtually every home in the United States, CBS's total primetime network lineup is watched by more than 130 million people a week during the 2010/2011 season. The Network has the #1 drama/scripted program, NCIS; #1 sitcom, TWO AND A HALF MEN; #1 newsmagazine, 60 MINUTES; and #1 daytime drama, THE YOUNG AND THE RESTLESS. Its programming arms include CBS Entertainment, CBS News and CBS Sports."
 SHOWS = 'http://www.cbs.com/carousels/showsByCategory/0/offset/0/limit/100'
 ORIGINALS = 'http://www.cbs.com/carousels/showsByCategory/4/offset/0/limit/100'
 MOVIES = 'http://www.cbs.com/carousels/showsByCategory/6/offset/0/limit/100'

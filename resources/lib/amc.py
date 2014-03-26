@@ -14,6 +14,8 @@ from pyamf import remoting
 pluginHandle = int(sys.argv[1])
 
 SITE = 'amc'
+NAME = 'AMC'
+DESCRIPTION = "AMC reigns as the only cable network in history to ever win the Emmy' Award for Outstanding Drama Series three years in a row, as well as the Golden Globe' Award for Best Television Series - Drama for three consecutive years.  Whether commemorating favorite films from every genre and decade or creating acclaimed original programming, the AMC experience is an uncompromising celebration of great stories.  AMC's original stories include 'Mad Men,' 'Breaking Bad,' 'The Walking Dead,' 'The Killing' and 'Hell on Wheels.'  AMC further demonstrates its commitment to the art of storytelling with AMC's Docu-Stories, a slate of unscripted original series, as well as curated movie franchises like AMC's Can't Get Enough and AMC's Crazy About.  Available in more than 97 million homes (Source: Nielsen Media Research), AMC is owned and operated by AMC Networks Inc. and its sister networks include IFC, Sundance Channel and WE tv.  AMC is available across all platforms, including on-air, online, on demand and mobile.  AMC: Story Matters HereSM."
 SHOWS = 'http://www.amctv.com/videos'
 VIDEOURL = 'http://www.amctv.com/index.php'
 CONST = '353d86e482b6e9ad425cfd0fbac5d21174cb0d55'

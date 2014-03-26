@@ -15,6 +15,8 @@ from bs4 import BeautifulSoup, SoupStrainer
 pluginHandle = int(sys.argv[1])
 
 SITE = 'msnbc'
+NAME = 'MSNBC'
+DESCRIPTION = "MSNBC is an American basic cable and satellite news television channel that is owned by the NBCUniversal News Group, a unit of the NBCUniversal Television Group division of NBCUniversal. The channel features news, information, and political opinion programming. Its name was derived from the most common abbreviations for Microsoft and the National Broadcasting Company.\nMSNBC and msnbc.com were founded in 1996 as partnerships of Microsoft and General Electric's NBC unit, which is now NBCUniversal. The online partnership of msnbc.com ended on July 16, 2012 and the site was rebranded as NBCNews.com. MSNBC shares the NBC logo of a rainbow peacock with its sister channels NBC, CNBC, and NBC Sports Network.\nBeginning in the mid-2000s, MSNBC assumed an increasingly liberal stance in its opinion programming. In October 2010, it publicly acknowledged this with a marketing campaign it called \"Lean Forward\". Further, in September of 2013, MSNBC launched its revamped official website under the tagline, \"What Progressives Have Been Waiting For.\"\nAs of August 2013, approximately 94,519,000 American households (82.77% of households with television) receive MSNBC"
 SHOWS = 'http://www.msnbc.com/api/1.0/shows.json'
 BASE = 'http://www.msnbc.com/'
 PLAYLIST = 'http://data.nbcnews.com/VideoRendering/PlaylistTemplate/%s'

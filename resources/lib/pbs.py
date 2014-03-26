@@ -18,6 +18,8 @@ from bs4 import BeautifulSoup, SoupStrainer
 pluginHandle = int (sys.argv[1])
 
 SITE = 'pbs'
+NAME = 'PBS'
+DESCRIPTION = "PBS and our member stations are America\'s largest classroom, the nation\'s largest stage for the arts and a trusted window to the world. In addition, PBS's educational media helps prepare children for success in school and opens up the world to them in an age-appropriate way."
 SHOWS = 'http://video.pbs.org/programs/list'
 SWFURL = 'http://www-tc.pbs.org/video/media/swf/PBSPlayer.swf?video=%s&player=viral'
 CLOSEDCAPTION = 'http://video.pbs.org/videoInfo/%s/?format=jsonp&callback=video_info'

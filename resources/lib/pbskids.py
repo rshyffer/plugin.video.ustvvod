@@ -15,6 +15,8 @@ import xbmcplugin
 pluginHandle = int (sys.argv[1])
 
 SITE = 'pbskids'
+NAME = 'PBS Kids'
+DESCRIPTION = 'PBS Kids is the brand for children\'s programming aired by the Public Broadcasting Service (PBS) in the United States founded in 1993. It is aimed at children ages 2 to 13.'
 SHOWS = 'http://pbskids.org/pbsk/video/api/getShows'
 SWFURL = 'http://www-tc.pbs.org/video/media/swf/PBSPlayer.swf?video=%s&player=viral'
 TYPES = ['Episode', 'Segment', 'Clip', 'Promotion', 'Interstitial', 'Other']

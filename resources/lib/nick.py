@@ -13,6 +13,8 @@ from bs4 import BeautifulSoup, SoupStrainer
 pluginHandle = int(sys.argv[1])
 
 SITE = 'nick'
+NAME = 'Nickelodeon'
+DESCRIPTION = "Nickelodeon, now in its 31st year, is the number-one entertainment brand for kids. It has built a diverse, global business by putting kids first in everything it does. The company includes television programming and production in the United States and around the world, plus consumer products, online, recreation, books and feature films. Nickelodeon's U.S. television network is seen in more than 100 million households and has been the number-one-rated basic cable network for 16 consecutive years."
 BASE = 'http://www.nick.com'
 SHOWS = 'http://www.nick.com/videos/all-videos'
 CLIPS = 'http://www.nick.com/ajax/all-videos-list/all-videos?type=showvideo&tag=%s'

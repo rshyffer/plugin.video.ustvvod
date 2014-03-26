@@ -16,6 +16,8 @@ from bs4 import BeautifulSoup, SoupStrainer
 pluginHandle = int(sys.argv[1])
 
 SITE = 'tvland'
+NAME = 'TV Land'
+DESCRIPTION = "TV Land is dedicated to presenting the best in entertainment on all platforms for consumers in their 40s. Armed with a slate of original programming, acquired classic shows, hit movies and fullservice website, TV Land is now seen in over 98 million U.S. homes. TV Land PRIME is TV Land's prime time programming destination designed for people in their mid-forties and the exclusive home to the premieres of the network's original programming, contemporary television series acquisitions and movies."
 BASE = 'http://www.tvland.com'
 SHOWS = 'http://www.tvland.com/full-episodes'
 CLIPS = 'http://www.tvland.com/video-clips'

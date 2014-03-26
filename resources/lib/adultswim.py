@@ -12,6 +12,8 @@ from bs4 import BeautifulSoup
 pluginHandle = int(sys.argv[1])
 
 SITE = 'adultswim'
+NAME = "Adult Swim"
+DESCRIPTION = "Cartoon Network (CartoonNetwork.com), currently seen in more than 97 million U.S. homes and 166 countries around the world, is Turner Broadcasting System, Inc.'s ad-supported cable service now available in HD offering the best in original, acquired and classic entertainment for youth and families.  Nightly from 10 p.m. to 6 a.m. (ET, PT), Cartoon Network shares its channel space with Adult Swim, a late-night destination showcasing original and acquired animated and live-action programming for young adults 18-34 "
 SHOWS = 'http://asfix.adultswim.com/staged/AS.configuration.xml?cacheID=1382732985626'
 SEASONSCLIPS = 'http://video.adultswim.com/adultswimdynamic/asfix-svc/episodeSearch/getAllEpisodes?limit=0&offset=0&sortByDate=DESC&filterByEpisodeType=PRE,CLI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true'
 SEASONSEPISODES = 'http://video.adultswim.com/adultswimdynamic/asfix-svc/episodeSearch/getAllEpisodes?limit=0&offset=0&sortByDate=DESC&filterByEpisodeType=EPI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true'
@@ -167,3 +169,4 @@ def play_video(video_url = _common.args.url):
 		stack_url += file_url.replace(',', ',,') + ' , '
 	finalurl = stack_url[:-3]
 	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
+
