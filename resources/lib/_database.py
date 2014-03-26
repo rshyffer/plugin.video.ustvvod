@@ -24,6 +24,11 @@ class _Info:
 args = _Info(sys.argv[2][1:].replace('&', ' , '))
 
 def execute_command(command, values = [], commit = False, fetchone = False, fetchall = False, dbfile = DBFILE):
+
+	# make sure the database path exists
+	if not os.path.exists(DBFILE):
+		os.makedirs(os.path.dirname(DBFILE)) 
+
 	conn = sqlite.connect(dbfile)
 	conn.text_factory = str
 	c = conn.cursor()
