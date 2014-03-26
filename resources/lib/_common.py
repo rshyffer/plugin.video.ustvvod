@@ -8,6 +8,7 @@ import os
 import sys
 import time
 import urllib
+import importlib
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -204,6 +205,9 @@ def refresh_db():
 		if _addoncompat.get_setting(network) == 'true':
 			percent = int(increment * current)
 			dialog.update(percent, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39017)) + name, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39018)))
+
+			module = importlib.import_module('resources.lib.%s' % (network))
+			showdata = module.masterlist()
 			exec 'import %s' % network
 			exec 'showdata = %s.masterlist()' % network
 			total_shows = len(showdata)
