@@ -5,6 +5,8 @@ import _main_abcdisney
 BRANDID = '003'
 PARTNERID = '585231'
 SITE = 'abcnews'
+NAME = "ABC News"
+DESCRIPTION = "ABC News is responsible for all of the ABC Television Network's news programming on a variety of platforms: TV, radio and the Internet."
 
 def masterlist():
 	return _main_abcdisney.masterlist(SITE, BRANDID)
@@ -20,3 +22,4 @@ def episodes():
 
 def play_video():
 	_main_abcdisney.play_video(SITE, BRANDID, PARTNERID)
+
