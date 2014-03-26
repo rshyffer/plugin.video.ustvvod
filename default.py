@@ -24,7 +24,6 @@ def modes():
 		networks = _common.get_networks()
 		networks.sort(key = lambda x: x.SITE)
 		for network in networks:
-			print "load " + network.SITE
 			if _addoncompat.get_setting(network.SITE) == 'true':
 				if network.NAME.endswith(', The'):
 					name = 'The ' +network.NAME.replace(', The', '')
