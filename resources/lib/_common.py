@@ -92,6 +92,12 @@ def get_networks():
 				networks.append(network)
 	return networks
 
+def get_quality_method():
+	val = _addoncompat.get_setting('qualityMethod')
+	if val == "Lowest":
+		return "LOW"
+	return "HIGH"
+	
 def set_view(type = 'root'):
 	confluence_views = [500,501,502,503,504,508]
 	if type == 'root':
@@ -178,7 +184,7 @@ def refresh_db():
 	increment = 100.0 / total_stations
 	for network in networks:
 		network_name = network.NAME
-		if _addoncompat.get_setting(network_data["id"]) == 'true':
+		if _addoncompat.get_setting(network.SITE) == 'true':
 			percent = int(increment * current)
 			dialog.update(percent, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39017)) + network.NAME, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39018)))
 			showdata = network.masterlist()
@@ -437,14 +443,13 @@ def load_showlist(favored = 0):
 	if not os.path.exists(_database.DBFILE):
 		_database.create_db()
 		refresh_db()
-	else:
+	elif not favored:
 		refresh = False
 		command = 'select distinct mode from shows order by mode'
 		modes = _database.execute_command(command, fetchall = True)
 		mode_list = [element[0] for element in modes]
 		for network in get_networks():
-			network_id = network.SITE
-			if _addoncompat.get_setting(network_id) == 'true' and network_id not in mode_list:
+			if _addoncompat.get_setting(network.SITE) == 'true' and network.SITE not in mode_list:
 				refresh = True
 		if refresh:
 			refresh_db()
@@ -473,6 +478,9 @@ def add_show(series_title, mode = '', sitemode = '', url = '', favor = 0, hide =
 	showdata = get_show_data(series_title, mode, sitemode, url)
 	series_title, mode, sitemode, url, tvdb_id, imdb_id, tvdbbanner, tvdbposter, tvdbfanart, first_aired, date, year, actors, genres, network, plot, runtime, rating, airs_dayofweek, airs_time, status, has_full_episodes, favor, hide, tvdb_series_title = showdata
 	network_module = get_network(mode)
+	if not network_module:
+		return
+		
 	network_name = network_module.NAME
 	network_description = network_module.DESCRIPTION
 	if tvdbfanart is not None:
