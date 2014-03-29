@@ -1,4 +1,8 @@
+version 1.0.1
+
+  * context menu - forgotten name changes
+  * 
 
 version 1.0.0
 
-  * initial relase of USTV VoD (old name FREE CABLE)
+  * initial release of USTV VoD (formerly FREE CABLE)
