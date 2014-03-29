@@ -119,6 +119,12 @@ def format_date(inputDate = '', inputFormat = '', outputFormat = '%Y-%m-%d', epo
 	else:
 		return time.strftime(outputFormat, time.strptime(inputDate, inputFormat))
 
+def convert_to_timezone(inputDate = '', inputFormat = '', timezone = 0, epoch = False):
+	if epoch:
+		return epoch + (timezone*3600 + time.timezone)
+	else:
+		return time.strftime(inputFormat, time.localtime(time.mktime(time.strptime(inputDate, inputFormat)) + (timezone*3600 + time.timezone)))
+
 def format_seconds(timestring):
 	if timestring[0] == ':':
 		timestring = '0' + timestring
