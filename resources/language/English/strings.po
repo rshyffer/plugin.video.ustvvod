@@ -210,27 +210,27 @@ msgid "Looking up "
 msgstr ""
 
 msgctxt "#39006"
-msgid "FC - Remove Favorite Mark"
+msgid "USTV VoD - Remove Favorite Mark"
 msgstr ""
 
 msgctxt "#39007"
-msgid "FC - Mark as Favorite"
+msgid "USTV VoD - Mark as Favorite"
 msgstr ""
 
 msgctxt "#39008"
-msgid "FC - Refresh TVDB Data"
+msgid "USTV VoD - Refresh TVDB Data"
 msgstr ""
 
 msgctxt "#39009"
-msgid "FC - UnHide Show"
+msgid "USTV VoD - UnHide Show"
 msgstr ""
 
 msgctxt "#39010"
-msgid "FC - Hide Show"
+msgid "USTV VoD - Hide Show"
 msgstr ""
 
 msgctxt "#39011"
-msgid "FC - Delete Show"
+msgid "USTV VoD - Delete Show"
 msgstr ""
 
 msgctxt "#39012"
@@ -270,7 +270,7 @@ msgid "Select best match: "
 msgstr ""
 
 msgctxt "#39021"
-msgid "FC - Refresh All TVDB Data"
+msgid "USTV VoD - Refresh All TVDB Data"
 msgstr ""
 
 msgctxt "#39022"
