@@ -27,18 +27,14 @@ def masterlist():
 	master_doubles = []
 	master_data = _connection.getURL(SHOWS)
 	master_tree = BeautifulSoup(master_data, 'html.parser', parse_only = SoupStrainer('ul'))
-	master_menu = master_tree.find_all('ul', class_ = 'shows_list')[1].find_all('a')
-	master_menu2 = master_tree.find('li', 'nav_item_3').find_all('a', href = re.compile('[^#]+'))
+	master_menu = master_tree.find('li', class_ = 'nav_item_3').find_all('a', href = re.compile('[^#]+'))
 	for master_item in master_menu:
-		master_name = master_item.find('span').string
-		master_doubles.append(master_name)
-		season_url = master_item['href']
-		master_db.append((master_name, SITE, 'seasons', season_url))
-	for master_item in master_menu2:
 		master_name = master_item.string
 		if master_name not in master_doubles and master_name.split(' with ')[0] not in master_doubles:
 			season_url = master_item['href']
-			_common.add_show(master_name, SITE, 'seasons', season_url)
+			if season_url.endswith('full-episodes'):
+				season_url = season_url[:-13]
+			master_db.append(master_name, SITE, 'seasons', season_url)
 	return master_db
 
 def rootlist():
@@ -52,6 +48,8 @@ def rootlist():
 		root_name = root_item.string
 		if root_name not in root_doubles and root_name.split(' with ')[0] not in root_doubles:
 			season_url = root_item['href']
+			if season_url.endswith('full-episodes'):
+				season_url = season_url[:-13]
 			_common.add_show(root_name, SITE, 'seasons', season_url)
 	_common.set_view('tvshows')
 
