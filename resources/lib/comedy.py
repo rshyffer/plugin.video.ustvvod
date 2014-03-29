@@ -1,4 +1,4 @@
-﻿#!/usr/bin/python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 import _addoncompat
 import _common
@@ -7,6 +7,7 @@ import _main_viacom
 import re
 import sys
 import urllib
+import simplejson
 from  itertools import izip
 from bs4 import BeautifulSoup, SoupStrainer
 
@@ -15,8 +16,8 @@ pluginHandle = int(sys.argv[1])
 SITE = 'comedy'
 NAME = 'Comedy Central'
 DESCRIPTION = "COMEDY CENTRAL, the #1 brand in comedy, is available to over 99 million viewers nationwide and is a top-rated network among men ages 18-24 and 18-34 and adults ages 18-49.  With on-air, online and on-the-go mobile technology, COMEDY CENTRAL gives its audience access to the cutting-edge, laugh-out-loud world of comedy wherever they go.  Hit series include Tosh.0, Workaholics, Futurama, Key & Peele, Ugly Americans and the Emmy' and Peabody' Award-winning series The Daily Show with Jon Stewart, The Colbert Report and South Park.  COMEDY CENTRAL is also involved in producing nationwide stand-up tours, boasts its own record label and operates one of the most successful home entertainment divisions in the industry.  COMEDY CENTRAL is owned by, and is a registered trademark of Comedy Partners, a wholly-owned unit of Viacom Inc. (NASDAQ: VIA and VIAB).  For more information visit COMEDY CENTRAL's press Web site at www.cc.com/press or the network's consumer site at www.comedycentral.com and follow us on Twitter @ComedyCentralPR for the latest in breaking news updates, behind-the-scenes information and photos."
-BASE = 'http://www.comedycentral.com'
-SHOWS = 'http://www.comedycentral.com/shows'
+BASE = 'http://www.cc.com'
+SHOWS = 'http://www.cc.com/shows'
 VIDEOURL = 'http://media.mtvnservices.com/'
 MP4URL = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=0+_pxK=18639/44620/mtvnorigin'
 
@@ -46,14 +47,8 @@ def rootlist():
 	root_url = SHOWS
 	root_data = _connection.getURL(root_url)
 	root_tree = BeautifulSoup(root_data, 'html.parser', parse_only = SoupStrainer('ul'))
-	root_menu = root_tree.find_all('ul', class_ = 'shows_list')[1].find_all('a')
-	root_menu2 = root_tree.find('li', 'nav_item_3').find_all('a', href = re.compile('[^#]+'))
+	root_menu = root_tree.find('li', class_ = 'nav_item_3').find_all('a', href = re.compile('[^#]+'))
 	for root_item in root_menu:
-		root_name = root_item.find('span').string
-		season_url = root_item['href']
-		root_doubles.append(root_name)
-		_common.add_show(root_name, SITE, 'seasons', season_url)
-	for root_item in root_menu2:
 		root_name = root_item.string
 		if root_name not in root_doubles and root_name.split(' with ')[0] not in root_doubles:
 			season_url = root_item['href']
@@ -112,7 +107,9 @@ def episodes(episode_url = _common.args.url, page = 1):
 		episode_tree = BeautifulSoup(episode_data, 'html5lib')
 	if 'Clips' in _common.args.name  :
 		if 'colbertnation' in episode_url:
-			add_clips_colbertnation(episode_tree)
+			add_videos_colbertnation(episode_tree, 'videos', ['t6_lc_promo1'])
+		elif 'dailyshow' in episode_url:
+			add_videos_colbertnation(episode_tree, 'videos', ['t6_lc_promo1'])
 		elif 'southpark' in episode_url:
 			add_clips_southpark(episode_tree)
 		else:
@@ -131,8 +128,10 @@ def episodes(episode_url = _common.args.url, page = 1):
 				except:
 					pass
 	else:
-		if ('colbertnation' in episode_url) or ('dailyshow' in episode_url):
-			add_fullepisodes_colbertnation(episode_tree)
+		if 'colbertnation' in episode_url:
+			add_videos_colbertnation(episode_tree, 'episodes', ['t6_lc_promo1'])
+		elif  'dailyshow' in episode_url:
+			add_videos_colbertnation(episode_tree, 'episodes', ['t6_lc_promo1', 't6_lc_promo2'])
 		elif 'southpark' in episode_url:
 			add_fullepisodes_southpark(episode_tree)
 		else:
@@ -150,36 +149,51 @@ def episodes(episode_url = _common.args.url, page = 1):
 					pass
 	_common.set_view('episodes')
 
-def add_fullepisodes_colbertnation(episode_tree):
+def add_videos_colbertnation(episode_tree, type, feeds):
 	try:
-		episode_menu = episode_tree.find('div', class_ = 'more_episode_listening').find_all('div', class_ = 'full_episode')
-		tooltip_menu = episode_tree.find_all('div', class_ = 'carousel_view_tooltip')
-		for episode_item, tooltip_item in izip(episode_menu, tooltip_menu):
-			try:
-				episode_name = episode_item.find('span', class_ = 'air_date').text + ' - ' + episode_item.find('span', class_ = 'guest').text
-			except:
-				episode_name = episode_item.find('span', class_ = 'title').text
-			meta = tooltip_item.find('p', class_ = 'meta').string
-			episode_airdate = re.compile('([0-9]+/[0-9]+/[0-9]+)').findall(meta)[0]
-			episode_airdate = _common.format_date(episode_airdate , '%m/%d/%Y', '%d.%m.%Y')
-			episode_plot = tooltip_item.find('p', class_ = 'description').string
-			episode_thumb = episode_item.img['src'].split('?')[0]
-			url = episode_item.a['href']
-			try:
-				season_number, episode_number = re.compile('([0-9]{2})([0-9]{3})').findall(meta)[0]
-			except:
-				episode_number = -1
-				season_number = -1
-			u = sys.argv[0]
-			u += '?url="' + urllib.quote_plus(url) + '"'
-			u += '&mode="' + SITE + '"'
-			u += '&sitemode="play_video"'
-			infoLabels={	'title' : episode_name,
-							'season' : season_number,
-							'episode' : episode_number,
-							'plot' : episode_plot,
-							'premiered' : episode_airdate }
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+		shows = []
+		scripts = episode_tree.find('script')
+		for script in scripts:
+			if ('triforceManifestFeed') in script:
+				triforceManifestFeed = script.split(' = ')[1]
+				triforceManifestFeed = triforceManifestFeed.strip()[:-1] # remove last ; from string
+				triforceManifestFeed = simplejson.loads(triforceManifestFeed)
+				break
+		for feed in feeds:
+			url = triforceManifestFeed['manifest']['zones'][feed]['feed']
+			data = _connection.getURL(url)
+			menu = simplejson.loads(data)
+			for item in menu['result'][type]:
+				episode_name = item['title']
+				epoch = float(item['airDate'])
+				epoch = _common.convert_to_timezone(epoch, '', -5, epoch)  
+				episode_airdate = _common.format_date(epoch , '', '%d.%m.%Y', epoch)
+				episode_plot = item['shortDescription']
+				episode_thumb = item['images'][0]['url']
+				url = item['url']
+				if not url:
+					url = item['canonicalURL']
+				try:
+					season_number = item['season']['seasonNumber']
+					episode_number = str(int(str(item['season']['episodeNumber'])[len(str(season_number)):]))
+				except:
+					season_number = -1
+					episode_number = -1
+				u = sys.argv[0]
+				u += '?url="' + urllib.quote_plus(url) + '"'
+				u += '&mode="' + SITE + '"'
+				u += '&sitemode="play_video"'
+				infoLabels={	'title' : episode_name,
+								'season' : season_number,
+								'episode' : episode_number,
+								'plot' : episode_plot,
+								'premiered' : episode_airdate }
+				show = {'u': u, 'episode_name': episode_name, 'episode_thumb': episode_thumb, 'infoLabels': infoLabels, 'epoch': epoch}
+				shows.append(show)
+		if len(shows):
+			shows = sorted(shows, key=lambda show: show['epoch'], reverse=True)
+			for show in shows:
+				_common.add_video(show['u'], show['episode_name'], show['episode_thumb'], infoLabels = show['infoLabels'], quality_mode  = 'list_qualities')
 	except:
 		pass
 
@@ -270,45 +284,6 @@ def add_video(episode_tree, episode = False):
 								'plot' : episode_plot,
 								'premiered' : episode_airdate }
 				_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	except:
-		pass
-
-def add_clips_colbertnation(episode_tree):
-	try:
-		episode_menu = episode_tree.find_all('div', class_ = 'video_result')
-		for episode_item in episode_menu:
-			episode_name = episode_item.find('a', class_ = 'clipTitle').string
-			episode_plot = episode_item.find('p', class_ = 'description').string
-			url = episode_item.find('a', class_ = 'clipTitle')['href']
-			episode_thumb = episode_item.find('img')['src'].split('?')[0]
-			try:
-				episode_airdate = episode_item.find('span', class_ = 'posted').string.replace('Aired: ','')
-				episode_airdate = _common.format_date(episode_airdate, '%m/%d/%Y', '%d.%m.%Y')
-			except:
-				episode_airdate = -1
-			try:
-				episode_duration_mins,episode_duration_secs = re.compile('([0-9]*):([0-9]*)').findall(episode_plot)[0]
-				episode_duration = int(episode_duration_mins) * 60 + int(episode_duration_secs)
-				episode_plot = re.sub(re.compile('\(([0-9]*):([0-9]*)\)'), '', episode_plot)
-			except:
-				episode_duration = -1
-			try:
-				episode_number = episode_item.find('p', class_ = 'episode').string.replace('Episode #', '')
-				season_number = int(episode_number[:2])
-				episode_number = int(episode_number[2:])
-			except:
-				episode_number = -1
-			u = sys.argv[0]
-			u += '?url="' + urllib.quote_plus(url) + '"'
-			u += '&mode="' + SITE + '"'
-			u += '&sitemode="play_video"'
-			infoLabels={	'title' : episode_name,
-							'durationinseconds' : episode_duration,
-							'episode' : episode_number,
-							'plot' : episode_plot,
-							'premiered' : episode_airdate,
-							'tvshowtitle' : 'The Colbert Report' }
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 	except:
 		pass
 
