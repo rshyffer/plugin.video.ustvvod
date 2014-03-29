@@ -34,7 +34,7 @@ def modes():
 		_common.add_directory(_common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39002)), 'Masterlist', 'NoUrl', thumb = _common.ALLICON, count = count, description = _common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39003)) + '\n' + all_description)
 		count += 1
 
-		for network in _common.get_networks():
+		for network in networks:
 			network_name = network.NAME
 			station_icon = os.path.join(_common.IMAGEPATH, network.SITE + '.png')
 			if network_name.endswith(', The'):
