@@ -53,7 +53,9 @@ args = _Info(sys.argv[2][1:].replace('&', ' , '))
 network_module_cache = {}
 
 def get_network(module_name):
-
+	""" 
+	Loads network using a quick and dirty plugin method
+	"""
 	if module_name in network_module_cache:
 		return network_module_cache[module_name]
 
@@ -80,17 +82,15 @@ def get_network(module_name):
 		
 def get_networks():
 	""" 
-	Loads networks using a quick and dirty way 
+	Loads all networks using a quick and dirty plugin method
 	"""
-	network_path = os.path.dirname(os.path.realpath(__file__))
 	networks = []
-	for filename in os.listdir(network_path):
+	for filename in os.listdir(LIBPATH):
 		if filename.endswith('.py') and not filename.startswith('_'):
 			module_name = os.path.splitext(filename)[0]
 			network = get_network(module_name)
 			if network:
 				networks.append(network)
-	return networks
 
 def get_quality_method():
 	val = _addoncompat.get_setting('qualityMethod')
