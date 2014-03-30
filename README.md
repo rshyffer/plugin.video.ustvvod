@@ -1,5 +1,5 @@
 USTV VoD (Video-on-Demand) add-on for XBMC
-================================
+==========================================
 
 This plugin provides content of available videos, shows and epsiodes from u.s. network channels, 
 and allows you to watch them in XBMC.
@@ -32,12 +32,13 @@ see the [XBMC Wiki page] [xbmc-wiki-log-file] for information.
 
 Contact Me
 ----------
-For anything else, you can contact me by email at forum.xbmc.org.
+For anything else, you can contact me at [forum.xbmc.org] [moneymaker].
 
-[repository]: http://home.no/xbmcplus/fusion/repository/
-[download]: http://home.no/xbmcplus/fusion/plugins/plugin.video.ustvvod/
+[repository]: https://home.no/xbmcplus/fusion/repository/
+[download]: https://home.no/xbmcplus/fusion/plugins/plugin.video.ustvvod/
 [githubzip]: https://github.com/moneymaker365/plugin.video.ustvvod/archive/master.zip
 [issues]: https://github.com/moneymaker365/plugin.video.ustvvod/issues
 [gist]: https://gist.github.com
 [xbmclogs]: http://xbmclogs.com/
+[moneymaker]: http://forum.xbmc.org/member.php?action=profile&uid=116826
 [xbmc-wiki-log-file]: http://wiki.xbmc.org/index.php?title=Log_file/Advanced#Log_files
