@@ -3,12 +3,12 @@
 import _addoncompat
 import _connection
 import _database
+import _importlib
 import base64
 import os
 import sys
 import time
 import urllib
-import importlib
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -59,7 +59,7 @@ def get_network(module_name):
 
 	print "!!! plugin loading of site : " + module_name 
 	try:
-		module = importlib.import_module('resources.lib.%s' % (module_name))
+		module = _importlib.import_module('resources.lib.%s' % (module_name))
 
 		# module must at least have site and rootlist defined
 		if hasattr(module, 'SITE') and hasattr(module, 'rootlist'):
