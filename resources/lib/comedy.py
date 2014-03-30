@@ -62,9 +62,10 @@ def seasons(season_url = _common.args.url):
 		season_url2 = season_menu['href']
 		if 'http' not in season_url2:
 			season_url2 = season_url + season_url2
+		_common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
+	elif 'episode' in season_url:
 		if 'South Park' in _common.args.name:
-			season_data2 = _connection.getURL(season_url2)
-			seasons = BeautifulSoup(season_data2, 'html5lib').find_all('a',class_='seasonbtn')
+			seasons = BeautifulSoup(season_data, 'html5lib').find_all('a',class_='seasonbtn')
 			if seasons:
 				for season in seasons:
 					try:
@@ -73,9 +74,7 @@ def seasons(season_url = _common.args.url):
 						display = 'Special %s' %season.string
 					_common.add_directory(display,  SITE, 'episodes', season['href'] )
 		else:
-			_common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
-	elif 'episode' in season_url:
-		_common.add_directory('Full Episodes',  SITE, 'episodes', season_url)
+			_common.add_directory('Full Episodes',  SITE, 'episodes', season_url)
 	print season_url
 	if season_menu2 is not None:
 		season_url3 = season_menu2['href']
