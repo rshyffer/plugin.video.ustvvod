@@ -565,7 +565,7 @@ def add_show(series_title, mode = '', sitemode = '', url = '', favor = 0, hide =
 	u += '&thumb="' + urllib.quote_plus(thumb) + '"'
 	if tvdb_id is not None:
 		u += '&tvdb_id="' + urllib.quote_plus(tvdb_id) + '"'
-	if PLUGINFANART is not fanart:
+	if PLUGINFANART is not fanart and fanart is not None:
 		u += '&fanart="' + urllib.quote_plus(fanart) + '"'
 	if tvdbposter is not None:
 		u += '&poster="' + urllib.quote_plus(tvdbposter) + '"'
