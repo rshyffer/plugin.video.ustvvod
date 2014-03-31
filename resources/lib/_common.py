@@ -91,6 +91,7 @@ def get_networks():
 			network = get_network(module_name)
 			if network:
 				networks.append(network)
+	return networks
 
 def get_quality_method():
 	val = _addoncompat.get_setting('qualityMethod')
