@@ -32,6 +32,7 @@ APP = 'ondemand'
 IDENTURL = 'http://%s/fcs/ident' % RTMP
 SWFURL = 'http://video.nbcuni.com/core/6.6.1/OSMFPlayer.swf'
 SMIL = 'http://link.theplatform.com/s/NnzsPC/%s?mbr=true&player=Onsite%%20Player&policy=43674&manifest=m3u&format=SMIL&Tracking=true&Embedded=true'
+TONIGHT_SHOW_FEED = '%s/content/a/filter-items/?type=video'
 
 def masterlist():
 	master_db = []
@@ -55,6 +56,9 @@ def rootlist():
 	_common.set_view('tvshows')
 
 def seasons(season_url = _common.args.url):
+	if 'the-tonight-show' in season_url:
+		add_show_thetonightshow(season_url)
+		return
 	season_url = season_url + '/video'
 	season_data = _connection.getURL(season_url)
 	season_tree  = BeautifulSoup(season_data, 'html5lib')
@@ -68,6 +72,12 @@ def seasons(season_url = _common.args.url):
 	_common.set_view('seasons')
 
 def episodes(episode_url = _common.args.url):
+	if 'the-tonight-show' in episode_url:
+		if 'Clips' in _common.args.name:
+			add_videos_thetonightshow(episode_url, 'segment')
+		else:
+			add_videos_thetonightshow(episode_url, 'episode')
+		return
 	episode_data = _connection.getURL(episode_url)
 	episode_json = simplejson.loads(episode_data)
 	episode_menu = episode_json['entries']
@@ -109,7 +119,59 @@ def episodes(episode_url = _common.args.url):
 		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 	_common.set_view('episodes')
 
-def play_video(video_url = _common.args.url):
+def add_show_thetonightshow(url):
+	#_common.add_directory('Full Episodes',  SITE, 'episodes', url)
+	_common.add_directory('Clips',  SITE, 'episodes', url)
+	_common.set_view('seasons')
+
+def add_videos_thetonightshow(url, type_, page = 1, added_episodes = []):
+	this_url = (TONIGHT_SHOW_FEED % url) + '&offset=' + str((page-1) * 10)
+	root_data = _connection.getURL(this_url)
+	data = simplejson.loads(root_data)
+	for video in data['content']:
+		if video['type'] == type_:
+			if type_ == 'episode':
+				episode_name = video['name']
+				episode_id = video['episodeNumber']
+			else:
+				episode_name = video['title']
+				episode_id = video['id']
+			if episode_id in added_episodes:
+				continue
+			added_episodes.append(episode_id)
+			episode_url = url + '/' + type_ + 's/' + episode_id
+			episode_plot = BeautifulSoup(video['description']['value']).p.string
+			try:
+				episode_airdate = _common.format_date(video['airDate'][:-6],'%Y-%m-%dT%H:%M:%S','%d.%m.%Y')
+			except:
+				episode_airdate = -1
+			try:
+				season_number = int(video['season'])
+			except:
+				season_number = -1
+			try:
+				episode_number = int(video['episodeNumber'])
+			except:
+				episode_number = -1
+			try:
+				episode_thumb = video['images'][0]['bitImageSmall']
+			except:
+				episode_thumb = None
+			u = sys.argv[0]
+			u += '?url="' + urllib.quote_plus(episode_url) + '"'
+			u += '&mode="' + SITE + '"'
+			u += '&sitemode="play_video_thetonightshow"'
+			infoLabels={	'title' : episode_name,
+							'season' : season_number,
+							'episode' : episode_number,
+							'plot' : episode_plot,
+							'premiered' : episode_airdate}
+			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+	if page < int(_addoncompat.get_setting('maxpages')):
+		add_videos_thetonightshow(url, type_, page + 1, added_episodes)
+	_common.set_view('episodes')
+
+def play_video(video_url = _common.args.url, tonightshow = False):
 	try:
 		qbitrate = _common.args.quality
 	except:
@@ -123,7 +185,25 @@ def play_video(video_url = _common.args.url):
 	except:
 		pass
 	clip_id = smil_tree.video.find('param', attrs = {'name' : 'clipId'})
-	if clip_id is not None:
+	if tonightshow:
+		localhttpserver = False
+		hbitrate = -1
+		sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+		if qbitrate is None:
+			video_url3 = smil_tree.find_all('video')
+			for video_index in video_url3:
+				bitrate = int(video_index['system-bitrate'])
+				if bitrate > hbitrate and bitrate <= sbitrate:
+					hbitrate = bitrate
+					playpath_url = video_index['src']
+		else:
+			playpath_url = 'mp4:' + smil_tree.switch.find('video', attrs = {'system-bitrate' : qbitrate})['src']
+		try:
+			closedcaption = smil_tree.find('textstream')['src']
+		except:
+			closedcaption = None
+		finalurl = playpath_url
+	elif clip_id is not None:
 		clip_id = clip_id['value']
 		video_url = VIDEOPAGE % clip_id
 		video_data = _connection.getURL(video_url)
@@ -200,6 +280,16 @@ def play_video(video_url = _common.args.url):
 		while xbmc.Player().isPlaying():
 			xbmc.sleep(1000)
 		_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
+
+def play_video_thetonightshow(video_url = _common.args.url):
+	video_data = _connection.getURL(video_url)
+	video_tree = BeautifulSoup(video_data, 'html.parser')
+	video_url2 = video_tree.find('iframe', class_ = 'player')['src']
+	video_data2 = _connection.getURL(video_url2)
+	video_tree2 = BeautifulSoup(video_data2, 'html.parser')
+	video_url3 = video_tree2.find('div', class_ = 'tpPlayer')['tp:releaseurl']
+	video_url3 = video_url3 + '&switch=http'
+	play_video(video_url3, True)
 
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')
