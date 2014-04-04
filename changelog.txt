@@ -1,7 +1,13 @@
 version 1.0.1
 
   * context menu - forgotten name changes
-  * 
+  * fixed Daily Show & Colbert Report
+  * sort networks alphabetically
+  * fixed none available SouthPark shows
+  * create README.md (GitHub source)
+  * use varible library path instead of remapping path
+  * fixed NatGeo network
+  * fixed Tonight Show
 
 version 1.0.0
 
