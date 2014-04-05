@@ -34,7 +34,7 @@ def masterlist():
 			season_url = master_item['href']
 			if season_url.endswith('full-episodes'):
 				season_url = season_url[:-13]
-			master_db.append(master_name, SITE, 'seasons', season_url)
+			master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
 def rootlist():
