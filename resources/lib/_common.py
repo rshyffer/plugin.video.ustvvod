@@ -464,7 +464,7 @@ def load_showlist(favored = 0):
 	command = 'select series_title, mode, submode, url, favor, hide from shows order by series_title'
 	shows = _database.execute_command(command, fetchall = True) 
 	for series_title, mode, sitemode, url, favor, hide in shows:
-		if _addoncompat.get_setting(mode) == False:
+		if _addoncompat.get_setting(mode) != 'true':
 			continue
 		elif hide is 1:
 			continue
@@ -473,6 +473,7 @@ def load_showlist(favored = 0):
 		add_show(series_title, mode, sitemode, url, favor = favor, hide = hide)	
 
 def add_show(series_title, mode = '', sitemode = '', url = '', favor = 0, hide = 0):
+	#print "add show from ",mode, series_title
 	infoLabels = {}
 	tvdbfanart = None
 	tvdbbanner = None
