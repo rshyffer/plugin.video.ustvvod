@@ -26,9 +26,11 @@ def masterlist():
 	master_db = []
 	master_doubles = []
 	master_data = _connection.getURL(SHOWS)
-	master_tree = BeautifulSoup(master_data, 'html.parser', parse_only = SoupStrainer('ul'))
-	master_menu = master_tree.find('li', class_ = 'nav_item_3').find_all('a', href = re.compile('[^#]+'))
+	master_tree = BeautifulSoup(master_data, 'html5lib')
+	master_menu = master_tree.find('div', class_ = 'full_episodes').find_all('a', href = re.compile('[^#]+'))
 	for master_item in master_menu:
+		if root_item['href'] == "/":
+			continue
 		master_name = master_item.string
 		if master_name not in master_doubles and master_name.split(' with ')[0] not in master_doubles:
 			season_url = master_item['href']
@@ -42,9 +44,11 @@ def rootlist():
 	root_doubles = []
 	root_url = SHOWS
 	root_data = _connection.getURL(root_url)
-	root_tree = BeautifulSoup(root_data, 'html.parser', parse_only = SoupStrainer('ul'))
-	root_menu = root_tree.find('li', class_ = 'nav_item_3').find_all('a', href = re.compile('[^#]+'))
+	root_tree = BeautifulSoup(root_data, 'html5lib')
+	root_menu = root_tree.find('div', class_ = 'full_episodes').find_all('a', href = re.compile('[^#]+'))
 	for root_item in root_menu:
+		if root_item['href'] == "/":
+			continue
 		root_name = root_item.string
 		if root_name not in root_doubles and root_name.split(' with ')[0] not in root_doubles:
 			season_url = root_item['href']
