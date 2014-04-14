@@ -34,8 +34,6 @@ def masterlist():
 		master_name = master_item.string
 		if master_name not in master_doubles and master_name.split(' with ')[0] not in master_doubles:
 			season_url = master_item['href']
-			if season_url.endswith('full-episodes'):
-				season_url = season_url[:-13]
 			master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
@@ -52,16 +50,20 @@ def rootlist():
 		root_name = root_item.string
 		if root_name not in root_doubles and root_name.split(' with ')[0] not in root_doubles:
 			season_url = root_item['href']
-			if season_url.endswith('full-episodes'):
-				season_url = season_url[:-13]
 			_common.add_show(root_name, SITE, 'seasons', season_url)
 	_common.set_view('tvshows')
 
 def seasons(season_url = _common.args.url):
 	season_data = _connection.getURL(season_url)
 	season_tree = BeautifulSoup(season_data, 'html.parser', parse_only = SoupStrainer('div'))
-	season_menu = season_tree.find('a', text = re.compile('full episodes', re.IGNORECASE))
-	season_menu2 = season_tree.find('a', href = re.compile('(?<!stand-up)/(video|clips)'))
+	if 'dailyshow'in season_url or 'colbertreport' in season_url:
+		season_menu = dict()
+		season_menu['href'] = season_url
+		season_menu2 = dict()
+		season_menu2['href'] = season_url
+	else:
+		season_menu = season_tree.find('a', text = re.compile('full episodes', re.IGNORECASE))
+		season_menu2 = season_tree.find('a', href = re.compile('(?<!stand-up)/(video|clips)'))
 	if season_menu is not None:
 		season_url2 = season_menu['href']
 		if 'http' not in season_url2:
@@ -107,10 +109,10 @@ def episodes(episode_url = _common.args.url, page = 1):
 	if episode_tree is  None:
 		episode_tree = BeautifulSoup(episode_data, 'html5lib')
 	if 'Clips' in _common.args.name  :
-		if 'colbertnation' in episode_url:
-			add_videos_colbertnation(episode_tree, 'videos', ['t6_lc_promo1'])
+		if 'colbertreport' in episode_url:
+			add_videos_colbertnation(episode_tree, 'videos', ['t6_lc_promo4'])
 		elif 'dailyshow' in episode_url:
-			add_videos_colbertnation(episode_tree, 'videos', ['t6_lc_promo1'])
+			add_videos_colbertnation(episode_tree, 'videos', ['t6_lc_promo5'])
 		elif 'southpark' in episode_url:
 			add_clips_southpark(episode_tree)
 		else:
@@ -129,10 +131,10 @@ def episodes(episode_url = _common.args.url, page = 1):
 				except:
 					pass
 	else:
-		if 'colbertnation' in episode_url:
+		if 'colbertreport' in episode_url:
 			add_videos_colbertnation(episode_tree, 'episodes', ['t6_lc_promo1'])
 		elif  'dailyshow' in episode_url:
-			add_videos_colbertnation(episode_tree, 'episodes', ['t6_lc_promo1', 't6_lc_promo2'])
+			add_videos_colbertnation(episode_tree, 'episodes', ['t4_lc_promo1', 't6_lc_promo4'])
 		elif 'southpark' in episode_url:
 			add_fullepisodes_southpark(episode_tree)
 		else:
@@ -153,10 +155,10 @@ def episodes(episode_url = _common.args.url, page = 1):
 def add_videos_colbertnation(episode_tree, type, feeds):
 	try:
 		shows = []
-		scripts = episode_tree.find('script')
+		scripts = episode_tree.find_all('script')
 		for script in scripts:
-			if ('triforceManifestFeed') in script:
-				triforceManifestFeed = script.split(' = ')[1]
+			if ('triforceManifestFeed') in script.string:
+				triforceManifestFeed = script.string.split(' = ')[1]
 				triforceManifestFeed = triforceManifestFeed.strip()[:-1] # remove last ; from string
 				triforceManifestFeed = simplejson.loads(triforceManifestFeed)
 				break
