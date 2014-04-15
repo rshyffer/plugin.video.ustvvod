@@ -233,7 +233,7 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False):
 		values = (series_title, mode, submode)
 		return _database.execute_command(command, values, fetchone = True)
 
-def get_series_id(seriesdata, seriesname, site = ''):
+def get_series_id(seriesdata, seriesname, site = '', allowManual = False):
 	shows = BeautifulSoup(seriesdata).find_all('series')
 	for show_item in shows:
 		if  '**' in show_item.seriesname.string:
@@ -250,11 +250,11 @@ def get_series_id(seriesdata, seriesname, site = ''):
 				item_network = show_item.network.string.replace('The', '').replace(',', '').strip()
 			except:
 				item_network = ''
-			if '(' in show_item.seriesname.string and  item_network == lookup_network:
+			if '(' in show_item.seriesname.string and item_network == lookup_network:
 				variantsExist = True
 			elif item_name == lookup_name and item_network == lookup_network:
 				ret = i
-		if  variantsExist == True or ret == -1:
+		if allowManual == True and (variantsExist == True or ret == -1):
 			select = xbmcgui.Dialog()
 			for show_item in shows:
 				try:
@@ -263,7 +263,9 @@ def get_series_id(seriesdata, seriesname, site = ''):
 					show_list.append(show_item.seriesname.string)
 			if site.endswith(', The'):
 				station = 'The ' + site.replace(', The', '')
-			ret = select.select(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39020) + seriesname + '\n[' + station.strip() + ']', show_list)
+			else:
+				station = site
+			ret = select.select(smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39020)) + seriesname + ' [' + station.strip() + ']', show_list)
 		if ret is not -1:
 			seriesid = shows[ret].seriesid.string
 	else:
@@ -279,13 +281,16 @@ def get_tvdb_series(seriesname, manualSearch = False, site = ''):
 			keyb = xbmc.Keyboard(seriesname, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39004)))
 			keyb.doModal()
 			if (keyb.isConfirmed()):
-					searchurl = TVDBSERIESLOOKUP + urllib.quote_plus(keyb.getText())
+					seriesname_custom = keyb.getText()
+					searchurl = TVDBSERIESLOOKUP + urllib.quote_plus(seriesname_custom)
 					tvdbid_url = _connection.getURL(searchurl, connectiontype = 0)
 					try:
-						tvdb_id = get_series_id(tvdbid_url, seriesname)
+						tvdb_id = get_series_id(tvdbid_url, seriesname_custom, site, True)
 					except:
 						print '_common :: get_tvdb_series :: Manual Search failed'
 						return False
+			else:
+				return False
 		else:
 			return False
 	series_xml = TVDBURL + ('/api/%s/series/%s/en.xml' % (TVDBAPIKEY, tvdb_id))

@@ -59,15 +59,15 @@ def refresh_show():
 	_common.get_serie(series_title, mode, submode, url, forceRefresh = True)
 	_common.args.name = series_title
 	_common.args.url = url
-	refresh_menu(mode, submode)
+	refresh_menu(mode, submode, url)
 	
 def refresh_db():
 	_common.refresh_db()
 
 	
-def refresh_menu(mode, submode):
+def refresh_menu(mode, submode, url):
 	exec 'import resources.lib.%s as sitemodule' % mode
-	exec 'sitemodule.%s()' % submode
+	exec 'sitemodule.%s(\'%s\')' % (submode, url)
 	xbmc.executebuiltin('Container.Refresh')
 
 def select_quality():
