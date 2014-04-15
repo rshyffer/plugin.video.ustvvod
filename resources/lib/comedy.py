@@ -29,7 +29,7 @@ def masterlist():
 	master_tree = BeautifulSoup(master_data, 'html5lib')
 	master_menu = master_tree.find('div', class_ = 'full_episodes').find_all('a', href = re.compile('[^#]+'))
 	for master_item in master_menu:
-		if root_item['href'] == "/":
+		if master_item['href'] == "/":
 			continue
 		master_name = master_item.string
 		if master_name not in master_doubles and master_name.split(' with ')[0] not in master_doubles:
