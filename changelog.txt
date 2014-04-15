@@ -1,3 +1,12 @@
+version 1.0.2
+
+  * fix for master list
+  * fixed issues with “all shows“
+  * added comedy central shows
+  * fix for comedy central in “all shows“
+  * fixed Daily Show & Colbert Report
+  * refresh TVDB data was broken
+
 version 1.0.1
 
   * context menu - forgotten name changes
@@ -5,7 +14,7 @@ version 1.0.1
   * sort networks alphabetically
   * fixed none available SouthPark shows
   * create README.md (GitHub source)
-  * use varible library path instead of remapping path
+  * use variable library path instead of remapping path
   * fixed NatGeo network
   * fixed Tonight Show
 
