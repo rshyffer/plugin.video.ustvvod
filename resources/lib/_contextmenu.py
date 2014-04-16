@@ -52,7 +52,8 @@ def unhide_show():
 	values = (series_title, mode, submode)
 	_database.execute_command(command, values, commit = True)
 	_common.args.name = series_title
-	refresh_menu(mode, submode)
+	_common.args.url = url
+	refresh_menu(mode, submode, url)
 
 def refresh_show():
 	series_title, mode, submode, url = args.url.split('<join>')
@@ -64,10 +65,12 @@ def refresh_show():
 def refresh_db():
 	_common.refresh_db()
 
-	
 def refresh_menu(mode, submode, url):
 	exec 'import resources.lib.%s as sitemodule' % mode
-	exec 'sitemodule.%s(\'%s\')' % (submode, url)
+	try:
+		exec 'sitemodule.%s(\'%s\')' % (submode, url)
+	except:
+		exec 'sitemodule.%s()' % submode
 	xbmc.executebuiltin('Container.Refresh')
 
 def select_quality():
