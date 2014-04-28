@@ -108,6 +108,14 @@ def episodes(episode_url = _common.args.url):
 			if episode_item['mediafiles']:
 				url = str(episode_item['tp_media_object_id'])
 				episode_name = episode_item['title']
+				try:
+					season_number = re.compile('Season (\d*)').findall(episode_name)[0]
+				except:
+					season_number = -1
+				try:
+					episode_number = re.compile('Episode (\d*)').findall(episode_name)[0]
+				except:
+					episode_number = -1
 				episode_plot = episode_item['long_description']
 				episode_airdate = _common.format_date(episode_item['airdate'], '%Y-%m-%d %H:%M:%S', '%d.%m.%Y')
 				episode_duration = int(episode_item['mediafiles'][0]['length_mseconds'] / 1000)
@@ -120,6 +128,8 @@ def episodes(episode_url = _common.args.url):
 				u += '&mode="' + SITE + '"'
 				u += '&sitemode="play_video"'
 				infoLabels={	'title' : episode_name,
+								'episode' : episode_number,
+								'season' : season_number,
 								'durationinseconds' : episode_duration,
 								'plot' : episode_plot,
 								'premiered' : episode_airdate }
