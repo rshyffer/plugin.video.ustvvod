@@ -26,6 +26,12 @@ SHOWS = 'http://assets.fox.com/apps/FEA/v1.7/allshows.json'
 CLIPS = 'http://feed.theplatform.com/f/fox.com/metadata?count=true&byCustomValue={fullEpisode}{false}&byCategories=Series/%s'
 FULLEPISODES = 'http://feed.theplatform.com/f/fox.com/metadata?count=true&byCustomValue={fullEpisode}{true}&byCategories=Series/%s'
 
+# for some shows, the name that needs to be passed to FULLEPISODES is different than the one in SHOWS
+# this dict can be used to manually fix it
+different_show_name = {
+	'Cosmos - A Spacetime Odyssey': 'cosmos',
+}
+
 def masterlist():
 	master_db = []
 	master_data = _connection.getURL(SHOWS)
@@ -46,6 +52,8 @@ def rootlist():
 	_common.set_view('tvshows')
 
 def seasons(season_url = _common.args.url):
+	if season_url in different_show_name:
+		season_url = different_show_name[season_url]
 	season_data = _connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
 	try:
 		season_menu = int(simplejson.loads(season_data)['total_count'])
