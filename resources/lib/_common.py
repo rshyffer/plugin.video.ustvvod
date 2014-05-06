@@ -189,12 +189,15 @@ def refresh_db():
 	total_stations = len(networks)
 	current = 0
 	increment = 100.0 / total_stations
+	all_shows = []
 	for network in networks:
 		network_name = network.NAME
 		if _addoncompat.get_setting(network.SITE) == 'true':
 			percent = int(increment * current)
 			dialog.update(percent, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39017)) + network.NAME, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39018)))
 			showdata = network.masterlist()
+			
+			all_shows.extend(showdata)
 			total_shows = len(showdata)
 			current_show = 0
 			for show in showdata:
@@ -205,13 +208,21 @@ def refresh_db():
 				if (dialog.iscanceled()):
 					return False
 		current += 1
+	command = 'select series_title, mode, submode, url from shows order by series_title'
+	shows = _database.execute_command(command, fetchall = True) 
+	for show in shows:
+		if show not in all_shows:
+			command = 'delete from shows where series_title = ? and mode = ? and submode = ? and url = ?;'
+			series_title, mode, submode, url = show
+			values = (series_title, mode, submode)
+			_database.execute_command(command, show, fetchone = True, commit = True)
 
 def get_serie(series_title, mode, submode, url, forceRefresh = False):
 	command = 'select * from shows where series_title = ? and mode = ? and submode = ?;'
 	values = (series_title, mode, submode)
 	checkdata = _database.execute_command(command, values, fetchone = True)
 	if checkdata and not forceRefresh:
-		if checkdata[3] is not url:
+		if checkdata[3] != url:
 			command = 'update shows set url = ? where series_title = ? and mode = ? and submode = ?;'
 			values = (url, series_title, mode, submode)
 			_database.execute_command(command, values, commit = True)
@@ -475,10 +486,9 @@ def load_showlist(favored = 0):
 			continue
 		elif favored and not favor:
 			continue
-		add_show(series_title, mode, sitemode, url, favor = favor, hide = hide)	
+		add_show(series_title, mode, sitemode, url, favor = favor, hide = hide, masterList = True)	
 
-def add_show(series_title, mode = '', sitemode = '', url = '', favor = 0, hide = 0):
-	#print "add show from ",mode, series_title
+def add_show(series_title, mode = '', sitemode = '', url = '', favor = 0, hide = 0, masterList = False):
 	infoLabels = {}
 	tvdbfanart = None
 	tvdbbanner = None
@@ -593,7 +603,11 @@ def add_show(series_title, mode = '', sitemode = '', url = '', favor = 0, hide =
 		contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39010)), 'XBMC.RunPlugin(%s)' % hide_u))
 	delete_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=delete_show'
 	contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39011)), 'XBMC.RunPlugin(%s)' % delete_u))
-	item = xbmcgui.ListItem(name, iconImage = thumb, thumbnailImage = thumb)
+	if masterList:
+		displayname = name + ' on ' + network_name
+	else:
+		displayname = name
+	item = xbmcgui.ListItem(displayname, iconImage = thumb, thumbnailImage = thumb)
 	item.addContextMenuItems(contextmenu)
 	item.setProperty('fanart_image', fanart)
 	item.setInfo(type = 'Video', infoLabels = infoLabels)
