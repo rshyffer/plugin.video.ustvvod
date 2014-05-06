@@ -22,7 +22,9 @@ def modes():
 	if sys.argv[2] == '':
 		all_description = ''
 		networks = _common.get_networks()
-		networks.sort(key = lambda x: x.SITE)
+		
+		networks.sort(key = lambda x: x.SITE.replace('the', ''))
+		
 		for network in networks:
 			if _addoncompat.get_setting(network.SITE) == 'true':
 				if network.NAME.endswith(', The'):
@@ -33,7 +35,7 @@ def modes():
 		count += 1
 		_common.add_directory(_common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39002)), 'Masterlist', 'NoUrl', thumb = _common.ALLICON, count = count, description = _common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39003)) + '\n' + all_description)
 		count += 1
-
+		
 		for network in networks:
 			network_name = network.NAME
 			station_icon = os.path.join(_common.IMAGEPATH, network.SITE + '.png')
