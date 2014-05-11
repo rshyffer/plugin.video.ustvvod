@@ -203,7 +203,7 @@ def refresh_db():
 			for show in showdata:
 				percent = int((increment * current) + (float(current_show) / total_shows) * increment)
 				dialog.update(percent, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39017)) + network.NAME, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39005)) + show[0])
-				get_serie(show[0], show[1], show[2], show[3])
+				get_serie(show[0], show[1], show[2], show[3], forceRefresh = False)
 				current_show += 1
 				if (dialog.iscanceled()):
 					return False
@@ -221,8 +221,8 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False):
 	command = 'select * from shows where series_title = ? and mode = ? and submode = ?;'
 	values = (series_title, mode, submode)
 	checkdata = _database.execute_command(command, values, fetchone = True)
-	if checkdata and not forceRefresh:
-		if checkdata[3] != url:
+	if checkdata and not forceRefresh and checkdata[24]:
+		if checkdata[3] != url :
 			command = 'update shows set url = ? where series_title = ? and mode = ? and submode = ?;'
 			values = (url, series_title, mode, submode)
 			_database.execute_command(command, values, commit = True)
@@ -286,7 +286,7 @@ def get_series_id(seriesdata, seriesname, site = '', allowManual = False):
 def get_tvdb_series(seriesname, manualSearch = False, site = ''):
 	seriesdata = _connection.getURL(TVDBSERIESLOOKUP + urllib.quote_plus(smart_utf8(seriesname)), connectiontype = 0)
 	try:
-		tvdb_id = get_series_id(seriesdata, seriesname, site)
+		tvdb_id = get_series_id(seriesdata, seriesname, site, True)
 	except:
 		if manualSearch:
 			keyb = xbmc.Keyboard(seriesname, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39004)))
