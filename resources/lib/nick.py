@@ -65,7 +65,10 @@ def episodes(episode_url = _common.args.url):
 	episode_tree = BeautifulSoup(episode_data)
 	episode_menu = episode_tree.find_all('article')
 	for episode_item in episode_menu:
-		show_name = episode_item.find('p', class_ = 'show-name').text
+		try:
+			show_name = episode_item.find('p', class_ = 'show-name').text
+		except:
+			show_name = ''
 		episode_name = episode_item.find('p', class_ = 'short-title').text
 		url = BASE + episode_item.find('a')['href']
 		episode_plot = _common.replace_signs(episode_item.find('p', class_ = 'description').text)

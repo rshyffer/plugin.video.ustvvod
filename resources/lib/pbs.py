@@ -45,11 +45,7 @@ def masterlist():
 		master_stop = master_data['stop']
 		del master_data
 		for master_item2 in master_menu:
-			if master_item2['website'] is None:
-				master_website = ''
-			else:
-				master_website = master_item2['website']
-			if master_item2['title'] in master_check and ('pbskids.org' not in master_website):
+			if master_item2['title'] in master_check and ('PBS Kids' !=  master_item2['nola_root']):
 				master_name = _common.smart_utf8(master_item2['title'])
 				season_url = re.compile('/cove/v1/programs/(.*?)/').findall(master_item2['resource_uri'])[0]
 				master_db.append((master_name, SITE, 'seasons', season_url))
@@ -71,11 +67,7 @@ def rootlist():
 		root_stop = root_data['stop']
 		del root_data
 		for root_item2 in root_menu:
-			if root_item2['website'] is None:
-				root_website = ''
-			else:
-				root_website = root_item2['website']
-			if (root_item2['title'] in root_check) and ('pbskids.org' not in root_website):
+			if (root_item2['title'] in root_check) and ('PBS Kids' != root_item2['nola_root']):
 				root_name = _common.smart_utf8(root_item2['title'])
 				season_url = re.compile('/cove/v1/programs/(.*?)/').findall(root_item2['resource_uri'])[0]
 				_common.add_show(root_name,  SITE, 'seasons', season_url)
