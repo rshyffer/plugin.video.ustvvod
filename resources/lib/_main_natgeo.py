@@ -15,78 +15,100 @@ pluginHandle = int(sys.argv[1])
 
 BASE = 'http://video.nationalgeographic.com'
 
-def masterlist(SITE, SHOWS, SPECIALS):
+def masterlist(SITE, SHOWS, SPECIALS = None):
 	master_dict = {}
 	master_db = []
-	for master_url in (SHOWS, SPECIALS):
-		master_data = _connection.getURL(master_url)
-		master_tree = BeautifulSoup(master_data, 'html.parser', parse_only = SoupStrainer('div', id = 'content'))
-		master_menu = master_tree.find_all('div', class_ = 'natgeov-cat-group')
-		for master_item in master_menu:
-			secured_episodes = len(master_item.find_all('img', src = re.compile('AUTH')))
-			total_episodes = len(master_item.find_all('img'))
-			if secured_episodes != total_episodes:
-				master_name = master_item.h3.text.split('(')[0].strip()
-				season_url = BASE + master_item.a['href']
-				master_dict[master_name] = season_url
-	for master_name, season_url in master_dict.iteritems():
+
+	master_url = SHOWS
+	master_data = _connection.getURL(master_url)
+	master_tree = BeautifulSoup(master_data, 'html.parser', parse_only = SoupStrainer('div', id = 'grid-frame'))
+	master_menu = master_tree.find_all('div', class_ = 'media-module')
+	for master_item in master_menu:
+		master_name = master_item.find('div', class_ = 'title').text
+		season_url = BASE + master_item.a['href']
+		if '-1' not in season_url:
+			tvdb_name = _common.get_show_data(master_name, SITE, 'episodes')[-1]
+			master_name = master_name + '#' + season_url 
+			if tvdb_name not in master_dict.keys():
+				master_dict[tvdb_name] = master_name
+			else:
+				master_dict[tvdb_name] = master_dict[tvdb_name] + ',' + master_name
+			
+	for master_name in master_dict:
+		season_url = master_dict[master_name]
 		master_db.append((master_name, SITE, 'episodes', season_url))
+	more = master_tree.find('a', class_ = 'load-more')
+	if more:
+		masterlist(SITE, BASE + more['href'])
 	return master_db
 
-def rootlist(SITE, SHOWS, SPECIALS):
+def rootlist(SITE, SHOWS, SPECIALS = None):
 	root_dict = {}
-	for root_url in (SHOWS, SPECIALS):
-		root_data = _connection.getURL(root_url)
-		root_tree = BeautifulSoup(root_data, 'html.parser', parse_only = SoupStrainer('div', id = 'content'))
-		root_menu = root_tree.find_all('div', class_ = 'natgeov-cat-group')
-		for root_item in root_menu:
-			secured_episodes = len(root_item.find_all('img', src = re.compile('AUTH')))
-			total_episodes = len(root_item.find_all('img'))
-			if secured_episodes != total_episodes:
-				root_name = root_item.h3.text.split('(')[0].strip()
-				season_url = BASE + root_item.a['href']
-				root_dict[root_name] = season_url
-	for root_name, season_url in root_dict.iteritems():
+	root_url = SHOWS
+	root_data = _connection.getURL(root_url)
+	root_tree = BeautifulSoup(root_data, 'html.parser', parse_only = SoupStrainer('div', id = 'grid-frame'))
+	root_menu = root_tree.find_all('div', class_ = 'media-module')
+	for root_item in root_menu:
+		root_name = root_item.find('div', class_ = 'title').text
+		season_url = BASE + root_item.a['href']
+		if '-1' not in season_url:
+			tvdb_name = _common.get_show_data(root_name, SITE, 'episodes')[-1]
+			root_name = root_name + '#' + season_url 
+			if tvdb_name not in root_dict.keys():
+				root_dict[tvdb_name] = root_name
+			else:
+				root_dict[tvdb_name] = root_dict[tvdb_name] + ',' + root_name
+			
+	for root_name in root_dict:
+		season_url = root_dict[root_name]
 		_common.add_show(root_name, SITE, 'episodes', season_url)
+	more = root_tree.find('a', class_ = 'load-more')
+	if more:
+		rootlist(SITE, BASE + more['href'])
 	_common.set_view('tvshows')
+	
 
+def seasons(SITE, season_urls):
+	for season_url in season_urls.split(','):
+		_common.add_directory(season_url.split('#')[0],  SITE, 'episodes', season_url.split('#')[1])
+	_common.set_view('seasons')
+	
 def episodes(SITE):
 	episode_url = _common.args.url
-	episode_data = _connection.getURL(episode_url)
-	episode_tree = BeautifulSoup(episode_data)
-	add_videos(episode_tree, SITE)
-	pagedata = re.compile('new Paginator\((.+?),(.+?)\)').findall(episode_data)
-	if pagedata:
-		total   = int(pagedata[0][0])
-		current = int(pagedata[0][1])
-		if total > 1:
-			for page in range(1,total):
-				episode_data = _connection.getURL(episode_url + '/' + str(page) + '/')
-				episode_tree = BeautifulSoup(episode_data)
-				add_videos(episode_tree, SITE)
-	_common.set_view('episodes')
+	if ',' in episode_url:
+		seasons(SITE, episode_url)
+	else:
+		if '#' in episode_url:
+			episode_url = episode_url.split('#')[1]
+		episode_data = _connection.getURL(episode_url)
+		episode_tree = BeautifulSoup(episode_data, 'html.parser', parse_only = SoupStrainer('div', class_ = 'show'))
+		add_videos(episode_tree, SITE)
+		more = episode_tree.find('a', class_ = 'load-more')
+		if more:
+			episode_data = _connection.getURL(BASE + more['href'])
+			episode_tree = BeautifulSoup(episode_data)
+			add_videos(episode_tree, SITE)
+		_common.set_view('episodes')
 
 def add_videos(episode_tree, SITE):
-	episode_menu = episode_tree.find_all('div', class_ = 'vidthumb')
-	show_name = episode_tree.find('h3', id = 'natgeov-section-title').text
-	show_name = show_name.split('(')[0].strip()
+	episode_menu = episode_tree.find_all('div', class_ = 'media-module')
+	show_name = episode_tree.find('h1').text
 	for episode_item in episode_menu:
-		if episode_item.find(class_ = 'video-locked') is None:
-			episode_name = episode_item.a['title']
-			episode_thumb = episode_item.img['src'].split('url=')[1]
-			try:
-				episode_duration = _common.format_seconds(episode_item.span.text.strip())
-			except:
-				episode_duration = -1
-			url = BASE + episode_item.a['href']
-			u = sys.argv[0]
-			u += '?url="'+urllib.quote_plus(url)+'"'
-			u += '&mode="' + SITE + '"'
-			u += '&sitemode="play_video"'
-			infoLabels = {	'title' : episode_name,
-							'durationinseconds' : episode_duration,
-							'TVShowTitle' : show_name }
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode = 'list_qualities')
+		episode_name = episode_item.a['data-title']
+		episode_thumb = urllib.unquote_plus(episode_item.a.img['data-src'].split('url=')[1])
+		try:
+			episode_duration = _common.format_seconds(episode_item.find('div', class_='timestamp').text.strip())
+		except:
+			episode_duration = -1
+		url = episode_item.a['href']
+		u = sys.argv[0]
+		u += '?url="'+urllib.quote_plus(url)+'"'
+		u += '&mode="' + SITE + '"'
+		u += '&sitemode="play_video"'
+		infoLabels = {	'title' : episode_name,
+						'durationinseconds' : episode_duration,
+						'TVShowTitle' : show_name }
+		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode = 'list_qualities')
 
 def play_video(SITE):
 	video_url = _common.args.url
