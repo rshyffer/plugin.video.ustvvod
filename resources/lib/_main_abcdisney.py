@@ -56,7 +56,7 @@ def masterlist(SITE, BRANDID):
 					if int(master_item['fullepisodes']['count']['video'][0]['@accesslevel']) == 0:
 						fullepisodes = int(master_item['fullepisodes']['count']['video'][0]['$'])
 			if (fullepisodes + clips) > 0:
-				master_name = master_item['title']
+				master_name = master_item['title'].strip()
 				season_url = master_item['@id']
 				master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
@@ -83,8 +83,9 @@ def rootlist(SITE, BRANDID):
 					if int(root_item['fullepisodes']['count']['video'][0]['@accesslevel']) == 0:
 						fullepisodes = int(root_item['fullepisodes']['count']['video'][0]['$'])
 			if (fullepisodes + clips) > 0:
-				root_name = root_item['title']
+				root_name = root_item['title'].strip()
 				season_url = root_item['@id']
+				print "'"+root_name+"'", ord(root_name[-1])
 				_common.add_show(root_name, SITE, 'seasons', season_url)
 	_common.set_view('tvshows')
 
