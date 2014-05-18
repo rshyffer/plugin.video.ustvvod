@@ -221,7 +221,7 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False):
 	command = 'select * from shows where series_title = ? and mode = ? and submode = ?;'
 	values = (series_title, mode, submode)
 	checkdata = _database.execute_command(command, values, fetchone = True)
-	if checkdata and not forceRefresh and checkdata[24]:
+	if checkdata and not forceRefresh and checkdata[24]  is not None:
 		if checkdata[3] != url :
 			command = 'update shows set url = ? where series_title = ? and mode = ? and submode = ?;'
 			values = (url, series_title, mode, submode)
