@@ -27,7 +27,7 @@ def masterlist():
 	master_doubles = []
 	master_data = _connection.getURL(SHOWS)
 	master_tree = BeautifulSoup(master_data, 'html5lib')
-	master_menu = master_tree.find('div', class_ = 'full_episodes').find_all('a', href = re.compile('[^#]+'))
+	master_menu = master_tree.find('div', class_ = 'full_episodes').find_all('a', href = re.compile('^http+'))
 	for master_item in master_menu:
 		if master_item['href'] == "/":
 			continue
@@ -43,7 +43,7 @@ def rootlist():
 	root_url = SHOWS
 	root_data = _connection.getURL(root_url)
 	root_tree = BeautifulSoup(root_data, 'html5lib')
-	root_menu = root_tree.find('div', class_ = 'full_episodes').find_all('a', href = re.compile('[^#]+'))
+	root_menu = root_tree.find('div', class_ = 'full_episodes').find_all('a', href = re.compile('^http+'))
 	for root_item in root_menu:
 		if root_item['href'] == "/":
 			continue
