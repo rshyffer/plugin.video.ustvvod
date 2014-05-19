@@ -48,7 +48,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	for video_segment in video_segments:
 		video_url3 = video_segment['url'].replace('{device}', 'Other')
 		video_data3 = _connection.getURL(video_url3, header = {'X-Forwarded-For' : '12.13.14.15'})
-		video_tree3 = BeautifulSoup(video_data3)
+		video_tree3 = BeautifulSoup(video_data3, 'html5lib')
 		try:
 			closedcaption.append(video_tree3.find('typographic', format = 'ttml'))
 		except:
@@ -72,8 +72,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		else:
 			video_url4 = video_tree3.find('rendition', attrs = {'bitrate' : qbitrate}).src.string
 	
-		video_url5 =  MP4URL + '/gsp.' + video_url4.split('/gsp.')[1] 
-		print video_url5
+		video_url5 = MP4URL + '/gsp.' + video_url4.split('/gsp.')[1] 
 		video_url6 += video_url5.replace(',', ',,') + ' , '
 	finalurl = video_url6[:-3]
 	if not closedcaption:
@@ -124,9 +123,7 @@ def list_qualities(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		srates = []	
 		for video_index in video_menu:
 			bitrate = int(video_index['bitrate'])
-			print bitrate
 			srates.append((bitrate, bitrate))
-		print srates
 		if orates != []:
 			srates = list(set(srates).intersection(orates))
 	bitrates  =srates
