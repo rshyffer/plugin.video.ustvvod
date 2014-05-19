@@ -54,44 +54,44 @@ def rootlist():
 	_common.set_view('tvshows')
 
 def seasons(season_url = _common.args.url):
-	season_data = _connection.getURL(season_url)
-	season_tree = BeautifulSoup(season_data, 'html.parser', parse_only = SoupStrainer('div'))
 	if 'dailyshow'in season_url or 'colbertreport' in season_url:
-		season_menu = dict()
-		season_menu['href'] = season_url
-		season_menu2 = dict()
-		season_menu2['href'] = season_url
+		add_items_colbertnation(season_url)
 	else:
+		season_data = _connection.getURL(season_url)
+		season_tree = BeautifulSoup(season_data, 'html.parser', parse_only = SoupStrainer('div'))
 		season_menu = season_tree.find('a', text = re.compile('full episodes', re.IGNORECASE))
 		season_menu2 = season_tree.find('a', href = re.compile('(?<!stand-up)/(video|clips)'))
-	if season_menu is not None:
-		season_url2 = season_menu['href']
-		if 'http' not in season_url2:
-			season_url2 = season_url + season_url2
-		_common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
-	elif 'episode' in season_url:
-		if 'South Park' in _common.args.name:
-			seasons = BeautifulSoup(season_data, 'html5lib').find_all('a',class_='seasonbtn')
-			if seasons:
-				for season in seasons:
-					try:
-						display = 'Season %s' %str(int(season.string))
-					except:
-						display = 'Special %s' %season.string
-					_common.add_directory(display,  SITE, 'episodes', season['href'] )
-		else:
-			_common.add_directory('Full Episodes',  SITE, 'episodes', season_url)
-	print season_url
-	if season_menu2 is not None:
-		season_url3 = season_menu2['href']
-		if 'http' not in season_url3:
-			season_url3 = season_url + season_url3
-		_common.add_directory('Clips',  SITE, 'episodes', season_url3)
+		if season_menu is not None:
+			season_url2 = season_menu['href']
+			if 'http' not in season_url2:
+				season_url2 = season_url + season_url2
+			_common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
+		elif 'episode' in season_url:
+			if 'South Park' in _common.args.name:
+				seasons = BeautifulSoup(season_data, 'html5lib').find_all('a',class_='seasonbtn')
+				if seasons:
+					for season in seasons:
+						try:
+							display = 'Season %s' %str(int(season.string))
+						except:
+							display = 'Special %s' %season.string
+						_common.add_directory(display,  SITE, 'episodes', season['href'] )
+			else:
+				_common.add_directory('Full Episodes',  SITE, 'episodes', season_url)
+		print season_url
+		if season_menu2 is not None:
+			season_url3 = season_menu2['href']
+			if 'http' not in season_url3:
+				season_url3 = season_url + season_url3
+			_common.add_directory('Clips',  SITE, 'episodes', season_url3)
 	_common.set_view('seasons')
 
 def episodes(episode_url = _common.args.url, page = 1):
 	episode_data = _connection.getURL(episode_url)
 	episode_tree = None
+	if 'dailyshow' in episode_url or 'colbertreport' in episode_url:
+		episode_tree = simplejson.loads(episode_data)
+		add_videos_colbertnation(episode_tree)
 	if page == 1:
 		try:
 			episode_url = re.compile("var .*Showcase.* = '(.*)'").findall(episode_data)[0]
@@ -109,11 +109,7 @@ def episodes(episode_url = _common.args.url, page = 1):
 	if episode_tree is  None:
 		episode_tree = BeautifulSoup(episode_data, 'html5lib')
 	if 'Clips' in _common.args.name  :
-		if 'colbertreport' in episode_url:
-			add_videos_colbertnation(episode_tree, 'videos', ['t6_lc_promo4'])
-		elif 'dailyshow' in episode_url:
-			add_videos_colbertnation(episode_tree, 'videos', ['t6_lc_promo5'])
-		elif 'southpark' in episode_url:
+		if 'southpark' in episode_url:
 			add_clips_southpark(episode_tree)
 		else:
 			next = episode_tree.find('a', class_ = re.compile('next'))		    
@@ -131,11 +127,7 @@ def episodes(episode_url = _common.args.url, page = 1):
 				except:
 					pass
 	else:
-		if 'colbertreport' in episode_url:
-			add_videos_colbertnation(episode_tree, 'episodes', ['t6_lc_promo1'])
-		elif  'dailyshow' in episode_url:
-			add_videos_colbertnation(episode_tree, 'episodes', ['t4_lc_promo1', 't6_lc_promo4'])
-		elif 'southpark' in episode_url:
+		if 'southpark' in episode_url:
 			add_fullepisodes_southpark(episode_tree)
 		else:
 			next = episode_tree.find('a', class_ = re.compile('next'))		    
@@ -152,47 +144,103 @@ def episodes(episode_url = _common.args.url, page = 1):
 					pass
 	_common.set_view('episodes')
 
-def add_videos_colbertnation(episode_tree, type, feeds):
+def _keyinfeed(keys1, keys2):
+	for key in keys1:
+		if key in keys2:
+			return True
+	return False
+
+def add_items_colbertnation(season_url):
 	try:
-		shows = []
-		scripts = episode_tree.find_all('script')
+		feeds = []
+		page_data = _connection.getURL(season_url)
+		page_tree = BeautifulSoup(page_data, 'html5lib')
+		scripts = page_tree.find_all('script')
 		for script in scripts:
 			if ('triforceManifestFeed') in script.string:
 				triforceManifestFeed = script.string.split(' = ')[1]
 				triforceManifestFeed = triforceManifestFeed.strip()[:-1] # remove last ; from string
 				triforceManifestFeed = simplejson.loads(triforceManifestFeed)
+				for zone in triforceManifestFeed['manifest']['zones']:
+					thiszone = triforceManifestFeed['manifest']['zones'][zone]
+					feed_data = _connection.getURL(thiszone['feed'])
+					feed = simplejson.loads(feed_data)
+					if _keyinfeed(['videos','episodes','playlist','playlists'], feed['result'].keys()) :
+						title = ''
+						try:
+							title = feed['result']['promo']['headline']
+						except:
+							pass
+						if title == '':
+							if ' - ' in thiszone['moduleName']:
+								title = thiszone['moduleName'].split(' - ')[1]
+							else:
+								title = thiszone['moduleName']
+							if title.endswith(' Promo'):
+								title = title[:-6]
+						feeds.append({'title': title, 'url': thiszone['feed']})
+				feeds.sort(key = lambda x: x['title'])
+				for feed in feeds:
+					if 'Daily Show' in feed['title'] and 'colbertreport' in season_url:
+						continue
+					if 'Colbert' in feed['title'] and 'dailyshow' in season_url:
+						continue
+					_common.add_directory(feed['title'],  SITE, 'episodes', feed['url'])
 				break
-		for feed in feeds:
-			url = triforceManifestFeed['manifest']['zones'][feed]['feed']
-			data = _connection.getURL(url)
-			menu = simplejson.loads(data)
-			for item in menu['result'][type]:
+	except:
+		pass
+
+def add_videos_colbertnation(manifest_feed):
+	try:
+		shows = []
+
+		items = manifest_feed['result']
+		if 'episodes' in items:
+			items = items['episodes']
+		elif 'videos' in items:
+			items = items['videos']
+		elif 'playlist' in items:
+			items = items['playlist']['videos']
+		elif 'playlists' in items:
+			t_items = []
+			k = 0
+			for i in items['playlists']:
+				l = 0
+				for j in items['playlists'][k]['videos']:
+					t_items.append(items['playlists'][k]['videos'][l])
+					l = l + 1
+				k = k + 1
+			items = t_items
+		for item in items:
+			try:
 				episode_name = item['title']
-				epoch = float(item['airDate'])
-				epoch = _common.convert_to_timezone(epoch, '', -5, epoch)  
-				episode_airdate = _common.format_date(epoch , '', '%d.%m.%Y', epoch)
-				episode_plot = item['shortDescription']
-				episode_thumb = item['images'][0]['url']
-				url = item['url']
-				if not url:
-					url = item['canonicalURL']
-				try:
-					season_number = item['season']['seasonNumber']
-					episode_number = str(int(str(item['season']['episodeNumber'])[len(str(season_number)):]))
-				except:
-					season_number = -1
-					episode_number = -1
-				u = sys.argv[0]
-				u += '?url="' + urllib.quote_plus(url) + '"'
-				u += '&mode="' + SITE + '"'
-				u += '&sitemode="play_video"'
-				infoLabels={	'title' : episode_name,
-								'season' : season_number,
-								'episode' : episode_number,
-								'plot' : episode_plot,
-								'premiered' : episode_airdate }
-				show = {'u': u, 'episode_name': episode_name, 'episode_thumb': episode_thumb, 'infoLabels': infoLabels, 'epoch': epoch}
-				shows.append(show)
+			except:
+				episode_name = item['shortTitle']
+			epoch = float(item['airDate'])
+			epoch = _common.convert_to_timezone(epoch, '', -5, epoch)  
+			episode_airdate = _common.format_date(epoch , '', '%d.%m.%Y', epoch)
+			episode_plot = item['shortDescription']
+			episode_thumb = item['images'][0]['url']
+			url = item['url']
+			if not url:
+				url = item['canonicalURL']
+			try:
+				season_number = item['season']['seasonNumber']
+				episode_number = str(int(str(item['season']['episodeNumber'])[len(str(season_number)):]))
+			except:
+				season_number = -1
+				episode_number = -1
+			u = sys.argv[0]
+			u += '?url="' + urllib.quote_plus(url) + '"'
+			u += '&mode="' + SITE + '"'
+			u += '&sitemode="play_video"'
+			infoLabels={	'title' : episode_name,
+							'season' : season_number,
+							'episode' : episode_number,
+							'plot' : episode_plot,
+							'premiered' : episode_airdate }
+			show = {'u': u, 'episode_name': episode_name, 'episode_thumb': episode_thumb, 'infoLabels': infoLabels, 'epoch': epoch}
+			shows.append(show)
 		if len(shows):
 			shows = sorted(shows, key=lambda show: show['epoch'], reverse=True)
 			for show in shows:
