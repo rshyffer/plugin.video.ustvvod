@@ -1,3 +1,20 @@
+version 1.0.3
+
+  * some seasons () do not have an 'url' argument
+  * make Cosmos work on FOX
+  * episode and seasons labels in PBS
+  * fixes all shows
+  * ignore 'the' in sorting site list
+  * fix add to favorites
+  * fix db creation problem
+  * fix for failing clips on Nickelodeon
+  * delete cache files
+  * fix NatGeo
+  * fix NatGeo Wild
+  * fix issue with db refresh
+  * exclude close button from shows on ComedyCentral
+  * list all video feeds for Colbert Report/Daily Show
+
 version 1.0.2
 
   * fix for master list
