@@ -141,7 +141,10 @@ def add_videos_thetonightshow(url, type_, page = 1, added_episodes = []):
 			added_episodes.append(episode_id)
 			pid = video['videos'][0]['mpxPublicId']
 			episode_url = SMIL % pid
-			episode_plot = BeautifulSoup(video['description']['value']).p.string
+			try:
+				episode_plot = BeautifulSoup(video['description']['value']).p.string
+			except:
+				episode_plot = ''
 			try:
 				episode_airdate = _common.format_date(video['airDate'][:-6],'%Y-%m-%dT%H:%M:%S','%d.%m.%Y')
 			except:
