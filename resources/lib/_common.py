@@ -428,11 +428,8 @@ def get_tvdb_series(seriesname, manualSearch = False, site = ''):
 	try:
 		if smart_unicode(series_tree.seriesname.text) is not '':
 			seriesname = smart_unicode(series_tree.seriesname.text)
-		else:
-			seriesname = None
 	except:
 		print '_common :: get_tvdb_series :: %s - TVDB SeriesName Failed' % seriesname
-		seriesname = None
 	return [tvdb_id, imdb_id, tvdbbanner, tvdbposter, tvdbfanart, first_aired, date, year, actors, genres, network, plot, runtime, rating, airs_dayofweek, airs_time, status, seriesname]
 
 def get_plot_by_tvdbid(tvdb_id):
