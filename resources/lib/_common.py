@@ -211,7 +211,7 @@ def refresh_db():
 	command = 'select series_title, mode, submode, url from shows order by series_title'
 	shows = _database.execute_command(command, fetchall = True) 
 	for show in shows:
-		if smart_unicode(show) not in all_shows:
+		if show not in all_shows:
 			command = 'delete from shows where series_title = ? and mode = ? and submode = ? and url = ?;'
 			series_title, mode, submode, url = show
 			values = (series_title, mode, submode)
