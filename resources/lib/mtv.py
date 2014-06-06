@@ -15,45 +15,42 @@ SITE = 'mtv'
 NAME = 'MTV'
 DESCRIPTION = "MTV is Music Television. It is the music authority where young adults turn to find out what's happening and what's next in music and popular culture. MTV reaches 412 million households worldwide, and is the #1 Media Brand in the world. Only MTV can offer the consistently fresh, honest, groundbreaking, fun and inclusive youth-oriented programming found nowhere else in the world. MTV is a network that transcends all the clutter, reaching out beyond barriers to everyone who's got eyes, ears and a television set."
 BASE = 'http://www.mtv.com'
-SHOWS = 'http://www.mtv.com/ontv/all/'
-POPULAR = 'http://www.mtv.com/ontv/'
+SHOWSAZ = 'http://www.mtv.com/shows/azfilter/?template=%%2Fshows%%2Fhome2%%2Fmodules%%2FazFilter&startingCharac=%s&resultSize=500'
+SHOWS = 'http://www.mtv.com/shows/'
 TYPES = [('fulleps' , 'Full Episodes'), ('bonusclips' , 'Bonus Clips'), ('aftershows', 'After Shows'), ('sneakpeaks' , 'Sneak Peeks'), ( 'showclips' , 'Show Clips'), ('recaps' , 'Recaps')]
 
 def masterlist(master_url = SHOWS):
-	master_db, doubles = add_master_shows(POPULAR)
-	master_db, doubles = add_master_shows(SHOWS, doubles, master_db)
+	master_db, doubles = add_master_shows(SHOWS)
 	return master_db
 
 def rootlist(root_url = SHOWS):
-	doubles = add_root_shows(POPULAR)
-	add_root_shows(SHOWS, doubles)
+	add_root_shows(SHOWS)
 	_common.set_view('tvshows')
         
 def add_root_shows(url, doubles = []):
 	root_dict = {}
-	root_data = _connection.getURL(url)
-	root_tree = BeautifulSoup(root_data, 'html5lib')
-	root_menu = root_tree.find('ol', class_ = 'lst').find_all('a')
-	for root_item in root_menu:
-		try:
-			root_name = root_item.find('div', class_ = 'text-block').span.string
-		except:
-			root_name = root_item.text
-		season = re.compile(r' \(Season \d+\)')
-		root_name = season.sub('', root_name).strip()
-		if 'series.jhtml' in root_item['href']:
-			season_url = root_item['href'].replace('series.jhtml', 'video.jhtml?sort=descend')
+	for i in range(ord('a') - 1, ord('z')+1):
+		if i < ord('a'):
+			url = SHOWS
 		else:
-			season_url = root_item['href'] + 'video.jhtml?sort=descend'
-		if BASE not in season_url:
-			season_url = BASE + season_url
-		if season_url.split('season')[0].replace('video.jhtml?sort=descend','') not in doubles:
-			tvdb_name = _common.get_show_data(root_name,SITE, 'seasons')[-1]
-			if tvdb_name not in root_dict.keys():
-				root_dict[tvdb_name] = season_url
+			url = SHOWSAZ % chr(i)
+		root_data = _connection.getURL(url)
+		root_tree = BeautifulSoup(root_data, 'html5lib')
+		root_menu = root_tree.find_all('a', attrs = {'data-report' : 'SHOWS_HUB:SHOWS_AZ:SHOW'})
+		for root_item in root_menu:
+			if 'series.jhtml' in root_item['href']:
+				season_url = root_item['href'].replace('series.jhtml', 'video.jhtml?sort=descend')
 			else:
-				root_dict[tvdb_name] = root_dict[tvdb_name] + ',' + season_url
-			doubles.append(season_url.split('season')[0].replace('video.jhtml?sort=descend',''))
+				season_url = root_item['href'] + 'video.jhtml?sort=descend'
+			if BASE not in season_url:
+				season_url = BASE + season_url
+			if season_url.split('season')[0].replace('video.jhtml?sort=descend','') not in doubles:
+				tvdb_name = _common.get_show_data(root_name,SITE, 'seasons')[-1]
+				if tvdb_name not in root_dict.keys():
+					root_dict[tvdb_name] = season_url
+				else:
+					root_dict[tvdb_name] = root_dict[tvdb_name] + ',' + season_url
+				doubles.append(season_url.split('season')[0].replace('video.jhtml?sort=descend',''))
 	for root_name, season_url in root_dict.iteritems():
 		_common.add_show(root_name, SITE, 'seasons', season_url)
 	next = root_tree.find('a', class_ = 'page-next')
@@ -63,26 +60,29 @@ def add_root_shows(url, doubles = []):
 
 def add_master_shows(url, doubles = [], master_db = []):
 	master_dict = {}
-	master_data = _connection.getURL(url)
-	master_tree = BeautifulSoup(master_data, 'html5lib')
-	master_menu = master_tree.find('ol', class_ = 'lst').find_all('a')
-	for master_item in master_menu:
-		try:
-			master_name = master_item.find('div', class_ = 'text-block').span.string
-		except:
+	root_dict = {}
+	for i in range(ord('a') - 1, ord('z') + 1):
+		if i < ord('a'):
+			url = SHOWS
+		else:
+			url = SHOWSAZ % chr(i)
+		master_data = _connection.getURL(url)
+		master_tree = BeautifulSoup(master_data, 'html5lib')
+		master_menu = master_tree.find_all('a', attrs = {'data-report' : 'SHOWS_HUB:SHOWS_AZ:SHOW'})
+		for master_item in master_menu:
 			master_name = master_item.text
-		season = re.compile(r' \(Season \d+\)')
-		master_name = season.sub('', master_name).strip()
-		season_url = master_item['href'].replace('series.jhtml', 'video.jhtml?sort=descend')
-		if BASE not in season_url:
-			season_url = BASE + season_url
-		if season_url.split('season')[0].replace('video.jhtml?sort=descend','') not in doubles:
-			tvdb_name = _common.get_show_data(master_name,SITE, 'seasons')[-1]
-			if tvdb_name not in master_dict.keys():
-				master_dict[tvdb_name] = season_url
-			else:
-				master_dict[tvdb_name] = master_dict[tvdb_name] + ',' + season_url
-			doubles.append(season_url.split('season')[0].replace('video.jhtml?sort=descend',''))
+			season = re.compile(r' \(Season \d+\)')
+			master_name = season.sub('', master_name).strip()
+			season_url = master_item['href'].replace('series.jhtml', 'video.jhtml?sort=descend')
+			if BASE not in season_url:
+				season_url = BASE + season_url
+			if season_url.split('season')[0].replace('video.jhtml?sort=descend','') not in doubles:
+				tvdb_name = _common.get_show_data(master_name,SITE, 'seasons')[-1]
+				if tvdb_name not in master_dict.keys():
+					master_dict[tvdb_name] = season_url
+				else:
+					master_dict[tvdb_name] = master_dict[tvdb_name] + ',' + season_url
+				doubles.append(season_url.split('season')[0].replace('video.jhtml?sort=descend',''))
 	for master_name, season_url in master_dict.iteritems():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	next = master_tree.find('a', class_ = 'page-next')
@@ -120,16 +120,17 @@ def episodes(url =_common.args.url, page = 1):
 	next = episode_tree.find('div', id = 'loadMore')		    
 	add_video(episode_tree)
 	if next is not None:
-		try:
-			show = url.split('/')[4]
-			if 'href' in next.a.attrs:
-				nexturl = next.a['href'].replace('null', show)			
-			if 'http' not in nexturl:
-				nexturl = BASE + nexturl
-			if page < int(_addoncompat.get_setting('maxpages')):
-				episodes(nexturl, page + 1)
-		except:
-			pass
+		if 'prev' not in next.a['rel']:
+			try:
+				show = url.split('/')[4]
+				if 'href' in next.a.attrs:
+					nexturl = next.a['href'].replace('null', show)			
+				if 'http' not in nexturl:
+					nexturl = BASE + nexturl
+				if page < int(_addoncompat.get_setting('maxpages')):
+					episodes(nexturl, page + 1)
+			except:
+				pass
 			
 def add_video(episode_tree):
 	episode_menu = episode_tree.find_all(itemtype = "http://schema.org/VideoObject", maincontent = re.compile('^((?!(quarantineDate|<b>)).)*$'))
@@ -153,7 +154,10 @@ def add_video(episode_tree):
 					try:
 						name =  episode_item.find(class_ = "sub-header").text.strip()
 					except:
-						name =  episode_item.find(class_ = "headline").text.strip()
+						try:
+							name =  episode_item.find(class_ = "headline").text.strip()
+						except:
+							name =  episode_item.find(class_ = "header").text.strip()
 			try:
 				thumb =  episode_item.find(itemprop = "thumbnail")['content']
 			except:
@@ -161,7 +165,7 @@ def add_video(episode_tree):
 					thumb =  episode_item.find(itemprop = "thumbnail")['src']
 				except:
 					try:
-						thumb =  episode_item.find('img')['data-src']
+						thumb =  episode_item.find(attrs ={'data-src' : True})['data-src']
 					except:
 						thumb = ''
 			if 'http' not in thumb and thumb != '':
@@ -191,7 +195,6 @@ def add_video(episode_tree):
 					season_number = int(re.compile('([0-9])[0-9][0-9]').findall(name)[0])
 				except:
 					try:
-						print "tryng",re.compile('s([0-9])').findall(episode_item.find(class_ = "header").text.strip())[0]
 						season_number = int(re.compile('s([0-9])/e[0-9]?[0-9]').findall(episode_item.find(class_ = "header").text.strip())[0])
 					except:
 						season_number = -1
@@ -218,7 +221,6 @@ def add_video(episode_tree):
 			try:
 				duration = episode_item.find(class_ = "meta").text.split('-')[0].strip()
 				durationinseconds = _common.format_seconds(duration)
-				print durationinseconds
 			except:
 				durationinseconds = -1
 			u = sys.argv[0]
