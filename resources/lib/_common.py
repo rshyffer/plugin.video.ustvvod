@@ -196,8 +196,9 @@ def refresh_db():
 			percent = int(increment * current)
 			dialog.update(percent, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39017)) + network.NAME, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39018)))
 			showdata = network.masterlist()
-			
-			all_shows.extend(showdata)
+			for show in showdata:
+				series_title, mode, submode, url = show
+				all_shows.append((smart_unicode(series_title), smart_unicode(mode), smart_unicode(submode)))
 			total_shows = len(showdata)
 			current_show = 0
 			for show in showdata:
@@ -211,9 +212,10 @@ def refresh_db():
 	command = 'select series_title, mode, submode, url from shows order by series_title'
 	shows = _database.execute_command(command, fetchall = True) 
 	for show in shows:
-		if show not in all_shows:
+		series_title, mode, submode, url = show
+		if (smart_unicode(series_title),smart_unicode(mode), smart_unicode(submode)) not in all_shows:
+			print "Deleting ", smart_unicode(series_title) + " " smart_unicode(mode) + " " smart_unicode(submode)
 			command = 'delete from shows where series_title = ? and mode = ? and submode = ? and url = ?;'
-			series_title, mode, submode, url = show
 			values = (series_title, mode, submode)
 			_database.execute_command(command, show, fetchone = True, commit = True)
 
