@@ -95,8 +95,9 @@ def episodes(episode_url = _common.args.url):
 			url = BASE + episode_item['url']
 			episode_duration = int(_common.format_seconds(episode_item['duration']))
 			episode_airdate = _common.format_date(episode_item['airdate'], '%m/%d/%y')
-			episode_name = episode_item['label']
-			if episode_name == '':
+			if len(episode_item['label']) < len(episode_item['title']):
+				episode_name = episode_item['label']
+			else:
 				episode_name = episode_item['title']
 			try:
 				season_number = int(episode_item['season_number'])
@@ -113,6 +114,9 @@ def episodes(episode_url = _common.args.url):
 			if url_att:
 				episode_pid = url_att.split('c___')[1]
 				episode_plot = ''
+			elif episode_item['description']:
+				episode_plot = episode_item['description']
+				episode_pid = url
 			else:
 				episode_plot, episode_pid = lookup_meta(url)
 			if episode_pid is not None:
@@ -133,7 +137,7 @@ def episodes(episode_url = _common.args.url):
 
 def lookup_meta(url):
 	data = _connection.getURL(url)
-	tree = BeautifulSoup(data, 'html.parser', parse_only = SoupStrainer('head'))
+	tree = BeautifulSoup(data, 'html5lib')
 	try:
 		episode_plot = tree.find('meta', property = 'og:description')['content']
 	except:
