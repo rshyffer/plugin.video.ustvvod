@@ -16,33 +16,8 @@ pluginHandle = int(sys.argv[1])
 BASE = 'http://video.nationalgeographic.com'
 
 def masterlist(SITE, SHOWS, SPECIALS = None):
-	master_dict = {}
+
 	master_db = []
-
-	master_url = SHOWS
-	master_data = _connection.getURL(master_url)
-	master_tree = BeautifulSoup(master_data, 'html.parser', parse_only = SoupStrainer('div', id = 'grid-frame'))
-	master_menu = master_tree.find_all('div', class_ = 'media-module')
-	for master_item in master_menu:
-		master_name = master_item.find('div', class_ = 'title').text
-		season_url = BASE + master_item.a['href']
-		if '-1' not in season_url:
-			tvdb_name = _common.get_show_data(master_name, SITE, 'episodes')[-1]
-			master_name = master_name + '#' + season_url 
-			if tvdb_name not in master_dict.keys():
-				master_dict[tvdb_name] = master_name
-			else:
-				master_dict[tvdb_name] = master_dict[tvdb_name] + ',' + master_name
-			
-	for master_name in master_dict:
-		season_url = master_dict[master_name]
-		master_db.append((master_name, SITE, 'episodes', season_url))
-	more = master_tree.find('a', class_ = 'load-more')
-	if more:
-		masterlist(SITE, BASE + more['href'])
-	return master_db
-
-def rootlist(SITE, SHOWS, SPECIALS = None):
 	root_dict = {}
 	root_url = SHOWS
 	root_data = _connection.getURL(root_url)
@@ -61,10 +36,18 @@ def rootlist(SITE, SHOWS, SPECIALS = None):
 			
 	for root_name in root_dict:
 		season_url = root_dict[root_name]
-		_common.add_show(root_name, SITE, 'episodes', season_url)
+		master_db.append((root_name, SITE, 'episodes', season_url))
 	more = root_tree.find('a', class_ = 'load-more')
 	if more:
-		rootlist(SITE, BASE + more['href'])
+		master_db.extend(masterlist(SITE, BASE + more['href']))
+	return master_db
+
+def rootlist(SITE, SHOWS, SPECIALS = None):
+	""" Add a container for every show. All logic is in masterlist() """
+	rootlist = []
+	rootlist = masterlist(SITE, SHOWS, SPECIALS = None)
+	for show in rootlist:
+			_common.add_show(show[0], show[1], show[2], show[3])
 	_common.set_view('tvshows')
 	
 
