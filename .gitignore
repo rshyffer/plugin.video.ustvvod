@@ -7,3 +7,4 @@ Thumbs.db
 cookie.txt
 *.smi
 resources/cache/ip.txt
+*.bak
