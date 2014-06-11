@@ -62,21 +62,15 @@ def get_network(module_name):
 	print "!!! plugin loading of site : " + module_name 
 	try:
 		module = _importlib.import_module('resources.lib.%s' % (module_name))
-
-		# module must at least have site and rootlist defined
 		if hasattr(module, 'SITE') and hasattr(module, 'rootlist'):
-
-			# patch modules with missing meta data
 			if not hasattr(module, 'NAME'):
 				setattr(module, 'NAME', module_name)
 			if not hasattr(module, 'DESCRIPTION'):
 				setattr(module, 'DESCRIPTION', module_name)
-
 			network_module_cache[module_name] = module
 			return module
 		else:
 			print "error loading site, SITE and rootlist must be defined"
-
 	except Exception, e:
 		print str(e)
 		
@@ -198,7 +192,7 @@ def refresh_db():
 			showdata = network.masterlist()
 			for show in showdata:
 				series_title, mode, submode, url = show
-				all_shows.append((smart_unicode(series_title), smart_unicode(mode), smart_unicode(submode)))
+				all_shows.append((smart_unicode(series_title.lower().strip()), smart_unicode(mode), smart_unicode(submode)))
 			total_shows = len(showdata)
 			current_show = 0
 			for show in showdata:
@@ -209,15 +203,14 @@ def refresh_db():
 				if (dialog.iscanceled()):
 					return False
 		current += 1
-	command = 'select series_title, mode, submode, url from shows order by series_title'
+	command = 'select tvdb_series_title , series_title, mode, submode, url from shows order by series_title'
 	shows = _database.execute_command(command, fetchall = True) 
 	for show in shows:
-		series_title, mode, submode, url = show
-		if (smart_unicode(series_title),smart_unicode(mode), smart_unicode(submode)) not in all_shows:
-			print "Deleting ", smart_unicode(series_title) + " " smart_unicode(mode) + " " smart_unicode(submode)
+		tvdb_series_title, series_title, mode, submode, url = show
+		if (smart_unicode(series_title.lower().strip()),smart_unicode(mode), smart_unicode(submode)) not in all_shows and (smart_unicode(tvdb_series_title.lower().strip()),smart_unicode(mode), smart_unicode(submode)) not in all_shows:
 			command = 'delete from shows where series_title = ? and mode = ? and submode = ? and url = ?;'
-			values = (series_title, mode, submode)
-			_database.execute_command(command, show, fetchone = True, commit = True)
+			values = (series_title, mode, submode, url)
+			_database.execute_command(command, values, fetchone = True, commit = True)
 
 def get_serie(series_title, mode, submode, url, forceRefresh = False):
 	command = 'select * from shows where series_title = ? and mode = ? and submode = ?;'
