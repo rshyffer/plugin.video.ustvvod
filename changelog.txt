@@ -1,3 +1,18 @@
+version 1.0.4
+
+  * fix for some environments
+  * filter out duplicates from pbs
+  * fix tonight show eps with no description
+  * fix common lookup
+  * tidy up shows in pbs
+  * fix for MTV and SyFy
+  * fix unicode issue on cleanup
+  * Comedy POC
+  * fixes for CBS
+  * fix for masterlist in NatGeo
+  * clean up all shows
+  * .gitignore for .bak files
+
 version 1.0.3
 
   * some seasons () do not have an 'url' argument
@@ -12,6 +27,7 @@ version 1.0.3
   * fix NatGeo
   * fix NatGeo Wild
   * fix issue with db refresh
+  * fix issues with ABC shows in all shows
   * exclude close button from shows on ComedyCentral
   * list all video feeds for Colbert Report/Daily Show
 
