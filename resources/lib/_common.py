@@ -207,22 +207,23 @@ def refresh_db():
 	shows = _database.execute_command(command, fetchall = True) 
 	for show in shows:
 		tvdb_series_title, series_title, mode, submode, url = show
-		if (smart_unicode(series_title.lower().strip()),smart_unicode(mode), smart_unicode(submode)) not in all_shows and (smart_unicode(tvdb_series_title.lower().strip()),smart_unicode(mode), smart_unicode(submode)) not in all_shows:
+		if ((smart_unicode(series_title.lower().strip()),smart_unicode(mode), smart_unicode(submode)) not in all_shows and (smart_unicode(tvdb_series_title.lower().strip()),smart_unicode(mode), smart_unicode(submode)) not in all_shows):
 			command = 'delete from shows where series_title = ? and mode = ? and submode = ? and url = ?;'
 			values = (series_title, mode, submode, url)
+			print "Deleting - " + series_title + " " + mode + " " + submode + " " + url
 			_database.execute_command(command, values, fetchone = True, commit = True)
 
 def get_serie(series_title, mode, submode, url, forceRefresh = False):
-	command = 'select * from shows where series_title = ? and mode = ? and submode = ?;'
-	values = (series_title, mode, submode)
+	command = 'select * from shows where lower(series_title) = ? and mode = ? and submode = ?;'
+	values = (series_title.lower(), mode, submode)
 	checkdata = _database.execute_command(command, values, fetchone = True)
 	if checkdata and not forceRefresh and checkdata[24]  is not None:
-		if checkdata[3] != url :
+		if checkdata[3] != url: 
 			command = 'update shows set url = ? where series_title = ? and mode = ? and submode = ?;'
 			values = (url, series_title, mode, submode)
 			_database.execute_command(command, values, commit = True)
-			command = 'select * from shows where series_title = ? and mode = ? and submode = ?;'
-			values = (series_title, mode, submode)
+			command = 'select * from shows where lower(series_title) = ? and mode = ? and submode = ?;'
+			values = (series_title.lower(), mode, submode)
 			return _database.execute_command(command, values, fetchone = True)
 		else:
 			return checkdata
@@ -469,18 +470,12 @@ def load_showlist(favored = 0):
 		if refresh:
 			refresh_db()
 	_database.check_db_version()
-	command = 'select series_title, mode, submode, url, favor, hide from shows order by series_title'
-	shows = _database.execute_command(command, fetchall = True) 
-	for series_title, mode, sitemode, url, favor, hide in shows:
-		if _addoncompat.get_setting(mode) != 'true':
-			continue
-		elif hide is 1:
-			continue
-		elif favored and not favor:
-			continue
-		add_show(series_title, mode, sitemode, url, favor = favor, hide = hide, masterList = True)	
+	command = "select * from shows  where url <> '' and hide <> 1 and favor = ? order by series_title"
+	shows = _database.execute_command(command, fetchall = True, values = [favored]) 
+	for show in shows:
+		add_show( masterList = True, showdata = show)	
 
-def add_show(series_title, mode = '', sitemode = '', url = '', favor = 0, hide = 0, masterList = False):
+def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, hide = 0, masterList = False, showdata = None):
 	infoLabels = {}
 	tvdbfanart = None
 	tvdbbanner = None
@@ -490,7 +485,8 @@ def add_show(series_title, mode = '', sitemode = '', url = '', favor = 0, hide =
 	fanart = ''
 	prefixplot = ''
 	actors2 = []
-	showdata = get_show_data(series_title, mode, sitemode, url)
+	if showdata is None:
+		showdata = get_show_data(series_title, mode, sitemode, url)
 	series_title, mode, sitemode, url, tvdb_id, imdb_id, tvdbbanner, tvdbposter, tvdbfanart, first_aired, date, year, actors, genres, network, plot, runtime, rating, airs_dayofweek, airs_time, status, has_full_episodes, favor, hide, tvdb_series_title = showdata
 	network_module = get_network(mode)
 	if not network_module:

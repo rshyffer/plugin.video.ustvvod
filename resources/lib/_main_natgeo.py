@@ -47,7 +47,7 @@ def rootlist(SITE, SHOWS, SPECIALS = None):
 	rootlist = []
 	rootlist = masterlist(SITE, SHOWS, SPECIALS = None)
 	for show in rootlist:
-			_common.add_show(show[0], show[1], show[2], show[3])
+		_common.add_show(show[0], show[1], show[2], show[3])
 	_common.set_view('tvshows')
 	
 

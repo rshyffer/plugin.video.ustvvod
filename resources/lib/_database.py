@@ -32,7 +32,10 @@ def execute_command(command, values = [], commit = False, fetchone = False, fetc
 	conn = sqlite.connect(dbfile)
 	conn.text_factory = str
 	c = conn.cursor()
-	data = c.execute(command, values)
+	if values != []:
+		data = c.execute(command, values)
+	else:
+		data = c.execute(command)
 	if commit is True:
 		conn.commit()
 	if (fetchone is False) and (fetchall is False):
@@ -43,6 +46,30 @@ def execute_command(command, values = [], commit = False, fetchone = False, fetc
 	elif fetchall is True:
 		return data.fetchall()
 
+
+def execute_only(command, values = [], commit = False, fetchone = False, fetchall = False, dbfile = DBFILE):
+
+	# make sure the database path exists, although the file might not
+	if not os.path.exists(xbmc.translatePath(DBPATH)):
+		os.makedirs(os.path.dirname(DBFILE)) 
+
+	conn = sqlite.connect(dbfile)
+	conn.text_factory = str
+	#c = conn.cursor()
+	if values != []:
+		data = conn.execute(command, values)
+	else:
+		data = conn.execute(command)
+	if commit is True:
+		conn.commit()
+	if (fetchone is False) and (fetchall is False):
+		conn.close()
+		return data
+	elif fetchone is True:
+		return data.fetchone()
+	elif fetchall is True:
+		return data.fetchall()
+		
 def create_db():
 	command = ('''CREATE TABLE shows(
 				series_title TEXT,
