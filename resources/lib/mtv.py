@@ -24,39 +24,13 @@ def masterlist(master_url = SHOWS):
 	return master_db
 
 def rootlist(root_url = SHOWS):
-	add_root_shows(SHOWS)
+	""" Add a container for every show. All logic is in masterlist() """
+	rootlist = []
+	rootlist = masterlist(SHOWS)
+	for show in rootlist:
+		_common.add_show(show[0], show[1], show[2], show[3])
 	_common.set_view('tvshows')
-        
-def add_root_shows(url, doubles = []):
-	root_dict = {}
-	for i in range(ord('a') - 1, ord('z')+1):
-		if i < ord('a'):
-			url = SHOWS
-		else:
-			url = SHOWSAZ % chr(i)
-		root_data = _connection.getURL(url)
-		root_tree = BeautifulSoup(root_data, 'html5lib')
-		root_menu = root_tree.find_all('a', attrs = {'data-report' : 'SHOWS_HUB:SHOWS_AZ:SHOW'})
-		for root_item in root_menu:
-			if 'series.jhtml' in root_item['href']:
-				season_url = root_item['href'].replace('series.jhtml', 'video.jhtml?sort=descend')
-			else:
-				season_url = root_item['href'] + 'video.jhtml?sort=descend'
-			if BASE not in season_url:
-				season_url = BASE + season_url
-			if season_url.split('season')[0].replace('video.jhtml?sort=descend','') not in doubles:
-				tvdb_name = _common.get_show_data(root_name,SITE, 'seasons')[-1]
-				if tvdb_name not in root_dict.keys():
-					root_dict[tvdb_name] = season_url
-				else:
-					root_dict[tvdb_name] = root_dict[tvdb_name] + ',' + season_url
-				doubles.append(season_url.split('season')[0].replace('video.jhtml?sort=descend',''))
-	for root_name, season_url in root_dict.iteritems():
-		_common.add_show(root_name, SITE, 'seasons', season_url)
-	next = root_tree.find('a', class_ = 'page-next')
-	if next:
-		doubles = add_root_shows(BASE + next['href'], doubles)
-	return doubles
+ 
 
 def add_master_shows(url, doubles = [], master_db = []):
 	master_dict = {}
