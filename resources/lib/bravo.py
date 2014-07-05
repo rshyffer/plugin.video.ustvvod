@@ -43,25 +43,6 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def rootlist():
-	root_doubles = []
-	root_dict = {}
-	root_data = _connection.getURL(SHOWS)
-	root_menu = BeautifulSoup(root_data, 'html.parser').find_all('div', class_ = 'title')
-	for root_item in root_menu:
-		root_name = root_item.text.strip()
-		if root_name not in root_doubles:
-			tvdb_name = _common.get_show_data(root_name,SITE, 'seasons')[-1]
-			if tvdb_name not in root_dict.keys():
-				root_dict[tvdb_name] = root_name
-			else:
-				root_dict[tvdb_name] = root_dict[tvdb_name] + ',' + root_name
-			root_doubles.append(root_name)
-	for root_name in root_dict:
-		season_url = root_dict[root_name]
-		_common.add_show(root_name,  SITE, 'seasons', season_url)
-	_common.set_view('tvshows')
-
 def seasons(season_urls = _common.args.url):
 	for season_url in season_urls.split(','):
 		season_data = _connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')

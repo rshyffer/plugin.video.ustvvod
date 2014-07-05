@@ -41,14 +41,6 @@ def masterlist(SITE, SHOWS, SPECIALS = None):
 	if more:
 		master_db.extend(masterlist(SITE, BASE + more['href']))
 	return master_db
-
-def rootlist(SITE, SHOWS, SPECIALS = None):
-	""" Add a container for every show. All logic is in masterlist() """
-	rootlist = []
-	rootlist = masterlist(SITE, SHOWS, SPECIALS = None)
-	for show in rootlist:
-		_common.add_show(show[0], show[1], show[2], show[3])
-	_common.set_view('tvshows')
 	
 
 def seasons(SITE, season_urls):

@@ -40,19 +40,6 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def rootlist():	
-	root_dict = {}
-	for root_url in (SHOWS, ORIGINALS, MOVIES):
-		root_data = _connection.getURL(root_url)
-		root_menu = simplejson.loads(root_data)['result']['data']
-		for root_item in root_menu:
-			root_name = root_item['title']
-			season_url = root_item['link']
-			root_dict[root_name] = season_url
-	for root_name, season_url in root_dict.iteritems():
-		_common.add_show(root_name, SITE, 'seasons', season_url)
-	_common.set_view('tvshows')
-
 def seasons(season_urls = _common.args.url):
 	root_url = season_urls
 	if season_urls[-1:] == '/':

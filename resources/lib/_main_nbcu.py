@@ -25,14 +25,6 @@ def masterlist(SITE, SHOWS):
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def rootlist(SITE, SHOWS):
-	root_data = _connection.getURL(SHOWS)
-	root_menu = simplejson.loads(root_data)['entries']
-	for root_item in root_menu:
-		root_name = root_item['title']
-		season_url = root_item['plcategory$fullTitle']
-		_common.add_show(root_name,  SITE, 'seasons', season_url)
-	_common.set_view('tvshows')
 
 def seasons(SITE, FULLEPISODES, CLIPS):
 	season_url = _common.args.url

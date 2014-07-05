@@ -42,15 +42,6 @@ def masterlist():
 			master_db.append((master_name, SITE, 'seasons', master_name))
 	return master_db
 
-def rootlist():
-	root_data = _connection.getURL(SHOWS)
-	root_menu = simplejson.loads(root_data)['shows']
-	for root_item in root_menu:
-		if root_item['external_link'] == '':
-			root_name = root_item['title']
-			_common.add_show(root_name,  SITE, 'seasons', root_name)
-	_common.set_view('tvshows')
-
 def seasons(season_url = _common.args.url):
 	if season_url in different_show_name:
 		season_url = different_show_name[season_url]

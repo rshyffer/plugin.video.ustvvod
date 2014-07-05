@@ -11,9 +11,6 @@ DESCRIPTION = "ABC Family's programming is a combination of network-defining ori
 def masterlist():
 	return _main_abcdisney.masterlist(SITE, BRANDID)
 
-def rootlist():
-	_main_abcdisney.rootlist(SITE, BRANDID)
-
 def seasons():
 	_main_abcdisney.seasons(SITE, BRANDID)
 

@@ -33,15 +33,6 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def rootlist():
-	root_data = _connection.getURL(SHOWS)
-	root_menu = simplejson.loads(root_data)['entries']
-	for root_item in root_menu:
-		root_name = root_item['title']
-		season_url = root_item['plcategory$fullTitle']
-		_common.add_show(root_name,  SITE, 'seasons', season_url)
-	_common.set_view('tvshows')
-
 def seasons(season_url = _common.args.url):
 	season_data = _connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
 	try:

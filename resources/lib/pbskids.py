@@ -25,21 +25,12 @@ EPISODES = 'http://pbskids.org/pbsk/video/api/getVideos/?program=%s&endindex=100
 VIDEO = 'http://pbskids.org/pbsk/video/api/getVideos/?guid=%s&endindex=1&encoding=&return=captions'
 
 def masterlist():
-	master_start = 0
-	master_count = 200
 	master_db = []
 	master_menu = simplejson.loads(_connection.getURL(SHOWS))
 	for master_item in master_menu['items']:
 		master_name = _common.smart_utf8(master_item['title'])
 		master_db.append((master_name, SITE, 'seasons', urllib.quote_plus(master_name)))
 	return master_db
-
-def rootlist():
-	root_menu = simplejson.loads(_connection.getURL(SHOWS))
-	for root_item in root_menu['items']:
-		root_name = _common.smart_utf8(root_item['title'])
-		_common.add_show(root_name,  SITE, 'seasons', urllib.quote_plus(root_name))
-	_common.set_view('tvshows')
 
 def seasons(show_name = _common.args.url):
 	for type in TYPES:

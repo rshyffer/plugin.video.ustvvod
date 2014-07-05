@@ -35,20 +35,10 @@ def masterlist():
 		season_url = FULLEPISODES % master_item['ID']
 		master_dict[master_name] = season_url
 		master_db.append((master_name, SITE, 'seasons', season_url))
-	master_db.append(('Crackle Movies', SITE, 'movielist', MOVIES))
+	master_db.append(('--Crackle Movies', SITE, 'movielist', MOVIES))
 	return master_db
 
-def rootlist():	
-	root_dict = {}
-	root_url = SHOWS
-	root_data = _connection.getURL(root_url)
-	root_menu = simplejson.loads(root_data)['Entries']
-	for root_item in root_menu:
-		root_name = root_item['Title']
-		season_url = FULLEPISODES % root_item['ID']
-		_common.add_show(root_name, SITE, 'seasons', season_url)
-	_common.add_show('Crackle Movies', SITE, 'movielist', MOVIES)
-	_common.set_view('tvshows')
+
 
 def movielist(url = _common.args.url):	
 	root_dict = {}

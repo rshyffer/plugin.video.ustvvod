@@ -29,16 +29,6 @@ def masterlist():
 		master_db.append((master_name, SITE, 'episodes', season_url))
 	return master_db
 
-def rootlist():
-	root_data = _connection.getURL(SHOWS)
-	root_tree = BeautifulSoup(root_data, 'html5lib').find('ul', id = 'channelCarousel_ul')
-	root_menu = root_tree.find_all('a')
-	for root_item in root_menu:
-		root_name = root_item.img['alt'].strip()
-		season_url = root_item['title']
-		_common.add_show(root_name, SITE, 'episodes', season_url)
-	_common.set_view('tvshows')
-
 def episodes(episode_url = _common.args.url):
 	episode_data = _connection.getURL(EPISODES + episode_url)
 	episode_data2 = simplejson.loads(episode_data)['list_html']

@@ -31,16 +31,6 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def rootlist():
-	root_data = _connection.getURL(SHOWS, header = {'X-Forwarded-For' : '12.13.14.15'})
-	root_tree = BeautifulSoup(root_data, 'html5lib')
-	root_menu = root_tree.find_all('div', class_ = 'filter-category right')[0].find_all('li')
-	for root_item in root_menu:
-		root_name = root_item.find('span', class_ = 'filter-name').text.replace('&','and')
-		season_url = root_item['data-value'] 
-		_common.add_show(root_name, SITE, 'seasons', season_url)
-	_common.set_view('tvshows')
-
 def seasons(season_url = _common.args.url):
 	season_data = _connection.getURL(FULLEPISODES % season_url + '&start=0&rows=1', header = {'X-Forwarded-For' : '12.13.14.15'})
 	try:

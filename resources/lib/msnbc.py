@@ -32,15 +32,6 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def rootlist():
-	root_data = _connection.getURL(SHOWS)
-	root_menu = simplejson.loads(root_data)['shows']
-	for root_item in root_menu:
-		root_name = root_item['show']['title']
-		season_url = BASE + root_item['show']['path']
-		_common.add_show(root_name,  SITE, 'seasons', season_url)
-	_common.set_view('tvshows')
-
 def seasons(season_url = _common.args.url):
 	season_data = _connection.getURL(season_url)
 	season_tree = BeautifulSoup(season_data, 'html.parser', parse_only = SoupStrainer('div'))
@@ -49,8 +40,11 @@ def seasons(season_url = _common.args.url):
 	playlist_data = _connection.getURL(playlist_url)
 	playlist_data = playlist_data.replace('$pdk.NBCplayer.ShowPlayerTaxonomy.GetList(', '').replace(');', '')
 	season_menu = simplejson.loads(playlist_data)
-	for season_item in season_menu['playlistTaxonomy']:
-		_common.add_directory(season_item['reference']['name'],  SITE, 'episodes', FEED % season_item['reference']['feed'])
+	try:
+		for season_item in season_menu['playlistTaxonomy']:
+			_common.add_directory(season_item['reference']['name'],  SITE, 'episodes', FEED % season_item['reference']['feed'])
+	except:
+		pass
 	_common.set_view('seasons')
 
 def episodes(episode_url = _common.args.url):

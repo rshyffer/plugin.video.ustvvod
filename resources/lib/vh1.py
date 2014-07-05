@@ -93,36 +93,6 @@ def masterlist():
 				master_name = master_name.split('(')[0].strip()
 			master_db.append((master_name, SITE, mode, season_url))
 	return master_db
-
-def rootlist():
-	root_data = _connection.getURL(SHOWS)
-	root_tree = BeautifulSoup(root_data, 'html.parser', parse_only = SoupStrainer('div', id = 'inner'))
-	root_menu = root_tree.find_all('div', class_ = 'alpha-group')
-	for root_tree2 in root_menu:
-		for root_item in root_tree2.find_all('a'):
-			root_name = root_item.text.replace('Season','').strip()
-			season_url = root_item['href'].replace('series.jhtml','video.jhtml?sort=descend')
-			mode = 'show_subcats'
-			if BASE not in season_url:
-				season_url = BASE + season_url
-			if root_name in blacklist:
-				continue
-			elif '/shows/events' in season_url:
-				continue
-			docontinue = False
-			for series_name, choosen in multiseason:
-				if series_name in root_name:
-					if choosen is not root_name:
-						docontinue = True
-					elif choosen == root_name:
-						root_name = series_name
-						mode = 'seasons'
-			if docontinue is True:
-				continue
-			if '(' in root_name:
-				root_name = root_name.split('(')[0].strip()
-			_common.add_show(root_name, SITE, mode, season_url)
-	_common.set_view('tvshows')
         
 def seasons(url = _common.args.url):
 	show_data = _connection.getURL(url)

@@ -23,15 +23,6 @@ def masterlist(master_url = SHOWS):
 	master_db, doubles = add_master_shows(SHOWS)
 	return master_db
 
-def rootlist(root_url = SHOWS):
-	""" Add a container for every show. All logic is in masterlist() """
-	rootlist = []
-	rootlist = masterlist(SHOWS)
-	for show in rootlist:
-		_common.add_show(show[0], show[1], show[2], show[3])
-	_common.set_view('tvshows')
- 
-
 def add_master_shows(url, doubles = [], master_db = []):
 	master_dict = {}
 	root_dict = {}

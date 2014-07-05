@@ -52,6 +52,10 @@ def modes():
 		_common.load_showlist()
 		_common.set_view('tvshows')
 		xbmcplugin.endOfDirectory(pluginHandle)
+	elif _common.args.sitemode == 'rootlist':
+		xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_LABEL)
+		_common.root_list(_common.args.mode)
+		xbmcplugin.endOfDirectory(pluginHandle)
 	elif _common.args.mode == 'Favorlist':   
 		xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_LABEL)
 		_common.load_showlist(favored = 1)

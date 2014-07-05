@@ -11,8 +11,6 @@ DESCRIPTION = "ABC News is responsible for all of the ABC Television Network's n
 def masterlist():
 	return _main_abcdisney.masterlist(SITE, BRANDID)
 
-def rootlist():
-	_main_abcdisney.rootlist(SITE, BRANDID)
 
 def seasons():
 	_main_abcdisney.seasons(SITE, BRANDID)

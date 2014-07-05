@@ -56,14 +56,6 @@ def masterlist():
 
 	return master_db
 
-def rootlist():
-	""" Add a container for every show. All logic is in masterlist() """
-	rootlist = []
-	rootlist = masterlist()
-	for show in rootlist:
-			_common.add_show(show[0], show[1], show[2], show[3])
-	_common.set_view('tvshows')
-
 def _get_manifest(page_url):
 	""" Try to get the manifest Javascript object for the current page. Input URL can be any kind of page
 	    Returns the manifest feed as a JSON object if found, else return False """

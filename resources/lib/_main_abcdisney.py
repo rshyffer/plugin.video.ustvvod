@@ -61,34 +61,6 @@ def masterlist(SITE, BRANDID):
 				master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def rootlist(SITE, BRANDID):
-	root_data = _connection.getURL(SHOWS % BRANDID)
-	root_menu = simplejson.loads(root_data)['shows']['show']
-	for root_item in root_menu:
-		fullepisodes = 0
-		clips = 0
-		if (int(root_item['clips']['count']['@total']) + int(root_item['fullepisodes']['count']['@total'])) > 0:
-			if int(root_item['clips']['count']['@total']) > 0:
-				try:
-					if int(root_item['clips']['count']['video']['@accesslevel']) == 0:
-						clips = int(root_item['clips']['count']['video']['$'])	
-				except:
-					if int(root_item['clips']['count']['video'][0]['@accesslevel']) == 0:
-						clips = int(root_item['clips']['count']['video'][0]['$'])
-			if int(root_item['fullepisodes']['count']['@total']) > 0:
-				try:
-					if int(root_item['fullepisodes']['count']['video']['@accesslevel']) == 0:
-						fullepisodes = int(root_item['fullepisodes']['count']['video']['$'])
-				except:
-					if int(root_item['fullepisodes']['count']['video'][0]['@accesslevel']) == 0:
-						fullepisodes = int(root_item['fullepisodes']['count']['video'][0]['$'])
-			if (fullepisodes + clips) > 0:
-				root_name = root_item['title'].strip()
-				season_url = root_item['@id']
-				print "'"+root_name+"'", ord(root_name[-1])
-				_common.add_show(root_name, SITE, 'seasons', season_url)
-	_common.set_view('tvshows')
-
 def seasons(SITE, BRANDID):
 	xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_LABEL)
 	season_url = _common.args.url

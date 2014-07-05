@@ -34,15 +34,6 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', master_item['href']))
 	return master_db
 
-def rootlist():
-	show_data = _connection.getURL(SHOWS)
-	show_tree = BeautifulSoup(show_data, 'html5lib')
-	show_menu = show_tree.find('div', id='shows-list').find_all('a')
-	for show_item in show_menu:
-		show_name = _common.smart_utf8(show_item.text)
-		_common.add_show(show_name,  SITE, 'seasons', show_item['href'])
-	_common.set_view('tvshows')
-
 def seasons(url = _common.args.url):
 	homedir = url.split('/')[-1].replace('-','+')
 	print homedir

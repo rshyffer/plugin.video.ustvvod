@@ -52,6 +52,37 @@ class _Info:
 args = _Info(sys.argv[2][1:].replace('&', ' , '))
 network_module_cache = {}
 
+def root_list(network_name):
+	"""
+	Loads data from master list
+	"""
+	
+	network = get_network(network_name)
+	dialog = xbmcgui.DialogProgress()
+	dialog.create(smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39016)))
+	current = 0
+	rootlist = []
+	
+	network_name = network.NAME
+
+	#percent = int(increment * current)
+	dialog.update(0, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39017)) + network.NAME, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39018)))
+	showdata = network.masterlist()
+	
+	total_shows = len(showdata)
+	current_show = 0
+	for show in showdata:
+		percent = int( (float(current_show) / total_shows))
+		dialog.update(percent, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39017)) + network.NAME, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39005)) + show[0])
+		current_show += 1
+		if (dialog.iscanceled()):
+			return False
+	
+	
+	for show in showdata:
+		add_show(show[0], show[1], show[2], show[3])
+	set_view('tvshows')
+
 def get_network(module_name):
 	""" 
 	Loads network using a quick and dirty plugin method
@@ -62,7 +93,7 @@ def get_network(module_name):
 	print "!!! plugin loading of site : " + module_name 
 	try:
 		module = _importlib.import_module('resources.lib.%s' % (module_name))
-		if hasattr(module, 'SITE') and hasattr(module, 'rootlist'):
+		if hasattr(module, 'SITE') and hasattr(module, 'masterlist'):
 			if not hasattr(module, 'NAME'):
 				setattr(module, 'NAME', module_name)
 			if not hasattr(module, 'DESCRIPTION'):
@@ -70,7 +101,7 @@ def get_network(module_name):
 			network_module_cache[module_name] = module
 			return module
 		else:
-			print "error loading site, SITE and rootlist must be defined"
+			print "error loading site, SITE and materlist must be defined"
 	except Exception, e:
 		print str(e)
 		
@@ -177,6 +208,9 @@ def replace_signs(text):
 	return text
 
 def refresh_db():
+	if not os.path.isfile(_database.DBFILE):
+		print "Creating db"
+		_database.create_db()
 	networks = get_networks()
 	dialog = xbmcgui.DialogProgress()
 	dialog.create(smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39016)))
@@ -246,7 +280,42 @@ def get_series_id(seriesdata, seriesname, site = '', allowManual = False):
 		if  '**' in show_item.seriesname.string:
 			show_item.clear()
 	show_list = []
-	if len(shows) > 1:
+	punctuation = ":'!,. -\"?s"
+	exclude = set(punctuation)
+	tvdb_show_name = shows[0].seriesname.string.lower()
+	tvdb_show_name = tvdb_show_name.replace(shows[0].network.string.lower(), '').replace(site.lower(),'').replace('on','').strip()
+	tvdb_show_name = tvdb_show_name.replace('the', '').replace('show','').strip()
+	lookup = seriesname.lower()
+	lookup = lookup.replace('the', '').replace('show','').strip()
+	lookup = lookup.replace(site.lower(), '').replace('on','').strip()
+	tvdb_show_name = ''.join(ch for ch in tvdb_show_name if ch not in exclude)
+	if 'with' in tvdb_show_name and ':' not in lookup:
+		tvdb_show_name = tvdb_show_name.split('with')[0].strip()
+	else:
+		tvdb_show_name = tvdb_show_name.replace('with', '')
+	tvdb_show_name = tvdb_show_name.replace('tarring', '')
+	lookup = ''.join(ch for ch in lookup if ch not in exclude)
+	if 'with' in lookup:
+		lookup = lookup.split('with')[0].strip()
+	if 'hoted' in lookup:
+		lookup = lookup.split('hoted')[0].strip()
+	if 'hosted' in tvdb_show_name:
+		tvdb_show_name = tvdb_show_name.split('hosted')[0].strip()
+	lookup = lookup.replace('&', 'and')
+	tvdb_show_name = tvdb_show_name.replace('&', 'and')
+	numbers = {'one':1,
+			'two':2,
+			'three':3,
+			'four':4,
+			'five':5,
+			'six':6,
+			'seven':7,
+			'eight':8,
+			'nine':9}
+	for key in numbers:
+		lookup = lookup.replace(key, str(numbers[key]))
+		tvdb_show_name = tvdb_show_name.replace(key, str(numbers[key]))
+	if len(shows) > 1 or tvdb_show_name != lookup:
 		ret = -1
 		variantsExist = False
 		lookup_name = seriesname.replace('%E2%84%A2', '').lower().replace("'", "").replace('?', '').replace('!', '').strip()
@@ -259,7 +328,7 @@ def get_series_id(seriesdata, seriesname, site = '', allowManual = False):
 				item_network = ''
 			if '(' in show_item.seriesname.string and item_network == lookup_network:
 				variantsExist = True
-			elif item_name == lookup_name and item_network == lookup_network:
+			elif item_name.lower().replace(site.lower(), '').strip() == lookup_name.lower().replace(site.lower(), '').strip() and item_network == lookup_network:
 				ret = i
 		if allowManual == True and (variantsExist == True or ret == -1):
 			select = xbmcgui.Dialog()
@@ -507,6 +576,7 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 		thumb = tvdbposter
 	else:
 		thumb = os.path.join(IMAGEPATH, mode + '.png')
+	orig_series_title = series_title
 	if tvdb_series_title is not None:
 		series_title = smart_utf8(tvdb_series_title)
 	infoLabels['title'] = series_title
@@ -575,7 +645,7 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 		u += '&poster="' + urllib.quote_plus(tvdbposter) + '"'
 	u += '&name="' + urllib.quote_plus(series_title) + '"'
 	contextmenu = []
-	refresh_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=refresh_show'
+	refresh_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=refresh_show'
 	contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39008)), 'XBMC.RunPlugin(%s)' % refresh_u))
 	if favor is 1:
 		fav_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=unfavor_show'

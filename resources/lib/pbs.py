@@ -63,39 +63,6 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def rootlist():
-	root_start = 0
-	root_count = 200
-	root_check = []
-	root_dict = {}
-	root_menu = simplejson.loads(_connection.getURL(SHOWS, header = {'X-Requested-With' : 'XMLHttpRequest'}))
-	for root_item in root_menu.itervalues():
-		for root_item in root_item:
-			root_check.append(root_item['title'])
-	while root_start < root_count:
-		root_data = cove.programs.filter(fields = 'mediafiles', order_by = 'title', limit_start = root_start)
-		root_menu = root_data['results']
-		root_count = root_data['count']
-		root_stop = root_data['stop']
-		del root_data
-		for root_item2 in root_menu:
-			website = root_item2['website']
-			if website is None:
-				website = ''
-			if (root_item2['title'] in root_check) and ('PBS Kids' != root_item2['nola_root']) and ('blog' not in website) :
-				root_name = _common.smart_utf8(root_item2['title'])
-				tvdb_name = _common.get_show_data(root_name, SITE, 'seasons')[-1]
-				season_url = re.compile('/cove/v1/programs/(.*?)/').findall(root_item2['resource_uri'])[0]
-				if tvdb_name not in root_dict.keys():
-					root_dict[tvdb_name] = _common.smart_unicode(root_name) + '#' +season_url
-				else:
-					root_dict[tvdb_name] = root_dict[tvdb_name] + ',' + root_name + '#' + season_url
-		root_start = root_stop		
-	for root_name in root_dict:
-		season_url = root_dict[root_name]
-		_common.add_show(root_name,  SITE, 'seasons', season_url)
-	_common.set_view('tvshows')
-
 def seasons(season_urls = _common.args.url):
 	for season_url in season_urls.split(','):
 		name = season_url.split('#')[0]

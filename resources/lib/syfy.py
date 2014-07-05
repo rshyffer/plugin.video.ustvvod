@@ -27,9 +27,6 @@ SWFURL = 'http://www.syfy.com/_utils/video/codebase/pdk/swf/flvPlayer.swf'
 def masterlist():
 	return _main_nbcu.masterlist(SITE, SHOWS)
 
-def rootlist():
-	_main_nbcu.rootlist(SITE, SHOWS)
-
 def seasons():
 	_main_nbcu.seasons(SITE, FULLEPISODES, CLIPS)
 

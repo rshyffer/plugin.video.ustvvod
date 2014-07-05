@@ -30,15 +30,6 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def rootlist():
-	root_data = _connection.getURL(SHOWS)
-	root_menu = BeautifulSoup(root_data).find('select', id = 'rb-video-browser-show').find_all('option', title = True)
-	for root_item in root_menu:
-		root_name = root_item.text
-		season_url = root_item['value']
-		_common.add_show(root_name,  SITE, 'seasons', season_url)
-	_common.set_view('tvshows')
-
 def seasons():
 	season_data = _connection.getURL(SHOWS)
 	season_tree = BeautifulSoup(season_data)

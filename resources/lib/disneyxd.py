@@ -11,9 +11,6 @@ DESCRIPTION = "Disney XD is a basic cable channel and multi-platform brand showc
 def masterlist():
 	return _main_abcdisney.masterlist(SITE, BRANDID)
 
-def rootlist():
-	_main_abcdisney.rootlist(SITE, BRANDID)
-
 def seasons():
 	_main_abcdisney.seasons(SITE, BRANDID)
 

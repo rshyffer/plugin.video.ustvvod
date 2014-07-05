@@ -30,15 +30,6 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def rootlist():
-	root_data = _connection.getURL(SHOWS)
-	root_menu = BeautifulSoup(root_data, 'html5lib').find_all(href = re.compile('/shows/'))
-	for root_item in root_menu:
-		root_name = root_item['title']
-		season_url = BASE + root_item['href']
-		_common.add_show(root_name,  SITE, 'seasons', season_url)
-	_common.set_view('tvshows')
-
 def seasons(season_url = _common.args.url):
 	season_data = _connection.getURL(season_url)
 	season_tree = BeautifulSoup(season_data)
