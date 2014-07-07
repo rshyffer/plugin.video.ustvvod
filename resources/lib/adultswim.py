@@ -7,6 +7,7 @@ import sys
 import urllib
 import xbmcgui
 import xbmcplugin
+import plistlib
 from bs4 import BeautifulSoup
 
 pluginHandle = int(sys.argv[1])
@@ -14,7 +15,7 @@ pluginHandle = int(sys.argv[1])
 SITE = 'adultswim'
 NAME = "Adult Swim"
 DESCRIPTION = "Cartoon Network (CartoonNetwork.com), currently seen in more than 97 million U.S. homes and 166 countries around the world, is Turner Broadcasting System, Inc.'s ad-supported cable service now available in HD offering the best in original, acquired and classic entertainment for youth and families.  Nightly from 10 p.m. to 6 a.m. (ET, PT), Cartoon Network shares its channel space with Adult Swim, a late-night destination showcasing original and acquired animated and live-action programming for young adults 18-34 "
-SHOWS = 'http://asfix.adultswim.com/staged/AS.configuration.xml?cacheID=1382732985626'
+SHOWS = 'http://www.adultswim.com/mobile/tools/feeds/shows.plist'
 SEASONSCLIPS = 'http://video.adultswim.com/adultswimdynamic/asfix-svc/episodeSearch/getAllEpisodes?limit=0&offset=0&sortByDate=DESC&filterByEpisodeType=PRE,CLI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true'
 SEASONSEPISODES = 'http://video.adultswim.com/adultswimdynamic/asfix-svc/episodeSearch/getAllEpisodes?limit=0&offset=0&sortByDate=DESC&filterByEpisodeType=EPI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true'
 SEASONSCLIPSEXTRA = 'http://video.adultswim.com/adultswimdynamic/asfix-svc/episodeSearch/getAllEpisodes?limit=1&offset=0&sortByDate=DESC&filterByEpisodeType=PRE,CLI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true'
@@ -28,15 +29,14 @@ def masterlist():
 	master_db = []
 	master_dict = {}
 	master_data = _connection.getURL(SHOWS)
-	master_tree = BeautifulSoup(master_data, 'html5lib')
-	master_menu = master_tree.allcollections.find_all('collection')
-	for master_item in master_menu:
+	master_tree = plistlib.readPlistFromString(master_data)
+	for master_item in master_tree:
 		master_name = _common.smart_utf8(master_item['name'])
 		tvdb_name = _common.get_show_data(master_name, SITE, 'seasons')[-1]
 		if tvdb_name not in master_dict.keys():
-			master_dict[tvdb_name] = master_item['id']
+			master_dict[tvdb_name] = master_item['show-id']
 		else:
-			master_dict[tvdb_name] = master_dict[tvdb_name] + ',' + master_item['id']
+			master_dict[tvdb_name] = master_dict[tvdb_name] + ',' + master_item['show-id']
 	for master_name in master_dict:
 		season_url = master_dict[master_name]
 		master_db.append((master_name,  SITE, 'seasons', season_url))
