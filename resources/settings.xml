@@ -38,6 +38,7 @@
 		<setting id="aetv" type="bool" label="A&amp;E" default="true"/>
 		<setting id="amc" type="bool" label="AMC" default="true"/>
 		<setting id="bravo" type="bool" label="Bravo" default="true"/>
+		<setting id="cartoon" type="bool" label="Cartoon Network" default="true"/>
 		<setting id="cbs" type="bool" label="CBS" default="true"/>
 		<setting id="comedy" type="bool" label="Comedy Central" default="true"/>
 		<setting id="crackle" type="bool" label="Crackle" default="true"/>
