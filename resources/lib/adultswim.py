@@ -3,6 +3,7 @@
 import _addoncompat
 import _common
 import _connection
+import _main_turner
 import sys
 import urllib
 import xbmcgui
@@ -22,8 +23,7 @@ SEASONSCLIPSEXTRA = 'http://video.adultswim.com/adultswimdynamic/asfix-svc/episo
 SEASONSEPISODESEXTRA = 'http://video.adultswim.com/adultswimdynamic/asfix-svc/episodeSearch/getAllEpisodes?limit=1&offset=0&sortByDate=DESC&filterByEpisodeType=EPI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true'
 CLIPS = 'http://video.adultswim.com/adultswimdynamic/asfix-svc/episodeSearch/getAllEpisodes?limit=50&offset=0&sortByDate=DESC&filterByEpisodeType=CLI&filterByCollectionId=%s&filterByAuthType=true&networkName=AS'
 FULLEPISODES = 'http://video.adultswim.com/adultswimdynamic/asfix-svc/episodeSearch/getAllEpisodes?limit=50&offset=0&sortByDate=DESC&filterByEpisodeType=EPI&filterByCollectionId=%s&filterByAuthType=true&networkName=AS'
-EPISODE = 'http://video.adultswim.com/adultswimdynamic/asfix-svc/episodeSearch/getEpisodesByIDs?ids=%s&networkName=AS'
-VIDEOINFO = 'http://asfix.adultswim.com/asfix-svc/episodeservices/getCvpPlaylist?networkName=AS&id=%s'
+EPISODE = 'http://asfix.adultswim.com/asfix-svc/episodeservices/getCvpPlaylist?networkName=AS&id=%s'
 
 def masterlist():
 	master_db = []
@@ -75,81 +75,9 @@ def seasons(collection_ids = _common.args.url):
 			_common.add_directory(display,  SITE, 'episodes', CLIPS % collection_id)
 	_common.set_view('seasons')
 
-def episodes(episode_url = _common.args.url):
-	episode_data = _connection.getURL(episode_url)
-	episode_tree = BeautifulSoup(episode_data, 'html.parser')
-	episode_menu = episode_tree.find_all('episode')
-	for episode_item in episode_menu:
-		url = EPISODE % episode_item['id']
-		try:
-			episode_duration = episode_item['duration']
-			episode_duration = int(_common.format_seconds(episode_duration))
-		except:
-			episode_duration = 0
-			for segment_duration in episode_item.find_all('segment'):
-				episode_duration += float(segment_duration['duration'])
-		try:
-			episode_airdate = _common.format_date(episode_item['originalpremieredate'].split(' ')[0],'%m/%d/%Y')
-		except:
-			try:
-				episode_airdate = _common.format_date(episode_item['launchdate'].split(' ')[0],'%m/%d/%Y')
-			except:
-				episode_airdate = -1
-		episode_name = episode_item['title']
-		try:
-			season_number = int(episode_item['episeasonnumber'])
-		except:
-			season_number = -1
-		try:
-			episode_number = int(episode_item['episodenumber'][:2])
-		except:
-			episode_number = -1
-		try:
-			episode_thumb = episode_item['thumbnailurl']
-		except:
-			episode_thumb = None
-		episode_plot = episode_item.description.text
-		u = sys.argv[0]
-		u += '?url="' + urllib.quote_plus(url) + '"'
-		u += '&mode="' + SITE + '"'
-		u += '&sitemode="play_video"'
-		infoLabels={	'title' : episode_name,
-						'durationinseconds' : episode_duration,
-						'season' : season_number,
-						'episode' : episode_number,
-						'plot' : episode_plot,
-						'premiered' : episode_airdate }
-		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
-	_common.set_view('episodes')
-
-def play_video(video_url = _common.args.url):
-	stack_url = 'stack://'
-	hbitrate = -1
-	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
-	closedcaption = None
-	video_data = _connection.getURL(video_url)
-	video_tree = BeautifulSoup(video_data, 'html.parser')
-	video_segments = video_tree.find_all('segment')
-	for video_segment in video_segments:
-		seg_url = VIDEOINFO % video_segment['id']
-		seg_data = _connection.getURL(seg_url)
-		seg_menu = BeautifulSoup(seg_data).find_all('file')
-		hbitrate = -1
-		file_url = None
-		for video_index in seg_menu:
-			try:
-				bitrate = int(video_index['bitrate'])
-				type = video_index['type']
-				if bitrate > hbitrate and bitrate <= sbitrate:
-					hbitrate = bitrate
-					file_url = video_index.string
-				elif bitrate == hbitrate and bitrate <= sbitrate and type == 'hd' :
-					file_url = video_index.string
-			except:
-				pass
-		if file_url is None:
-			file_url = BeautifulSoup(seg_data).find_all('file',type = 'hd')[0].string
-		stack_url += file_url.replace(',', ',,') + ' , '
-	finalurl = stack_url[:-3]
-	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
-
+def episodes():
+	_main_turner.episodes(SITE)
+	
+def play_video():
+	_main_turner.play_video(SITE, EPISODE)
+	
