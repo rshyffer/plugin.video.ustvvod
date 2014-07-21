@@ -17,9 +17,88 @@ AUTHURL = 'http://www.tbs.com/processors/cvp/token.jsp'
 SWFURL = 'http://z.cdn.turner.com/xslo/cvp/plugins/akamai/streaming/osmf1.6/2.10/AkamaiAdvancedStreamingPlugin.swf'
 BASE = 'http://ht.cdn.turner.com/tbs/big/'
 
+def masterlist(NAME, MOVIES, SHOWS, SITE):
+	master_db = []
+	master_dict = {}
+	master_db.append(('--' + NAME + ' Movies',  SITE, 'episodes', 'Movie#' + MOVIES))
+	master_data = _connection.getURL(SHOWS)
+	master_menu = simplejson.loads(master_data)
+	for master_item in master_menu:
+		master_name = _common.smart_utf8(master_item['title'])
+		season_url = master_name + '#' + master_item['ID'] 
+		master_db.append((master_name,  SITE, 'seasons', season_url))
+	return master_db
+
+def seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS):
+	show_id = _common.args.url
+	master_name = show_id.split('#')[0]
+	show_id = show_id.split('#')[1]
+	_common.add_directory('Full Episodes',  SITE, 'episodes', master_name + '#' + FULLEPISODES % show_id)
+	clips_data = _connection.getURL(CLIPSSEASON % show_id)
+	clips_menu = simplejson.loads(clips_data)
+	for season in clips_menu:
+		clip_name = _common.smart_utf8(season['title'])
+		_common.add_directory(clip_name,  SITE, 'episodes', master_name + '#' + CLIPS % (show_id, season['id']))
+	_common.set_view('seasons')
+
+def episodes_json(SITE):
+	episode_url = _common.args.url
+	master_name = episode_url.split('#')[0]
+	episode_url = episode_url.split('#')[1]
+	episode_data = _connection.getURL(episode_url)
+	episode_menu = simplejson.loads(episode_data)
+	for episode_item in episode_menu:
+		url = episode_item['episodeID']
+		try:
+			episode_duration = episode_item['length']
+		except:
+			episode_duration = -1
+		try:
+			episode_airdate = _common.format_date(episode_item['airDate'].split('on ')[1],'%B %d, %Y')
+		except:
+			episode_airdate = -1
+		try:
+			episode_plot = episode_item['summary']
+		except:
+			episode_plot = episode_item['shortdescription']
+		episode_name = episode_item['title']
+		if episode_name == master_name:
+			video_url = EPISODE % url
+			video_data = _connection.getURL(video_url)
+			video_tree = BeautifulSoup(video_data, 'html.parser')
+			episode_name = video_tree.headline.string
+		elif episode_name == "":
+			episode_name = episode_plot
+		try:
+			season_number = int(episode_item['identifier'].split(',')[0].split(' ')[1])
+		except:
+			season_number = -1
+		try:
+			episode_number =  int(episode_item['identifier'].split(', ')[1].split(' ')[1][1:])
+		except:
+			try:
+				episode_number =  int(episode_item['identifier'].split(', ')[1].split(' ')[1])
+			except:
+				episode_number = -1
+		try:
+			episode_thumb = episode_item['640x360_jpg']
+		except:
+			episode_thumb = None
+		u = sys.argv[0]
+		u += '?url="' + urllib.quote_plus(url) + '"'
+		u += '&mode="' + SITE + '"'
+		u += '&sitemode="play_video"'
+		infoLabels={	'title' : episode_name,
+						'durationinseconds' : episode_duration,
+						'season' : season_number,
+						'episode' : episode_number,
+						'plot' : episode_plot,
+						'premiered' : episode_airdate }
+		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
+	_common.set_view('episodes')
+
 def episodes(SITE):
 	episode_url = _common.args.url
-	print episode_url
 	try:
 		season_number = int(episode_url.split('filterBySeasonNumber=')[1])
 	except:

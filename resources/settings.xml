@@ -61,6 +61,7 @@
 		<setting id="spike" type="bool" label="Spike" default="true"/>
 		<setting id="syfy" type="bool" label="SyFy" default="true"/>
 		<setting id="tbs" type="bool" label="TBS" default="true"/>
+		<setting id="tnt" type="bool" label="TNT" default="true"/>
 		<setting id="thecw" type="bool" label="The CW" default="true"/>
 		<setting id="thewbkids" type="bool" label="The WB Kids" default="true"/>
 		<setting id="tvland" type="bool" label="TV Land" default="true"/>
