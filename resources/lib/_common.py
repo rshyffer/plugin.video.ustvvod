@@ -64,8 +64,6 @@ def root_list(network_name):
 	rootlist = []
 	
 	network_name = network.NAME
-
-	#percent = int(increment * current)
 	dialog.update(0, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39017)) + network.NAME, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39018)))
 	showdata = network.masterlist()
 	
@@ -251,6 +249,7 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False):
 	command = 'select * from shows where lower(series_title) = ? and mode = ? and submode = ?;'
 	values = (series_title.lower(), mode, submode)
 	checkdata = _database.execute_command(command, values, fetchone = True)
+	empty_values = [series_title, mode,submode, url, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, True, False, False, series_title]
 	if checkdata and not forceRefresh and checkdata[24]  is not None:
 		if checkdata[3] != url: 
 			command = 'update shows set url = ? where series_title = ? and mode = ? and submode = ?;'
@@ -261,18 +260,20 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False):
 			return _database.execute_command(command, values, fetchone = True)
 		else:
 			return checkdata
-	else:
+	elif int(_addoncompat.get_setting('strict_names')) != 1 or forceRefresh:
 		tvdb_data = get_tvdb_series(series_title, manualSearch = forceRefresh, site = get_network(mode).NAME)
 		if tvdb_data:
 			tvdb_id, imdb_id, tvdbbanner, tvdbposter, tvdbfanart, first_aired, date, year, actors, genres, network, plot, runtime, rating, airs_dayofweek, airs_time, status, tvdb_series_title = tvdb_data
 			values = [series_title, mode, submode, url, tvdb_id, imdb_id, tvdbbanner, tvdbposter, tvdbfanart, first_aired, date, year, actors, genres, network, plot, runtime, rating, airs_dayofweek, airs_time, status, True, False, False, tvdb_series_title]
 		else:
-			values = [series_title, mode,submode, url, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, True, False, False, series_title]
+			values = empty_values
 		command = 'insert or replace into shows values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);'
 		_database.execute_command(command, values, commit = True)
 		command = 'select * from shows where series_title = ? and mode = ? and submode = ?;'
 		values = (series_title, mode, submode)
 		return _database.execute_command(command, values, fetchone = True)
+	else:
+		return empty_values
 
 def get_series_id(seriesdata, seriesname, site = '', allowManual = False):
 	shows = BeautifulSoup(seriesdata).find_all('series')
@@ -351,7 +352,11 @@ def get_series_id(seriesdata, seriesname, site = '', allowManual = False):
 def get_tvdb_series(seriesname, manualSearch = False, site = ''):
 	seriesdata = _connection.getURL(TVDBSERIESLOOKUP + urllib.quote_plus(smart_utf8(seriesname)), connectiontype = 0)
 	try:
-		tvdb_id = get_series_id(seriesdata, seriesname, site, True)
+		if int(_addoncompat.get_setting('strict_names')) != 2 or manualSearch:
+			interactive = True
+		else:
+			interactive = False
+		tvdb_id = get_series_id(seriesdata, seriesname, site, interactive)
 	except:
 		if manualSearch:
 			keyb = xbmc.Keyboard(seriesname, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39004)))

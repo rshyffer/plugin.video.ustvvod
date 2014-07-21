@@ -74,7 +74,19 @@ msgid "Enable Subtitles"
 msgstr ""
 
 msgctxt "#30015"
-msgid "Use TVDB Episode Names"
+msgid "TVDB Lookup"
+msgstr ""
+
+msgctxt "#30016"
+msgid "On"
+msgstr ""
+
+msgctxt "#30017"
+msgid "Off"
+msgstr ""
+
+msgctxt "#30018"
+msgid "Quiet"
 msgstr ""
 
 msgctxt "#31000"
