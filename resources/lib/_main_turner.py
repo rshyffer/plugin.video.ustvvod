@@ -164,30 +164,45 @@ def episodes(SITE):
 	_common.set_view('episodes')
 	
 def play_video(SITE, EPISODE):
+	try:
+		qbitrate = _common.args.quality
+	except:
+		qbitrate = None
 	stack_url = ''
 	for video_id in _common.args.url.split(','):
 		video_url = EPISODE % video_id
 		hbitrate = -1
-		sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+		sbitrate = int(_addoncompat.get_setting('quality'))
 		closedcaption = None
 		video_data = _connection.getURL(video_url)
 		video_tree = BeautifulSoup(video_data, 'html.parser')
-		video_menu = video_tree.find_all('file')
 		hbitrate = -1
+		lbitrate = -1
 		file_url = None
-		for video_index in video_menu:
-			try:
-				bitrate = int(video_index['bitrate'])
-				type = video_index['type']
-				if bitrate > hbitrate and bitrate <= sbitrate:
-					hbitrate = bitrate
-					file_url = video_index.string
-				elif bitrate == hbitrate and bitrate <= sbitrate:
-					file_url = video_index.string
-			except:
-				pass
-		if file_url is None:
-			file_url = BeautifulSoup(video_data).find_all('file')[0].string
+		if qbitrate is  None:
+			video_menu = video_tree.find_all('file')
+			for video_index in video_menu:
+				try:
+					try:
+						play_mode = video_index['play_mode']
+					except:
+						play_mode = ''
+					if play_mode != 'window':
+						bitrate = int(video_index['bitrate'])
+						if bitrate < lbitrate or lbitrate == -1:
+							lbitrate = bitrate,sbitrate
+							lfile_url = video_index.string
+						if bitrate > hbitrate and bitrate <= sbitrate:
+							hbitrate = bitrate
+							file_url = video_index.string
+				except:
+					pass
+			if file_url is None:
+				file_url = lfile_url 
+		else:
+			file_url = video_tree.find('file', attrs = {'bitrate' : qbitrate}).string
+		
+		print file_url
 		if 'mp4:'  in file_url:
 			filename = file_url[1:len(file_url)-4]
 			serverDetails = video_tree.find('akamai')
@@ -206,8 +221,38 @@ def play_video(SITE, EPISODE):
 	if ', ' in stack_url:
 		stack_url = 'stack://' + stack_url
 	finalurl = stack_url[:-3]
-	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
+	print finalurl
+	item = xbmcgui.ListItem(path = finalurl)
+	if qbitrate is not None:
+		item.setThumbnailImage(_common.args.thumb)
+		item.setInfo('Video', {	'title' : _common.args.name,
+						'season' : _common.args.season_number,
+						'episode' : _common.args.episode_number,
+						'TVShowTitle' : _common.args.show_title})
+	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 
+def list_qualities(SITE, EPISODE):
+	try:
+		video_id = _common.args.url.split(',')[0]
+	except:
+		video_id = _common.args.url
+	video_url = EPISODE % video_id
+	video_data = _connection.getURL(video_url)
+	video_tree = BeautifulSoup(video_data, 'html.parser')
+	video_menu = video_tree.find_all('file')
+	bitrates = []
+	for video_index in video_menu:
+		print video_index
+		try:
+			if video_index['play_mode'] != 'window':
+				bitrate = video_index['bitrate']
+				display = int(bitrate)
+				bitrates.append((display,int(bitrate)))
+		except:
+			pass
+	print bitrates
+	return bitrates
+	
 def getAUTH(aifp, window, tokentype, vid, filename, site):
 	parameters = {'aifp' : aifp,
 				'window' : window,
@@ -217,5 +262,6 @@ def getAUTH(aifp, window, tokentype, vid, filename, site):
 				'path' : filename
 				}
 	link = _connection.getURL(AUTHURL, parameters)
+	print link
 	return re.compile('<token>(.+?)</token>').findall(link)[0]
 
