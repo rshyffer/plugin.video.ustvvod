@@ -49,7 +49,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	video_tree = BeautifulSoup(feed_data, 'html.parser', parse_only = SoupStrainer('media:group'))
 	video_segments = video_tree.find_all('media:content')
 	
-	m3u_data_full = ''
+
 	for act, video_segment in enumerate(video_segments):
 		video_url3 = video_segment['url'].replace('{device}', DEVICE)
 		video_data3 = _connection.getURL(video_url3, header = {'X-Forwarded-For' : '12.13.14.15'})
@@ -89,15 +89,16 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 			m3u_data = m3u_data.replace(video_item, 'http://127.0.0.1:12345/foxstation/' + newurl)
 		
 		m3u_data = m3u_data.replace(key_url, 'http://127.0.0.1:12345/play.key' + str(act))
-		m3u_data_full = m3u_data_full + m3u_data
 
-	playfile = open(_common.PLAYFILE, 'w')
-	playfile.write(m3u_data_full)
-	playfile.close()
+
+		playfile = open(_common.PLAYFILE.replace('.m3u8',  '_' + str(act)  + '.m3u8'), 'w')
+		playfile.write(m3u_data)
+		playfile.close()
+		video_url6 +=  _common.PLAYFILE.replace('.m3u8',  '_' + str(act)  + '.m3u8') + ' , '
 		
 	filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
 	xbmc.executebuiltin(filestring)
-	finalurl = _common.PLAYFILE
+	finalurl = video_url6[:-3]
 	localhttpserver = True
 	time.sleep(20)
 
