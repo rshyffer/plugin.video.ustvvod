@@ -250,6 +250,10 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False):
 	values = (series_title.lower(), mode, submode)
 	checkdata = _database.execute_command(command, values, fetchone = True)
 	empty_values = [series_title, mode,submode, url, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, True, False, False, series_title]
+	try:
+		tvdb_setting = int(_addoncompat.get_setting('strict_names'))
+	except:
+		tvdb_setting = 0
 	if checkdata and not forceRefresh and checkdata[24]  is not None:
 		if checkdata[3] != url: 
 			command = 'update shows set url = ? where series_title = ? and mode = ? and submode = ?;'
@@ -260,7 +264,7 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False):
 			return _database.execute_command(command, values, fetchone = True)
 		else:
 			return checkdata
-	elif int(_addoncompat.get_setting('strict_names')) != 1 or forceRefresh:
+	elif tvdb_setting != 1 or forceRefresh:
 		tvdb_data = get_tvdb_series(series_title, manualSearch = forceRefresh, site = get_network(mode).NAME)
 		if tvdb_data:
 			tvdb_id, imdb_id, tvdbbanner, tvdbposter, tvdbfanart, first_aired, date, year, actors, genres, network, plot, runtime, rating, airs_dayofweek, airs_time, status, tvdb_series_title = tvdb_data
