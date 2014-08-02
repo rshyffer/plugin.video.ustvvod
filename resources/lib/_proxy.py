@@ -53,7 +53,7 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		elif 'play.key' in self.path:
 			try:
 				self._writeheaders()
-				file = open(KEYFILE, 'r')
+				file = open(KEYFILE.replace('play.key', request_path), 'r')
 				data = file.read()
 				self.wfile.write(data)
 				file.close()
