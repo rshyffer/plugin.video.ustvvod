@@ -33,7 +33,7 @@ def masterlist():
 	root_menu = root_tree.find('div', class_ = 'full_episodes').find_all('a', href = re.compile('^http+'))
 	for root_item in root_menu:
 		root_name = root_item.string
-		if root_name.lower() not in root_doubles and root_name.split(' with ')[0].lower() not in root_doubles:
+		if root_name is not None and root_name.lower() not in root_doubles and root_name.split(' with ')[0].lower() not in root_doubles:
 			root_doubles.append(root_name.lower().split(' with ')[0])
 			season_url = root_item['href']
 			master_db.append((root_name, SITE, 'seasons', season_url))
