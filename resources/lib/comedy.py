@@ -17,6 +17,8 @@ SITE = 'comedy'
 NAME = 'Comedy Central'
 DESCRIPTION = "COMEDY CENTRAL, the #1 brand in comedy, is available to over 99 million viewers nationwide and is a top-rated network among men ages 18-24 and 18-34 and adults ages 18-49.  With on-air, online and on-the-go mobile technology, COMEDY CENTRAL gives its audience access to the cutting-edge, laugh-out-loud world of comedy wherever they go.  Hit series include Tosh.0, Workaholics, Futurama, Key & Peele, Ugly Americans and the Emmy' and Peabody' Award-winning series The Daily Show with Jon Stewart, The Colbert Report and South Park.  COMEDY CENTRAL is also involved in producing nationwide stand-up tours, boasts its own record label and operates one of the most successful home entertainment divisions in the industry.  COMEDY CENTRAL is owned by, and is a registered trademark of Comedy Partners, a wholly-owned unit of Viacom Inc. (NASDAQ: VIA and VIAB).  For more information visit COMEDY CENTRAL's press Web site at www.cc.com/press or the network's consumer site at www.comedycentral.com and follow us on Twitter @ComedyCentralPR for the latest in breaking news updates, behind-the-scenes information and photos."
 BASE = 'http://www.cc.com'
+SOUTHPARKBASE = 'http://southpark.cc.com'
+SOUTHPARKFEED = 'http://www.southparkstudios.com/feeds/video-player/mrss/mgid%3Aarc%3Aepisode%3Asouthparkstudios.com"%3A'
 SHOWS = 'http://www.cc.com/shows'
 VIDEOURL = 'http://media.mtvnservices.com/'
 MP4URL = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=0+_pxK=18639/44620/mtvnorigin'
@@ -174,7 +176,7 @@ def add_items_from_southpark(show_url):
 		for season in seasons:
 			season_url = season['href']
 			if 'http' not in season_url:
-				season_url = 'http://southpark.cc.com' + season_url
+				season_url = SOUTHPARKBASE + season_url
 			season_number = season.string
 			if season_number == 'ALL':
 				continue
@@ -488,9 +490,15 @@ def play_video(video_url = _common.args.url):
 	try:
 		mgid = BeautifulSoup(video_data, 'html5lib').find('div', attrs = {'data-mgid' : True})['data-mgid']
 		video_url2 = mgid
+		print video_url2
 	except:
 		video_url2 = re.compile('swfobject\.embedSWF\("(.*?)"').findall(video_data)[0]
-	_main_viacom.play_video(BASE, video_url2)
+	if 'southpark' not in video_url2:
+		_main_viacom.play_video(BASE, video_url2)
+	else:
+		sp_id = video_url2.split(':')
+		sp_id2 = sp_id[-1]
+		_main_viacom.play_video(BASE, sp_id2, SOUTHPARKFEED)
 
 def list_qualities(video_url = _common.args.url):
 	video_data = _connection.getURL(video_url)

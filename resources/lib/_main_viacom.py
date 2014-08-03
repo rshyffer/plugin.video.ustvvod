@@ -30,12 +30,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	video_url6 = 'stack://'
 	sbitrate = int(_addoncompat.get_setting('quality'))
 	closedcaption = []
-	#Can we make this more generic
-	if 'southparkstudios' in video_url:
-		sp_id = video_url.split(':')
-		sp_id = sp_id[len(sp_id)-1]
-		feed_url = 'http://www.southparkstudios.com/feeds/video-player/mrss/mgid%3Aarc%3Aepisode%3Asouthparkstudios.com"%3A' + sp_id
-	elif 'feed' not in video_url:
+	if 'feed' not in video_url:
 		swf_url = _connection.getRedirect(video_url, header = {'Referer' : BASE})
 		params = dict(item.split("=") for item in swf_url.split('?')[1].split("&"))
 		uri = urllib.unquote_plus(params['uri'])
