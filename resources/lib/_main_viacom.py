@@ -114,9 +114,12 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	if ((_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None))  or localhttpserver is True:
 		while not xbmc.Player().isPlaying():
-			xbmc.sleep(100)
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
-		xbmc.Player().setSubtitles(_common.SUBTITLE)
+			xbmc.sleep(200)
+	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None) and closedcaption !=[]:
+		for count in range(1, len(closedcaption)):
+			xbmc.Player().setSubtitles(os.path.join(_common.CACHEPATH, 'subtitle-%s.srt' % str(count)))
+			while xbmc.Player().isPlaying():
+				xbmc.sleep(10)
 	if localhttpserver is True:
 		while xbmc.Player().isPlaying():
 			xbmc.sleep(10)
