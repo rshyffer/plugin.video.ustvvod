@@ -169,14 +169,20 @@ def get_clips_url(show_url):
 def add_items_from_southpark(show_url):
 	""" Add the seasons for South Park """
 	show_data = _connection.getURL(show_url)
-	seasons = BeautifulSoup(show_data, 'html5lib').find_all('a',class_='seasonbtn')
+	seasons = BeautifulSoup(show_data, 'html5lib').find('div', class_ = 'seasonPagination').find_all('a')
 	if seasons:
 		for season in seasons:
+			season_url = season['href']
+			if 'http' not in season_url:
+				season_url = 'http://southpark.cc.com' + season_url
+			season_number = season.string
+			if season_number == 'ALL':
+				continue
 			try:
-				display = 'Season %s' %str(int(season.string))
+				display = 'Season %s' % str(int(season_number))
 			except:
-				display = 'Special %s' %season.string
-			_common.add_directory(display,  SITE, 'episodes', season['href'] )
+				pass
+			_common.add_directory(display,  SITE, 'episodes', season_url )
 	
 def episodes_from_html(episode_url = _common.args.url, page = 1):
 	""" Add episodes by analysing the HTML of the page """
@@ -348,30 +354,39 @@ def add_video_from_manifestfile(manifest_feed):
 
 def add_fullepisodes_southpark(episode_tree):
 	try:
-		episode_menu = episode_tree.find('div', class_ = 'content_carouselwrap').ol.find_all('li', recursive = False)
+		season = urllib.unquote(sys.argv[2].split('&')[2].split('=')[1].replace('%22','')).split(' ')[1]
+		episode_menu = episode_tree.find_all('article', class_ = 'thumb')
 		for episode_item in episode_menu:
-			if not episode_item.find('a',class_ = 'unavailable'): 
-				episode_name = episode_item.h5.string
-				episode_airdate = episode_item.h6.string.replace('Original Air Date: ', '')
-				episode_airdate = _common.format_date(episode_airdate , '%m.%d.%Y', '%d.%m.%Y')
-				episode_plot = episode_item.p.string
-				episode_thumb = episode_item.img['src'].split('?')[0]
-				url = episode_item.a['href']
-				try:
-					season_number, episode_number = re.compile('s([0-9]{2})e([0-9]{2})').findall(url)[0]
-				except:
-					episode_number = -1
-					season_number = -1
-				u = sys.argv[0]
-				u += '?url="' + urllib.quote_plus(url) + '"'
-				u += '&mode="' + SITE + '"'
-				u += '&sitemode="play_video"'
-				infoLabels={	'title' : episode_name,
-								'season' : season_number,
-								'episode' : episode_number,
-								'plot' : episode_plot,
-								'premiered' : episode_airdate }
-				_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+			episode_name = episode_item.find(class_ = 'title')
+			if episode_name is None:
+				continue
+			url = episode_item.a['href']
+			try:
+				season_number, episode_number = re.compile('s([0-9]{2})e([0-9]{2})').findall(url)[0]
+			except:
+				episode_number = -1
+				season_number = -1
+			
+			if int(season) != int(season_number):
+				continue
+
+			episode_name = episode_name.string.strip()
+			episode_plot = episode_item.find('p', class_ = 'episode').string.strip()
+			episode_airdate = episode_item.find(class_ = 'air-date').string.strip()
+			episode_airdate = _common.format_date(episode_airdate , '%m.%d.%Y', '%d.%m.%Y')
+			episode_thumb = re.match('(.*?)url\(\'(.*?)\'\)', episode_item.find('a', class_ = 'fill')['style']).group(2)
+			
+			u = sys.argv[0]
+			u += '?url="' + urllib.quote_plus(url) + '"'
+			u += '&mode="' + SITE + '"'
+			u += '&sitemode="play_video"'
+			infoLabels={	'title' : episode_name,
+							'season' : season_number,
+							'episode' : episode_number,
+							'plot' : episode_plot,
+							'premiered' : episode_airdate }
+
+			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 	except:
 		pass
 
