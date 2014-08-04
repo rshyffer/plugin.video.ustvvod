@@ -1,3 +1,24 @@
+version 1.0.5
+
+  * tidy up for all shows and tvdb
+  * fix MTV
+  * tvdb lookup changes
+  * Adult Swim show list change
+  * added Cartoon Network
+  * added TBS
+  * refactored turner stations
+  * made tvdb lookup configurable
+  * added TNT
+  * aded truTV and settings option
+  * allow m3u8 with multiple keys
+  * ignore CC items that are not shows
+  * new stream method for Viacom
+  * fixed issue with playback resetting to 0
+  * fix for type change in settings
+  * fix South Park
+  * fix for subtitles
+  * tidy up ‚_main_viacom.py‘ file
+
 version 1.0.4
 
   * fix for some environments
