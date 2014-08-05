@@ -94,7 +94,7 @@ def episodes_json(SITE):
 						'episode' : episode_number,
 						'plot' : episode_plot,
 						'premiered' : episode_airdate }
-		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
+		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 	_common.set_view('episodes')
 
 def episodes(SITE):
