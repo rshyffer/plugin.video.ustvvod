@@ -77,12 +77,14 @@ def select_quality():
 	show_title, season, episode, thumb, displayname, qmode, url = args.url.split('<join>')
 	_common.args = _Info(url.split('?')[1].replace('&', ' , '))
 	exec 'import resources.lib.%s as sitemodule' % _common.args.mode 
-	exec 'list = sitemodule.%s()' % qmode
+	exec 'resultlist = sitemodule.%s()' % qmode
 	select = xbmcgui.Dialog()
 	title = xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39022)
-	list = sorted(list)
-	ret = select.select(title, [str(quality[0]) for quality in list])
-	bitrate = list[ret][1]
+	resultset = set(resultlist)
+	resultlist = list(resultset)
+	resultlist = sorted(resultlist)
+	ret = select.select(title, [str(quality[0]) for quality in resultlist])
+	bitrate = resultlist[ret][1]
 	setattr(_common.args, 'name', base64.b64decode(displayname))
 	setattr(_common.args, 'quality', bitrate)
 	setattr(_common.args, 'thumb', thumb)

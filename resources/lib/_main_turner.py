@@ -160,7 +160,7 @@ def episodes(SITE):
 							'episode' : episode_number,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate }
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
+			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 	_common.set_view('episodes')
 	
 def play_video(SITE, EPISODE):
@@ -244,7 +244,11 @@ def list_qualities(SITE, EPISODE):
 	for video_index in video_menu:
 		print video_index
 		try:
-			if video_index['play_mode'] != 'window':
+			try:
+				play_mode = video_index['play_mode']
+			except:
+				play_mode = ''
+			if play_mode != 'window':
 				bitrate = video_index['bitrate']
 				display = int(bitrate)
 				bitrates.append((display,int(bitrate)))

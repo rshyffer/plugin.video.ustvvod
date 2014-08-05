@@ -81,3 +81,6 @@ def episodes():
 def play_video():
 	_main_turner.play_video(SITE, EPISODE)
 	
+def list_qualities():
+	return _main_turner.list_qualities(SITE, EPISODE)
+	
