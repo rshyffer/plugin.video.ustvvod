@@ -115,7 +115,9 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 			xbmc.Player().setSubtitles(os.path.join(_common.CACHEPATH, 'subtitle-%s.srt' % str(count)))
 			while xbmc.Player().isPlaying():
 				xbmc.sleep(10)
-	if localhttpserver is True:
+		_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
+	if localhttpserver is True and _addoncompat.get_setting('enablesubtitles') == 'false':
+		print "ACTS:::::::::::::::::" + int(act)
 		while xbmc.Player().isPlaying():
 			xbmc.sleep(10)
 		_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
