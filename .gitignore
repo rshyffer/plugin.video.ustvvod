@@ -8,3 +8,4 @@ cookie.txt
 *.smi
 resources/cache/ip.txt
 *.bak
+*.psd
