@@ -114,7 +114,6 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	current_playing_segment = 0
 	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None) and closedcaption != []:
 		for count in range(1, len(closedcaption)):
-			print 'Load subtitle-%s.srt' % str(count)
 			xbmc.Player().setSubtitles(os.path.join(_common.CACHEPATH, 'subtitle-%s.srt' % str(count)))
 			# wait for 20s to load the next segment (but not for the first segment, where this sleep is not needed)
 			if not xbmc.Player().isPlaying() and current_playing_segment > 0 and current_playing_segment < int(act):
