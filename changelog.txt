@@ -1,3 +1,11 @@
+version 1.0.6
+
+  * quality selection added to adult swim and cartoon
+  * quality selection tnt and tbs
+  * fixed subtile and multipart playback clash
+  * Viacom: wait a bit so the segment can load
+  * Remove accidental committed print statement
+
 version 1.0.5
 
   * tidy up for all shows and tvdb
