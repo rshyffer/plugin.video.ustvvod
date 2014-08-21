@@ -9,6 +9,7 @@ import base64
 import re
 import sys
 import urllib
+import datetime
 import time
 import xbmc
 import xbmcgui
@@ -36,10 +37,12 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		uri = urllib.unquote_plus(params['uri'])
 		config_url = urllib.unquote_plus(params['CONFIG_URL'].replace('Other',DEVICE))
 		config_data = _connection.getURL(config_url, header = {'Referer' : video_url, 'X-Forwarded-For' : '12.13.14.15'})
-		feed_url = BeautifulSoup(config_data, 'html.parser', parse_only = SoupStrainer('feed')).feed.string
+		config_tree = BeautifulSoup(config_data, 'html5lib')
+		feed_url = config_tree.feed.string
 		feed_url = feed_url.replace('{uri}', uri).replace('&amp;', '&').replace('{device}', DEVICE).replace('{ref}', 'None').strip()
 	else:
 		feed_url = video_url
+
 	feed_data = _connection.getURL(feed_url)
 	video_tree = BeautifulSoup(feed_data, 'html.parser', parse_only = SoupStrainer('media:group'))
 	video_segments = video_tree.find_all('media:content')
@@ -50,7 +53,8 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		video_data3 = _connection.getURL(video_url3, header = {'X-Forwarded-For' : '12.13.14.15'})
 		video_tree3 = BeautifulSoup(video_data3, 'html5lib')
 		try:
-			closedcaption.append(video_tree3.find('typographic', format = 'ttml'))
+			duration = video_tree3.find('rendition')['duration']
+			closedcaption.append((video_tree3.find('typographic', format = 'ttml'),duration))
 		except:
 			pass
 
@@ -176,25 +180,26 @@ def clean_subs(data):
 	sub = gt.sub('>', sub)
 	return sub
 
-def convert_subtitles(closedcaption,durations=[]):
+def convert_subtitles(closedcaption):
 	str_output = ''
 	j = 0
 	count = 0
-	for closedcaption_url in closedcaption:
+	for closedcaption_url, duration in closedcaption:
 		count = count + 1
 		if closedcaption_url is not None:
 			subtitle_data = _connection.getURL(closedcaption_url['src'], connectiontype = 0)
 			subtitle_data = BeautifulSoup(subtitle_data, 'html.parser', parse_only = SoupStrainer('div'))
 			lines = subtitle_data.find_all('p')
+			last_line = lines[-1]
+			end_time = last_line['end'].split('.')[0].split(':')
+			file_duration = int(end_time[0]) * 60 * 60 + int(end_time[1]) * 60 + int(end_time[2])
+			delay = int(file_duration) - int(duration)
 			for i, line in enumerate(lines):
 				if line is not None:
 					sub = clean_subs(_common.smart_utf8(line))
-					try:
-						start_time = _common.smart_utf8(line['begin'][:-1].replace('.', ','))
-						end_time = _common.smart_utf8(line['end'][:-1].replace('.', ','))
-						str_output += str(j + i + 1) + '\n' + start_time + ' --> ' + end_time + '\n' + sub + '\n\n'
-					except:
-						pass
+					start_time = _common.smart_utf8(datetime.datetime.strftime(datetime.datetime.strptime(line['begin'], '%H:%M:%S.%f') -  datetime.timedelta(seconds = int(delay)),'%H:%M:%S,%f'))[:-4]
+					end_time = _common.smart_utf8(datetime.datetime.strftime(datetime.datetime.strptime(line['end'], '%H:%M:%S.%f') -  datetime.timedelta(seconds = int(delay)),'%H:%M:%S,%f'))[:-4]
+					str_output += str(j + i + 1) + '\n' + start_time + ' --> ' + end_time + '\n' + sub + '\n\n'
 			j = j + i + 1
 			file = open(os.path.join(_common.CACHEPATH, 'subtitle-%s.srt' % int(count)), 'w')
 			file.write(str_output)
