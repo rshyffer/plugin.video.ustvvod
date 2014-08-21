@@ -77,6 +77,18 @@ msgctxt "#30015"
 msgid "Use TVDB Episode Names"
 msgstr "TVDB Episodennamen benutzen"
 
+msgctxt "#30016"
+msgid "On"
+msgstr "An"
+
+msgctxt "#30017"
+msgid "Off"
+msgstr "Aus"
+
+msgctxt "#30018"
+msgid "Quiet"
+msgstr "Beenden"
+
 msgctxt "#31000"
 msgid "Connection"
 msgstr "Verbindung"
