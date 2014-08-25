@@ -170,6 +170,7 @@ def get_clips_url(show_url):
 
 def add_items_from_southpark(show_url):
 	""" Add the seasons for South Park """
+	show_url = show_url.replace(SHOWS + '/south-park', SOUTHPARKBASE)
 	show_data = _connection.getURL(show_url)
 	seasons = BeautifulSoup(show_data, 'html5lib').find('div', class_ = 'seasonPagination').find_all('a')
 	if seasons:
