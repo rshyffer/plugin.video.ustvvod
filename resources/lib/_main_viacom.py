@@ -111,29 +111,16 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 						'episode' : _common.args.episode_number,
 						'TVShowTitle' : _common.args.show_title})
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
-	if ((_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None))  or localhttpserver is True:
+	for count in range(1, act):
 		while not xbmc.Player().isPlaying():
 			xbmc.sleep(200)
-
-	current_playing_segment = 0
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None) and closedcaption != []:
-		for count in range(1, len(closedcaption)):
+		if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None) and closedcaption != []:
 			xbmc.Player().setSubtitles(os.path.join(_common.CACHEPATH, 'subtitle-%s.srt' % str(count)))
 			# wait for 20s to load the next segment (but not for the first segment, where this sleep is not needed)
-			if not xbmc.Player().isPlaying() and current_playing_segment > 0 and current_playing_segment < int(act):
-				xbmc.sleep(20000)
-			while xbmc.Player().isPlaying():
-				xbmc.sleep(10)
-			current_playing_segment = current_playing_segment + 1
-		_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
-	else:
 		while xbmc.Player().isPlaying():
 			xbmc.sleep(10)
-			# wait for 20s if this was not the last segment
-			if not xbmc.Player().isPlaying() and current_playing_segment < int(act):
-				xbmc.sleep(20000)
-				current_playing_segment = current_playing_segment + 1
-		_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
+	_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
+	
 
 def list_qualities(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	if media_base not in video_url:
