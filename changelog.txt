@@ -1,3 +1,11 @@
+version 1.0.7
+
+  * update german language
+  * auto correct sub title delay
+  * Simplify delays
+  * fix for SouthPark (Redirect to southpark.cc.com)
+  * geoblock error handling
+
 version 1.0.6
 
   * quality selection added to adult swim and cartoon

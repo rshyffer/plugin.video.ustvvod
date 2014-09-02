@@ -24,11 +24,10 @@ def get_os():
 	return xbmc_os
 
 def get_revision():
-	rev_re = re.compile('r(\d+)')
 	try: xbmc_version = xbmc.getInfoLabel('System.BuildVersion')
 	except: xbmc_version = 'unknown'
 	try:
-		xbmc_rev = int(rev_re.search(xbmc_version).group(1))
+		xbmc_rev = int(xbmc_version.split('.', 1)[0])
 		print '_addoncompat :: XBMC Revision: %s' % xbmc_rev
 	except:
 		print '_addoncompat :: XBMC Revision not available - Version String: %s' % xbmc_version
