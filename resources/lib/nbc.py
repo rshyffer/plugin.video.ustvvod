@@ -72,10 +72,10 @@ def episodes(episode_url = _common.args.url):
 	episode_json = simplejson.loads(episode_data)
 	episode_menu = episode_json['entries']
 	for episode_item in episode_menu:
-		pid = episode_item['media$content'][0]['plfile$releases'][0]['plrelease$pid']	
+		pid = episode_item['mainReleasePid']	
 		url = SMIL % pid	
 		try:
-			episode_duration = int(episode_item['plfile$duration'].replace(' min','')) * 60
+			episode_duration = int(episode_item['duration'].replace(' min','')) * 60
 		except:
 			episode_duration = -1
 		episode_plot = HTMLParser.HTMLParser().unescape(episode_item['description'])
@@ -84,15 +84,15 @@ def episodes(episode_url = _common.args.url):
 		episode_name = HTMLParser.HTMLParser().unescape(episode_item['title'])
 		show_title = episode_item['showShortName']
 		try:
-			season_number = int(episode_item['pl1$seasonNumber'])
+			season_number = int(episode_item['season'])
 		except:
 			season_number = -1
 		try:
-			episode_number = int(episode_item['pl1$episodeNumber'])
+			episode_number = int(episode_item['episode'])
 		except:
 			episode_number = -1
 		try:
-			episode_thumb = episode_item['plmedia$defaultThumbnailUrl']['big']
+			episode_thumb = episode_item['images']['big']
 		except:
 			episode_thumb = None
 		u = sys.argv[0]
