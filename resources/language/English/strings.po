@@ -153,6 +153,10 @@ msgctxt "#31015"
 msgid "Local Tor Client"
 msgstr ""
 
+msgctxt "#31016"
+msgid "Running as Service"
+msgstr ""
+
 msgctxt "#32000"
 msgid "Views"
 msgstr ""

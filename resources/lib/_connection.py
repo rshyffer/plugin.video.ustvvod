@@ -182,8 +182,9 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 					handler.kill_tor()
 				except:
 					pass
-				if not handler.start_tor():
-					print 'Error launching Tor. It may already be running.\n'
+				if _addoncompat.get_setting('tor_as_service') == 'false':
+					if not handler.start_tor():
+						print 'Error launching Tor. It may already be running.\n'
 			urllib2.install_opener(prepare_tor_proxy(cookie_handler))
 		print '_connection :: getURL :: url = ' + url
 		if values is None:
@@ -241,8 +242,9 @@ def getRedirect(url, values = None , header = {}, connectiontype = _addoncompat.
 					handler.kill_tor()
 				except:
 					pass
-				if not handler.start_tor():
-					print 'Error launching Tor. It may already be running.\n'
+				if _addoncompat.get_setting('tor_as_service') == 'false':
+					if not handler.start_tor():
+						print 'Error launching Tor. It may already be running.\n'
 			urllib2.install_opener(prepare_tor_proxy(cookie_handler))
 		print '_connection :: getRedirect :: url = ' + url
 		if values is None:
