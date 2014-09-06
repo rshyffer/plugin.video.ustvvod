@@ -141,6 +141,18 @@ msgctxt "#31012"
 msgid "Update URL"
 msgstr "Update URL"
 
+msgctxt "#31013"
+msgid "Tor Network"
+msgstr "Tor Netzwerk"
+
+msgctxt "#31014"
+msgid "Exit Node"
+msgstr "Austrittsknoten"
+
+msgctxt "#31015"
+msgid "Local Tor Client"
+msgstr "Lokaler Tor Client"
+
 msgctxt "#32000"
 msgid "Views"
 msgstr "Ansicht"

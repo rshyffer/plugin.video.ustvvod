@@ -9,7 +9,7 @@
 	</category>
 	<category label="31000">
 		<setting type="sep" />
-		<setting id="connectiontype" type="enum" label="31001" default="0" lvalues="31002|31003|31004" />
+		<setting id="connectiontype" type="enum" label="31001" default="0" lvalues="31002|31003|31004|31013" />
 		<setting id="dns_proxy" type="ipaddress" label="31005" default="" visible="eq(-1,1)" />
 		<setting id="dns_proxy_2" type="ipaddress" label="31006" default="" visible="eq(-2,1)" />
 		<setting id="dns_update_url" type="text" label="31012" default="" visible="eq(-3,1)" />
@@ -18,6 +18,10 @@
 		<setting id="us_proxy_user" type="text" label="31009" default="" visible="eq(-6,2)" />
 		<setting id="us_proxy_pass" type="text" label="31010" default="" visible="eq(-7,2)" />
 		<setting id="us_proxy_socks5" type="bool" label="31011" default="0" visible="eq(-8,2)" />
+		<setting id="tor_socks_port" type="number" label="31008" default="9050" visible="eq(-9,3)" />
+		<setting id="tor_exit_node" type="text" label="31014" default="{US}" visible="eq(-10,3)" />
+		<setting id="tor_use_local" type="bool" label="31015" default="true" visible="eq(-11,3)" />
+		<setting id="tor_proxy" type="ipaddress" label="31007" default="" visible="eq(-1,False)" />
 		<setting type="sep" />
 	</category>
 	<category label="32000">
