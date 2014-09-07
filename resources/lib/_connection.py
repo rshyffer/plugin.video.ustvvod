@@ -2,19 +2,17 @@
 # -*- coding: utf-8 -*-
 import _addoncompat
 import cookielib
+import httplib
 import os
-import simplejson
-import urllib
-import urllib2
 import socks
 import socket
-import stem
+import ssl
 import stem.process
 import time
+import urllib
+import urllib2
 import xbmc
 from dns.resolver import Resolver
-from httplib import HTTPConnection
-from stem.util import term
 
 PLUGINPATH = xbmc.translatePath(_addoncompat.get_path())
 RESOURCESPATH = os.path.join(PLUGINPATH,'resources')
@@ -24,7 +22,7 @@ DNS_REFESH_DELAY = 10
 IPURL = 'http://icanhazip.com'
 IPFILE = os.path.join(CACHEPATH,'ip.txt')
 
-class MyHTTPConnection(HTTPConnection):
+class MyHTTPConnection(httplib.HTTPConnection):
 	_dnsproxy = []
 	def connect(self):
 		resolver = Resolver()
@@ -39,27 +37,49 @@ class MyHTTPHandler(urllib2.HTTPHandler):
 		MyHTTPConnection._dnsproxy = self._dnsproxy 
 		return self.do_open(MyHTTPConnection, req)
 
-class SocksiPyConnection(HTTPConnection):
-	def __init__(self, proxytype, proxyaddr, proxyport = None, rdns = True, username = None, password = None, *args, **kwargs):
+class SocksiPyConnection(httplib.HTTPConnection):
+    def __init__(self, proxytype, proxyaddr, proxyport = None, rdns = True, username = None, password = None, *args, **kwargs):
+        self.proxyargs = (proxytype, proxyaddr, proxyport, rdns, username, password)
+        httplib.HTTPConnection.__init__(self, *args, **kwargs)
+
+    def connect(self):
+        self.sock = socks.socksocket()
+        self.sock.setproxy(*self.proxyargs)
+        if isinstance(self.timeout, float):
+            self.sock.settimeout(self.timeout)
+        self.sock.connect((self.host, self.port))
+
+class SocksiPyConnectionS(httplib.HTTPSConnection):
+	"""
+	Missing part for getting https working https://github.com/Anorov/PySocks/blob/master/sockshandler.py
+	"""
+	def __init__(self, proxytype, proxyaddr, proxyport=None, rdns=True, username=None, password=None, *args, **kwargs):
 		self.proxyargs = (proxytype, proxyaddr, proxyport, rdns, username, password)
-		HTTPConnection.__init__(self, *args, **kwargs)
- 
+		httplib.HTTPSConnection.__init__(self, *args, **kwargs)
+
 	def connect(self):
-		self.sock = socks.socksocket()
-		self.sock.setproxy(*self.proxyargs)
-		if isinstance(self.timeout, float):
-			self.sock.settimeout(self.timeout)
-		self.sock.connect((self.host, self.port))
-            
-class SocksiPyHandler(urllib2.HTTPHandler):
-	def __init__(self, *args, **kwargs):
-		self.args = args
-		self.kw = kwargs
-		urllib2.HTTPHandler.__init__(self)
- 
-	def http_open(self, req):
+		sock = socks.socksocket()
+		sock.setproxy(*self.proxyargs)
+		if type(self.timeout) in (int, float):
+			sock.settimeout(self.timeout)
+		sock.connect((self.host, self.port))
+		self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file)
+
+class SocksiPyHandler(urllib2.HTTPHandler, urllib2.HTTPSHandler):
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kw = kwargs
+        urllib2.HTTPHandler.__init__(self)
+
+    def http_open(self, req):
+        def build(host, port=None, strict=None, timeout=0):
+            conn = SocksiPyConnection(*self.args, host=host, port=port, strict=strict, timeout=timeout, **self.kw)
+            return conn
+        return self.do_open(build, req)
+
+    def https_open(self, req):
 		def build(host, port=None, strict=None, timeout=0):    
-			conn = SocksiPyConnection(*self.args, host = host, port = port, strict = strict, timeout = timeout, **self.kw)
+			conn = SocksiPyConnectionS(*self.args, host=host, port=port, strict=strict, timeout=timeout, **self.kw)
 			return conn
 		return self.do_open(build, req)
 
@@ -76,18 +96,17 @@ class TorHandler():
 		try:
 			self.tor_process = stem.process.launch_tor_with_config(
 				config = {
-						'ExitNodes' : self.ExitNodes,
-						'AvoidDiskWrites' : '1',
 						'SocksPort' : self.SocksPort,
-						'StrictExitNodes' : '1',
+						'ExitNodes' : self.ExitNodes,
+						'StrictNodes' : '1',
+						'AvoidDiskWirtes' : '1'
 				},
 				init_msg_handler = self.print_bootstrap_lines,
-				take_ownership = True
 			)
 			return True
 		except OSError:
 			return False
-	
+
 	def kill_tor(self):
 		try:	
 			self.tor_process.kill()
@@ -137,7 +156,7 @@ def prepare_us_proxy(cookie_handler):
 			opener = urllib2.build_opener(socks_handler, cookie_handler)
 		else:
 			print 'Using socks5 proxy: ' + _addoncompat.get_setting('us_proxy') + ':' + _addoncompat.get_setting('us_proxy_port')
-			socks_handler = SocksiPyHandler(socks.PROXY_TYPE_SOCKS5, _addoncompat.get_setting('us_proxy'), int(_addoncompat.get_setting('us_proxy_port')))
+			socks_handler = SocksiPyHandler(socks.PROXY_TYPE_SOCKS5, _addoncompat.get_setting('us_proxy'), int(_addoncompat.get_setting('us_proxy_port')), True)
 			opener = urllib2.build_opener(socks_handler, cookie_handler)
 	elif (_addoncompat.get_setting('us_proxy_socks5') == 'false'):
 		us_proxy = 'http://' + _addoncompat.get_setting('us_proxy') + ':' + _addoncompat.get_setting('us_proxy_port')
@@ -159,7 +178,7 @@ def prepare_tor_proxy(cookie_handler):
 	else:
 		tor_proxy = _addoncompat.get_setting('tor_proxy')
 	print 'Using tor proxy at ' + tor_proxy + ':' + _addoncompat.get_setting('tor_socks_port') + ' with exit node: ' + _addoncompat.get_setting('tor_exit_node')
-	socks_handler = SocksiPyHandler(socks.PROXY_TYPE_SOCKS5, tor_proxy, int(_addoncompat.get_setting('tor_socks_port')))
+	socks_handler = SocksiPyHandler(socks.PROXY_TYPE_SOCKS5, tor_proxy, int(_addoncompat.get_setting('tor_socks_port')), True)
 	opener = urllib2.build_opener(socks_handler, cookie_handler)
 	return opener	
 
@@ -169,22 +188,16 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 		cj = cookielib.LWPCookieJar(COOKIE)
 		cookie_handler = urllib2.HTTPCookieProcessor(cj)
 		if int(connectiontype) == 0:
-			opener = urllib2.build_opener(cookie_handler)
-			urllib2.install_opener(opener)
+			urllib2.install_opener(urllib2.build_opener(cookie_handler))
 		if int(connectiontype) == 1:
 			urllib2.install_opener(prepare_dns_proxy(cookie_handler))
 		elif int(connectiontype) == 2:
 			urllib2.install_opener(prepare_us_proxy(cookie_handler))
 		elif int(connectiontype) == 3:
-			if (_addoncompat.get_setting('tor_use_local') == 'true'):
-				handler = TorHandler()
-				try:
-					handler.kill_tor()
-				except:
-					pass
-				if _addoncompat.get_setting('tor_as_service') == 'false':
-					if not handler.start_tor():
-						print 'Error launching Tor. It may already be running.\n'
+			handler = TorHandler()
+			if ((_addoncompat.get_setting('tor_use_local') == 'true') and _addoncompat.get_setting('tor_as_service') == 'false'):
+				if not handler.start_tor():
+					print 'Error launching Tor. It may already be running.\n'
 			urllib2.install_opener(prepare_tor_proxy(cookie_handler))
 		print '_connection :: getURL :: url = ' + url
 		if values is None:
@@ -214,7 +227,7 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 				print 'Cookie Saving Error'
 				pass	
 		response.close()
-		if (int(connectiontype) == 3) and (_addoncompat.get_setting('tor_use_local') == 'true'):
+		if ((int(connectiontype) == 3) and (_addoncompat.get_setting('tor_use_local') == 'true') and (_addoncompat.get_setting('tor_as_service') == 'false')):
 			if not handler.kill_tor(): 
 				print 'Error killing Tor process! It may still be running.\n' 
 			else: 
@@ -236,15 +249,10 @@ def getRedirect(url, values = None , header = {}, connectiontype = _addoncompat.
 		elif int(connectiontype) == 2:
 			urllib2.install_opener(prepare_us_proxy(cookie_handler))
 		elif int(connectiontype) == 3:
-			if (_addoncompat.get_setting('tor_use_local') == 'true'):
-				handler = TorHandler()
-				try:
-					handler.kill_tor()
-				except:
-					pass
-				if _addoncompat.get_setting('tor_as_service') == 'false':
-					if not handler.start_tor():
-						print 'Error launching Tor. It may already be running.\n'
+			handler = TorHandler()
+			if ((_addoncompat.get_setting('tor_use_local') == 'true') and _addoncompat.get_setting('tor_as_service') == 'false'):
+				if not handler.start_tor():
+					print 'Error launching Tor. It may already be running.\n'
 			urllib2.install_opener(prepare_tor_proxy(cookie_handler))
 		print '_connection :: getRedirect :: url = ' + url
 		if values is None:
@@ -260,7 +268,7 @@ def getRedirect(url, values = None , header = {}, connectiontype = _addoncompat.
 		response = urllib2.urlopen(req)
 		finalurl = response.geturl()
 		response.close()
-		if (int(connectiontype) == 3) and (_addoncompat.get_setting('tor_use_local') == 'true'):
+		if ((int(connectiontype) == 3) and (_addoncompat.get_setting('tor_use_local') == 'true') and (_addoncompat.get_setting('tor_as_service') == 'false')):
 			if not handler.kill_tor(): 
 				print 'Error killing Tor process! It may still be running.\n' 
 			else: 
