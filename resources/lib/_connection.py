@@ -99,9 +99,10 @@ class TorHandler():
 						'SocksPort' : self.SocksPort,
 						'ExitNodes' : self.ExitNodes,
 						'StrictNodes' : '1',
-						'AvoidDiskWirtes' : '1'
+						'AvoidDiskWrites' : '1'
 				},
 				init_msg_handler = self.print_bootstrap_lines,
+				take_ownership = True
 			)
 			return True
 		except OSError:
