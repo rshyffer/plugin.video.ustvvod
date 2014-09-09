@@ -38,22 +38,22 @@ class MyHTTPHandler(urllib2.HTTPHandler):
 		return self.do_open(MyHTTPConnection, req)
 
 class SocksiPyConnection(httplib.HTTPConnection):
-    def __init__(self, proxytype, proxyaddr, proxyport = None, rdns = True, username = None, password = None, *args, **kwargs):
-        self.proxyargs = (proxytype, proxyaddr, proxyport, rdns, username, password)
-        httplib.HTTPConnection.__init__(self, *args, **kwargs)
+	def __init__(self, proxytype, proxyaddr, proxyport = None, rdns = True, username = None, password = None, *args, **kwargs):
+		self.proxyargs = (proxytype, proxyaddr, proxyport, rdns, username, password)
+		httplib.HTTPConnection.__init__(self, *args, **kwargs)
 
-    def connect(self):
-        self.sock = socks.socksocket()
-        self.sock.setproxy(*self.proxyargs)
-        if isinstance(self.timeout, float):
-            self.sock.settimeout(self.timeout)
-        self.sock.connect((self.host, self.port))
+	def connect(self):
+		self.sock = socks.socksocket()
+		self.sock.setproxy(*self.proxyargs)
+		if isinstance(self.timeout, float):
+			self.sock.settimeout(self.timeout)
+		self.sock.connect((self.host, self.port))
 
 class SocksiPyConnectionS(httplib.HTTPSConnection):
 	"""
 	Missing part for getting https working https://github.com/Anorov/PySocks/blob/master/sockshandler.py
 	"""
-	def __init__(self, proxytype, proxyaddr, proxyport=None, rdns=True, username=None, password=None, *args, **kwargs):
+	def __init__(self, proxytype, proxyaddr, proxyport = None, rdns = True, username = None, password = None, *args, **kwargs):
 		self.proxyargs = (proxytype, proxyaddr, proxyport, rdns, username, password)
 		httplib.HTTPSConnection.__init__(self, *args, **kwargs)
 
@@ -66,20 +66,20 @@ class SocksiPyConnectionS(httplib.HTTPSConnection):
 		self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file)
 
 class SocksiPyHandler(urllib2.HTTPHandler, urllib2.HTTPSHandler):
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kw = kwargs
-        urllib2.HTTPHandler.__init__(self)
+	def __init__(self, *args, **kwargs):
+		self.args = args
+		self.kw = kwargs
+		urllib2.HTTPHandler.__init__(self)
 
-    def http_open(self, req):
-        def build(host, port=None, strict=None, timeout=0):
-            conn = SocksiPyConnection(*self.args, host=host, port=port, strict=strict, timeout=timeout, **self.kw)
-            return conn
-        return self.do_open(build, req)
+	def http_open(self, req):
+		def build(host, port = None, strict = None, timeout = 0):
+			conn = SocksiPyConnection(*self.args, host = host, port = port, strict = strict, timeout = timeout, **self.kw)
+			return conn
+		return self.do_open(build, req)
 
-    def https_open(self, req):
-		def build(host, port=None, strict=None, timeout=0):    
-			conn = SocksiPyConnectionS(*self.args, host=host, port=port, strict=strict, timeout=timeout, **self.kw)
+	def https_open(self, req):
+		def build(host, port = None, strict = None, timeout = 0):    
+			conn = SocksiPyConnectionS(*self.args, host = host, port = port, strict = strict, timeout = timeout, **self.kw)
 			return conn
 		return self.do_open(build, req)
 
@@ -96,10 +96,16 @@ class TorHandler():
 		try:
 			self.tor_process = stem.process.launch_tor_with_config(
 				config = {
-						'SocksPort' : self.SocksPort,
+						'AvoidDiskWrites' : '1',
+						'ClientOnly' : '1',
+						'DirReqStatistics' : '0',
+						'ExcludeExitNodes' : '{be},{pl},{ca},{za},{vn},{uz},{ua},{tw},{tr},{th},{sk},{sg},{se},{sd},{sa},{ru},{ro},{pt},{ph},{pa},{nz},{np},{no},{my},{mx},{md},{lv},{lu},{kr},{jp},{it},{ir},{il},{ie},{id},{hr},{hk},{gr},{gi},{gb},{fi},{es},{ee},{dk},{cz},{cy},{cr},{co},{cn},{cl},{ci},{ch},{by},{br},{bg},{au},{at},{ar},{aq},{ao},{ae},{nl},{de},{fr}',
 						'ExitNodes' : self.ExitNodes,
-						'StrictNodes' : '1',
-						'AvoidDiskWrites' : '1'
+						'GeoIPExcludeUnknown' : '1',
+						'NumEntryGuards' : '6',
+						'SocksListenAddress' : '127.0.0.1',
+						'SocksPort' : self.SocksPort,
+						'StrictNodes' : '1'
 				},
 				init_msg_handler = self.print_bootstrap_lines,
 				take_ownership = True
