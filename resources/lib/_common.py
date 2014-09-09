@@ -56,17 +56,14 @@ def root_list(network_name):
 	"""
 	Loads data from master list
 	"""
-	
 	network = get_network(network_name)
 	dialog = xbmcgui.DialogProgress()
 	dialog.create(smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39016)))
 	current = 0
 	rootlist = []
-	
 	network_name = network.NAME
 	dialog.update(0, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39017)) + network.NAME, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39018)))
 	showdata = network.masterlist()
-	
 	total_shows = len(showdata)
 	current_show = 0
 	for show in showdata:
@@ -75,11 +72,9 @@ def root_list(network_name):
 		current_show += 1
 		if (dialog.iscanceled()):
 			return False
-	
-	
 	for show in showdata:
 		add_show(show[0], show[1], show[2], show[3])
-	set_view('tvshows')
+	set_view('root')
 
 def get_network(module_name):
 	""" 
@@ -87,7 +82,6 @@ def get_network(module_name):
 	"""
 	if module_name in network_module_cache:
 		return network_module_cache[module_name]
-
 	print "!!! plugin loading of site : " + module_name 
 	try:
 		module = _importlib.import_module('resources.lib.%s' % (module_name))
@@ -123,7 +117,7 @@ def get_quality_method():
 	return "HIGH"
 	
 def set_view(type = 'root'):
-	confluence_views = [500,501,502,503,504,508]
+	confluence_views = [500,501,50,503,504,508,51]
 	if type == 'root':
 		xbmcplugin.setContent(pluginHandle, 'movies')
 	elif type == 'seasons':
@@ -132,8 +126,7 @@ def set_view(type = 'root'):
 		if type == 'tvshows':
 			xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_LABEL)
 		xbmcplugin.setContent(pluginHandle, type)
-	viewenable = _addoncompat.get_setting('viewenable')
-	if viewenable == 'true':
+	if _addoncompat.get_setting('viewenable') == 'true':
 		view = int(_addoncompat.get_setting(type + 'view'))
 		xbmc.executebuiltin('Container.SetViewMode(' + str(confluence_views[view]) + ')')
 
