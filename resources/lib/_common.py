@@ -317,9 +317,11 @@ def get_series_id(seriesdata, seriesname, site = '', allowManual = False):
 		ret = -1
 		variantsExist = False
 		lookup_name = seriesname.replace('%E2%84%A2', '').lower().replace("'", "").replace('?', '').replace('!', '').strip()
+		lookup_name = lookup_name.replace(u"\u0174", '')
 		lookup_network = site.replace('The', '').replace(',', '').strip()
 		for i, show_item in enumerate(shows):
 			item_name = show_item.seriesname.string.lower().replace("'", "").replace('!', '').strip()
+			item_name = item_name.replace(u"\u0174", '')
 			try:
 				item_network = show_item.network.string.replace('The', '').replace(',', '').strip()
 			except:
