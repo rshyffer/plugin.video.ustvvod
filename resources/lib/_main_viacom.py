@@ -69,20 +69,23 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 			video_menu = video_tree3.find('src').string
 			hbitrate = -1
 			lbitrate = -1
-
+			m3u8_url = None
 			m3u_master_data = _connection.getURL(video_menu, savecookie = True)
 			m3u_master = _m3u8.parse(m3u_master_data)
-			hbitrate = -1
 			sbitrate = int(_addoncompat.get_setting('quality')) * 1024
 			for video_index in m3u_master.get('playlists'):
 				bitrate = int(video_index.get('stream_info')['bandwidth'])
 				if qbitrate is None:
+					if bitrate < lbitrate or lbitrate == -1:
+						lbitrate = bitrate
+						lm3u8_url = video_index.get('uri')
 					if bitrate > hbitrate and bitrate <= sbitrate:
 						hbitrate = bitrate
 						m3u8_url =  video_index.get('uri')
 				elif  bitrate == qbitrate:
 					m3u8_url =  video_index.get('uri')
-				
+			if 	m3u8_url is None:
+				m3u8_url = lm3u8_url
 			m3u_data = _connection.getURL(m3u8_url, loadcookie = True)
 			key_url = re.compile('URI="(.*?)"').findall(m3u_data)[0]
 			key_data = _connection.getURL(key_url, loadcookie = True)		
@@ -102,7 +105,6 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 			playfile.write(m3u_data)
 			playfile.close()
 			video_url6 +=  _common.PLAYFILE.replace('.m3u8',  '_' + str(act)  + '.m3u8') + ' , '
-			
 		filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
 		xbmc.executebuiltin(filestring)
 		finalurl = video_url6[:-3]
