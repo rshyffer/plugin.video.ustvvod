@@ -20,6 +20,7 @@ pluginHandle = int(sys.argv[1])
 
 VIDEOURL = 'http://media.mtvnservices.com/'
 DEVICE = 'Xbox'
+BITRATERANGE = 10
 
 def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	if media_base not in video_url:
@@ -36,7 +37,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		swf_url = _connection.getRedirect(video_url, header = {'Referer' : BASE})
 		params = dict(item.split("=") for item in swf_url.split('?')[1].split("&"))
 		uri = urllib.unquote_plus(params['uri'])
-		config_url = urllib.unquote_plus(params['CONFIG_URL'].replace('Other',DEVICE))
+		config_url = urllib.unquote_plus(params['CONFIG_URL'].replace('Other', DEVICE))
 		config_data = _connection.getURL(config_url, header = {'Referer' : video_url, 'X-Forwarded-For' : '12.13.14.15'})
 		config_tree = BeautifulSoup(config_data, 'html5lib')
 		if not config_tree.error:
@@ -82,9 +83,9 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 					if bitrate > hbitrate and bitrate <= sbitrate:
 						hbitrate = bitrate
 						m3u8_url =  video_index.get('uri')
-				elif  bitrate == qbitrate:
+				elif  (qbitrate  * (100 - BITRATERANGE))/100 <  bitrate  and (qbitrate  * (100 + BITRATERANGE))/100 >  bitrate:
 					m3u8_url =  video_index.get('uri')
-			if 	m3u8_url is None:
+			if 	m3u8_url is None and qbitrate is None:
 				m3u8_url = lm3u8_url
 			m3u_data = _connection.getURL(m3u8_url, loadcookie = True)
 			key_url = re.compile('URI="(.*?)"').findall(m3u_data)[0]
@@ -133,36 +134,47 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	
 
 def list_qualities(BASE, video_url = _common.args.url, media_base = VIDEOURL):
+	bitrates = []
 	if media_base not in video_url:
 		video_url = media_base + video_url
-	bitrates = []
+	exception = False
 	if 'feed' not in video_url:
 		swf_url = _connection.getRedirect(video_url, header = {'Referer' : BASE})
 		params = dict(item.split("=") for item in swf_url.split('?')[1].split("&"))
 		uri = urllib.unquote_plus(params['uri'])
-		config_url = urllib.unquote_plus(params['CONFIG_URL'])
+		config_url = urllib.unquote_plus(params['CONFIG_URL'].replace('Other', DEVICE))
 		config_data = _connection.getURL(config_url, header = {'Referer' : video_url, 'X-Forwarded-For' : '12.13.14.15'})
-		feed_url = BeautifulSoup(config_data, 'html.parser', parse_only = SoupStrainer('feed')).feed.string
-		feed_url = feed_url.replace('{uri}', uri).replace('&amp;', '&').replace('{device}', DEVICE).replace('{ref}', 'None').strip()
+		config_tree = BeautifulSoup(config_data, 'html5lib')
+		if not config_tree.error:
+			feed_url = config_tree.feed.string
+			feed_url = feed_url.replace('{uri}', uri).replace('&amp;', '&').replace('{device}', DEVICE).replace('{ref}', 'None').strip()
+		else:
+			exception = True
+			error_text = config_tree.error.string.split('/')[-1].split('_') 
+			dialog = xbmcgui.Dialog()
+			dialog.ok("Exception", error_text[1], error_text[2])
 	else:
 		feed_url = video_url
-	feed_data = _connection.getURL(feed_url)
-	video_tree = BeautifulSoup(feed_data, 'html.parser', parse_only = SoupStrainer('media:group'))
-	video_segments = video_tree.find_all('media:content')
-	srates = []
-	for video_segment in video_segments:
+
+	if not exception:
+		feed_data = _connection.getURL(feed_url)
+		video_tree = BeautifulSoup(feed_data, 'html.parser', parse_only = SoupStrainer('media:group'))
+		video_segments = video_tree.find_all('media:content')
+		
+
+		video_segment = video_segments[0]
 		video_url3 = video_segment['url'].replace('{device}', DEVICE)
 		video_data3 = _connection.getURL(video_url3, header = {'X-Forwarded-For' : '12.13.14.15'})
-		video_menu = BeautifulSoup(video_data3).findAll('rendition')
-		orates = srates
-		srates = []	
-		for video_index in video_menu:
-			bitrate = int(video_index['bitrate'])
-			srates.append((bitrate, bitrate))
-		if orates != []:
-			srates = list(set(srates).intersection(orates))
-	bitrates  =srates
-	return bitrates
+		video_tree3 = BeautifulSoup(video_data3, 'html5lib')
+		video_menu = video_tree3.find('src').string
+		m3u8_url = None
+		m3u_master_data = _connection.getURL(video_menu, savecookie = True)
+		m3u_master = _m3u8.parse(m3u_master_data)
+		for video_index in m3u_master.get('playlists'):
+			bitrate = int(video_index.get('stream_info')['bandwidth'])
+			display = int(bitrate) / 1024
+			bitrates.append((display, bitrate))
+		return bitrates
 				
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')
