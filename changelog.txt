@@ -1,3 +1,20 @@
+version 1.0.9
+
+  * added script.module.stem
+  * added tor connection
+  * fixed linux lf format for debug log
+  * missed rename of option
+  * fixed https connection over proxy
+  * fixed description of Crackle
+  * fixed view of root from tvshows to root
+  * fixed confluence view list
+  * fix settings
+  * added additional tor parameters
+  * update dnspython
+  * improve series id matching
+  * fix minimum bitrate protection on viacomm
+  * fixed quality selection in viacomm
+
 version 1.0.8
 
   * fix get revision
