@@ -232,15 +232,11 @@ def convert_subtitles(closedcaption):
 				if line is not None:
 					try:
 						sub = clean_subs(_common.smart_utf8(line))
-						#print sub
 						start_time = _common.smart_utf8(datetime.datetime.strftime(datetime.datetime.strptime(line['begin'], '%H:%M:%S.%f') -  datetime.timedelta(seconds = int(delay)),'%H:%M:%S,%f'))[:-4]
-						#print start_time
 						end_time = _common.smart_utf8(datetime.datetime.strftime(datetime.datetime.strptime(line['end'], '%H:%M:%S.%f') -  datetime.timedelta(seconds = int(delay)),'%H:%M:%S,%f'))[:-4]
-						#print end_time
 						str_output += str(j + i + 1) + '\n' + start_time + ' --> ' + end_time + '\n' + sub + '\n\n'
 					except:
 						pass
-			print "***************************", os.path.join(_common.CACHEPATH, 'subtitle-%s.srt' % str(count))
 			j = j + i + 1
 			file = open(os.path.join(_common.CACHEPATH, 'subtitle-%s.srt' % str(count)), 'w')
 			file.write(str_output)
