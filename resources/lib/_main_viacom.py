@@ -40,11 +40,13 @@ class XBMCPlayer( xbmc.Player ):
 	def onPlayBackEnded( self ):
 		# Will be called when xbmc stops playing a segment
 		if self._counter == self._segments:
+			print "**************************** End Event -- Stopping Server *****************************"
 			_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
 			self.is_active = False
 
 	def onPlayBackStopped( self ):
 		# Will be called when user stops xbmc playing a file
+		print "**************************** Stop Event -- Stopping Server *****************************"
 		_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
 		self.is_active = False
 	
