@@ -40,7 +40,7 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		self._writeheaders()
 
 	def do_GET(self):
-		print 'XBMCLocalProxy: Serving GET request...'
+		#print 'XBMCLocalProxy: Serving GET request...'
 		self.answer_request(1)
 
 	def answer_request(self, sendData):
@@ -83,7 +83,7 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			cj.add_cookie_header(request)
 		response = opener.open(request)
 		self.send_response(200)
-		print 'XBMCLocalProxy: Sending headers...'
+		#print 'XBMCLocalProxy: Sending headers...'
 		headers = response.info()
 		for key in headers:
 			try:
@@ -94,7 +94,7 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				pass
 		self.end_headers()
 		if (sendData):
-			print 'XBMCLocalProxy: Sending data...'
+			#print 'XBMCLocalProxy: Sending data...'
 			fileout = self.wfile
 			try:
 				buf = 'INIT'
@@ -105,7 +105,7 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 						fileout.flush()
 					response.close()
 					fileout.close()
-					print time.asctime(), 'Closing connection'
+					#print time.asctime(), 'Closing connection'
 				except socket.error, e:
 					print time.asctime(), 'Client closed the connection.'
 					try:

@@ -22,6 +22,37 @@ VIDEOURL = 'http://media.mtvnservices.com/'
 DEVICE = 'Xbox'
 BITRATERANGE = 10
 
+class XBMCPlayer( xbmc.Player ):
+	_counter = 0
+	_segments = 1
+	_subtitles_Enabled = False
+
+	def __init__( self, *args, **kwargs  ):
+		xbmc.Player.__init__( self )
+		self.is_active = True
+
+	def onPlayBackStarted( self ):
+		# Will be called when xbmc starts playing a segment
+		self._counter = self._counter + 1
+		if self._subtitles_Enabled:
+			self.setSubtitles(os.path.join(_common.CACHEPATH, 'subtitle-%s.srt' % str(self._counter)))
+
+	def onPlayBackEnded( self ):
+		# Will be called when xbmc stops playing a segment
+		if self._counter == self._segments:
+			_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
+			self.is_active = False
+
+	def onPlayBackStopped( self ):
+		# Will be called when user stops xbmc playing a file
+		_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
+		self.is_active = False
+	
+	def sleep(self, s):
+		xbmc.sleep(s) 
+
+player = XBMCPlayer()
+
 def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	if media_base not in video_url:
 		video_url = media_base + video_url
@@ -106,6 +137,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 			playfile.write(m3u_data)
 			playfile.close()
 			video_url6 +=  _common.PLAYFILE.replace('.m3u8',  '_' + str(act)  + '.m3u8') + ' , '
+		player._segments = act + 1
 		filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
 		xbmc.executebuiltin(filestring)
 		finalurl = video_url6[:-3]
@@ -114,6 +146,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 
 		if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
 			convert_subtitles(closedcaption)
+			player._subtitles_Enabled = True
 		item = xbmcgui.ListItem(path = finalurl)
 		if qbitrate is not None:
 			item.setThumbnailImage(_common.args.thumb)
@@ -122,16 +155,8 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 							'episode' : _common.args.episode_number,
 							'TVShowTitle' : _common.args.show_title})
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
-		for count in range(1, act):
-			while not xbmc.Player().isPlaying():
-				xbmc.sleep(200)
-			if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None) and closedcaption != []:
-				xbmc.Player().setSubtitles(os.path.join(_common.CACHEPATH, 'subtitle-%s.srt' % str(count)))
-				# wait for 20s to load the next segment (but not for the first segment, where this sleep is not needed)
-			while xbmc.Player().isPlaying():
-				xbmc.sleep(10)
-		_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
-	
+		while player.is_active:
+			player.sleep(250)
 
 def list_qualities(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	bitrates = []
@@ -205,12 +230,19 @@ def convert_subtitles(closedcaption):
 			delay = int(file_duration) - int(duration)
 			for i, line in enumerate(lines):
 				if line is not None:
-					sub = clean_subs(_common.smart_utf8(line))
-					start_time = _common.smart_utf8(datetime.datetime.strftime(datetime.datetime.strptime(line['begin'], '%H:%M:%S.%f') -  datetime.timedelta(seconds = int(delay)),'%H:%M:%S,%f'))[:-4]
-					end_time = _common.smart_utf8(datetime.datetime.strftime(datetime.datetime.strptime(line['end'], '%H:%M:%S.%f') -  datetime.timedelta(seconds = int(delay)),'%H:%M:%S,%f'))[:-4]
-					str_output += str(j + i + 1) + '\n' + start_time + ' --> ' + end_time + '\n' + sub + '\n\n'
+					try:
+						sub = clean_subs(_common.smart_utf8(line))
+						#print sub
+						start_time = _common.smart_utf8(datetime.datetime.strftime(datetime.datetime.strptime(line['begin'], '%H:%M:%S.%f') -  datetime.timedelta(seconds = int(delay)),'%H:%M:%S,%f'))[:-4]
+						#print start_time
+						end_time = _common.smart_utf8(datetime.datetime.strftime(datetime.datetime.strptime(line['end'], '%H:%M:%S.%f') -  datetime.timedelta(seconds = int(delay)),'%H:%M:%S,%f'))[:-4]
+						#print end_time
+						str_output += str(j + i + 1) + '\n' + start_time + ' --> ' + end_time + '\n' + sub + '\n\n'
+					except:
+						pass
+			print "***************************", os.path.join(_common.CACHEPATH, 'subtitle-%s.srt' % str(count))
 			j = j + i + 1
-			file = open(os.path.join(_common.CACHEPATH, 'subtitle-%s.srt' % int(count)), 'w')
+			file = open(os.path.join(_common.CACHEPATH, 'subtitle-%s.srt' % str(count)), 'w')
 			file.write(str_output)
 			str_output=''
 			file.close()
