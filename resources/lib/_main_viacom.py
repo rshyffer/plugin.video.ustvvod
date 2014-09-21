@@ -26,6 +26,8 @@ class XBMCPlayer( xbmc.Player ):
 	_counter = 0
 	_segments = 1
 	_subtitles_Enabled = False
+	_subtitles_Type = "SRT"
+	_localHTTPServer = True
 
 	def __init__( self, *args, **kwargs  ):
 		xbmc.Player.__init__( self )
@@ -35,21 +37,34 @@ class XBMCPlayer( xbmc.Player ):
 		# Will be called when xbmc starts playing a segment
 		self._counter = self._counter + 1
 		if self._subtitles_Enabled:
-			self.setSubtitles(os.path.join(_common.CACHEPATH, 'subtitle-%s.srt' % str(self._counter)))
+			if self._segments > 1:
+				if self._subtitles_Type == "SRT":
+					self.setSubtitles(os.path.join(_common.CACHEPATH, 'subtitle-%s.srt' % str(self._counter)))
+				else:
+					self.setSubtitles(os.path.join(_common.CACHEPATH, 'subtitle-%s.smi' % str(self._counter)))
+			else:
+				if self._subtitles_Type == "SRT":
+					self.setSubtitles(_common.SUBTITLE)
+				else:
+					self.setSubtitles(_common.SUBTITLESMI)
 
 	def onPlayBackEnded( self ):
 		# Will be called when xbmc stops playing a segment
 		print "**************************** End Event *****************************"
 		if self._counter == self._segments:
 			print "**************************** End Event -- Stopping Server *****************************"
-			_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
 			self.is_active = False
+			if _self._localHTTPServer:
+				_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
+			
 
 	def onPlayBackStopped( self ):
 		# Will be called when user stops xbmc playing a file
 		print "**************************** Stop Event -- Stopping Server *****************************"
-		_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
 		self.is_active = False
+		if self._localHTTPServer:
+			_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
+		
 	
 	def sleep(self, s):
 		xbmc.sleep(s) 
@@ -160,6 +175,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 		while player.is_active:
 			player.sleep(250)
+
 
 def list_qualities(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	bitrates = []
