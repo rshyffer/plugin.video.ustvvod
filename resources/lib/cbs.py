@@ -179,7 +179,11 @@ def episodesClassic(episode_url = _common.args.url):
 
 def list_qualities(video_url = _common.args.url):
 	bitrates = []
-	video_url = EPISODE % video_url
+	if 'http://' in video_url:
+		plot, pid = lookup_meta(video_url)
+	else:
+		pid = video_url
+	video_url = EPISODE % pid
 	video_data = _connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	video_url2 = video_tree.switch.find_all('video')
