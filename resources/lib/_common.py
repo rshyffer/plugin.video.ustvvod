@@ -37,6 +37,70 @@ TVDBURL = 'http://thetvdb.com'
 TVDBBANNERS = 'http://thetvdb.com/banners/'
 TVDBSERIESLOOKUP = 'http://www.thetvdb.com/api/GetSeries.php?seriesname='
 
+class XBMCPlayer( xbmc.Player ):
+	_counter = 0
+	_segments = 1
+	_segments_array = []
+	_subtitles_Enabled = False
+	_subtitles_Type = "SRT"
+	_localHTTPServer = True
+
+	def __init__( self, *args, **kwargs  ):
+		xbmc.Player.__init__( self )
+		self.is_active = True
+
+	def onPlayBackStarted( self ):
+		print "**************************** Play Event *****************************"
+		play_time = self.getTime()
+		# Will be called when xbmc starts playing a segment
+		if len(self._segments_array) > 1:
+			self._segments = len(self._segments_array)
+		print self._segments_array
+		if len(self._segments_array) > 1:
+			total = 0
+			index = -1
+			for i, duration in enumerate(self._segments_array):
+				total = total + int(duration)
+				if play_time < total and index == -1:
+					index = i
+			self._counter = index + 1
+		else:
+			self._counter = 1
+		
+		if self._subtitles_Enabled:
+			if self._segments > 1:
+				print "Loading sub" + str(self._counter)
+				if self._subtitles_Type == "SRT":
+					self.setSubtitles(os.path.join(CACHEPATH, 'subtitle-%s.srt' % str(self._counter)))
+				else:
+					self.setSubtitles(os.path.join(CACHEPATH, 'subtitle-%s.smi' % str(self._counter)))
+			else:
+				if self._subtitles_Type == "SRT":
+					self.setSubtitles(SUBTITLE)
+				else:
+					self.setSubtitles(SUBTITLESMI)
+
+	def onPlayBackEnded( self ):
+		# Will be called when xbmc stops playing a segment
+		print "**************************** End Event *****************************"
+		if self._counter == self._segments:
+			print "**************************** End Event -- Stopping Server *****************************"
+			self.is_active = False
+			if _self._localHTTPServer:
+				_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
+			
+
+	def onPlayBackStopped( self ):
+		# Will be called when user stops xbmc playing a file
+		print "**************************** Stop Event -- Stopping Server *****************************"
+		self.is_active = False
+		if self._localHTTPServer:
+			_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
+
+	def sleep(self, s):
+		xbmc.sleep(s) 
+
+
 class _Info:
 	def __init__(self, s):
 		args = urllib.unquote_plus(s).split(' , ')

@@ -22,54 +22,7 @@ VIDEOURL = 'http://media.mtvnservices.com/'
 DEVICE = 'Xbox'
 BITRATERANGE = 10
 
-class XBMCPlayer( xbmc.Player ):
-	_counter = 0
-	_segments = 1
-	_subtitles_Enabled = False
-	_subtitles_Type = "SRT"
-	_localHTTPServer = True
-
-	def __init__( self, *args, **kwargs  ):
-		xbmc.Player.__init__( self )
-		self.is_active = True
-
-	def onPlayBackStarted( self ):
-		# Will be called when xbmc starts playing a segment
-		self._counter = self._counter + 1
-		if self._subtitles_Enabled:
-			if self._segments > 1:
-				if self._subtitles_Type == "SRT":
-					self.setSubtitles(os.path.join(_common.CACHEPATH, 'subtitle-%s.srt' % str(self._counter)))
-				else:
-					self.setSubtitles(os.path.join(_common.CACHEPATH, 'subtitle-%s.smi' % str(self._counter)))
-			else:
-				if self._subtitles_Type == "SRT":
-					self.setSubtitles(_common.SUBTITLE)
-				else:
-					self.setSubtitles(_common.SUBTITLESMI)
-
-	def onPlayBackEnded( self ):
-		# Will be called when xbmc stops playing a segment
-		print "**************************** End Event *****************************"
-		if self._counter == self._segments:
-			print "**************************** End Event -- Stopping Server *****************************"
-			self.is_active = False
-			if _self._localHTTPServer:
-				_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
-			
-
-	def onPlayBackStopped( self ):
-		# Will be called when user stops xbmc playing a file
-		print "**************************** Stop Event -- Stopping Server *****************************"
-		self.is_active = False
-		if self._localHTTPServer:
-			_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
-		
-	
-	def sleep(self, s):
-		xbmc.sleep(s) 
-
-player = XBMCPlayer()
+player = _common.XBMCPlayer()
 
 def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	if media_base not in video_url:
@@ -105,7 +58,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		video_tree = BeautifulSoup(feed_data, 'html.parser', parse_only = SoupStrainer('media:group'))
 		video_segments = video_tree.find_all('media:content')
 		
-
+		segments = []
 		for act, video_segment in enumerate(video_segments):
 			video_url3 = video_segment['url'].replace('{device}', DEVICE)
 			video_data3 = _connection.getURL(video_url3, header = {'X-Forwarded-For' : '12.13.14.15'})
@@ -113,8 +66,10 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 			try:
 				duration = video_tree3.find('rendition')['duration']
 				closedcaption.append((video_tree3.find('typographic', format = 'ttml'),duration))
+				segments.append(duration)
 			except:
-				pass
+				segments.append(0)
+
 
 			video_menu = video_tree3.find('src').string
 			hbitrate = -1
@@ -155,7 +110,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 			playfile.write(m3u_data)
 			playfile.close()
 			video_url6 +=  _common.PLAYFILE.replace('.m3u8',  '_' + str(act)  + '.m3u8') + ' , '
-		player._segments = act + 1
+		player._segments_array = segments
 		filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
 		xbmc.executebuiltin(filestring)
 		finalurl = video_url6[:-3]
