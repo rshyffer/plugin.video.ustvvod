@@ -308,3 +308,7 @@ msgstr ""
 msgctxt "#39023"
 msgid "Page Limit"
 msgstr ""
+
+msgctxt "#39024"
+msgid "Exception"
+msgstr ""

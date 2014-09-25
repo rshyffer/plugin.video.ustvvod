@@ -834,3 +834,7 @@ def add_video(video_url, displayname, thumb = None, fanart = None, infoLabels = 
 		contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39022)), 'XBMC.PlayMedia(%s)' % quailty_u))
 		item.addContextMenuItems(contextmenu)
 	xbmcplugin.addDirectoryItem(pluginHandle, url = video_url, listitem = item, isFolder = False)
+
+def show_exception(error1, error2):
+	dialog = xbmcgui.Dialog()
+	dialog.ok(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39024), error1, error2)

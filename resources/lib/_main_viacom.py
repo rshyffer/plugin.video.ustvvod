@@ -48,8 +48,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		else:
 			exception = True
 			error_text = config_tree.error.string.split('/')[-1].split('_') 
-			dialog = xbmcgui.Dialog()
-			dialog.ok("Exception", error_text[1], error_text[2])
+			_common.show_exception(error_text[1], error_text[2])
 	else:
 		feed_url = video_url
 
@@ -150,8 +149,7 @@ def list_qualities(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		else:
 			exception = True
 			error_text = config_tree.error.string.split('/')[-1].split('_') 
-			dialog = xbmcgui.Dialog()
-			dialog.ok("Exception", error_text[1], error_text[2])
+			_common.show_exception(error_text[1], error_text[2])
 	else:
 		feed_url = video_url
 
