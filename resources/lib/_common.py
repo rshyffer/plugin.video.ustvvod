@@ -258,7 +258,8 @@ def replace_signs(text):
 			'â€˜N'	: '\'N',
 			'Ã¡'	: 'á',
 			'Ã©'	: 'é',
-			'â€˜'	: '\''}
+			'â€˜'	: '\'',
+			'á'		: ' '}
 	for i, j in dic.iteritems():
 		text = smart_utf8(text).replace(i, j).strip()
 	return text
