@@ -37,18 +37,21 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	exception = False
 	if 'feed' not in video_url:
 		swf_url = _connection.getRedirect(video_url, header = {'Referer' : BASE})
-		params = dict(item.split("=") for item in swf_url.split('?')[1].split("&"))
-		uri = urllib.unquote_plus(params['uri'])
-		config_url = urllib.unquote_plus(params['CONFIG_URL'].replace('Other', DEVICE))
-		config_data = _connection.getURL(config_url, header = {'Referer' : video_url, 'X-Forwarded-For' : '12.13.14.15'})
-		config_tree = BeautifulSoup(config_data, 'html5lib')
-		if not config_tree.error:
-			feed_url = config_tree.feed.string
-			feed_url = feed_url.replace('{uri}', uri).replace('&amp;', '&').replace('{device}', DEVICE).replace('{ref}', 'None').strip()
-		else:
-			exception = True
-			error_text = config_tree.error.string.split('/')[-1].split('_') 
-			_common.show_exception(error_text[1], error_text[2])
+		try:
+			params = dict(item.split("=") for item in swf_url.split('?')[1].split("&"))
+			uri = urllib.unquote_plus(params['uri'])
+			config_url = urllib.unquote_plus(params['CONFIG_URL'].replace('Other', DEVICE))
+			config_data = _connection.getURL(config_url, header = {'Referer' : video_url, 'X-Forwarded-For' : '12.13.14.15'})
+			config_tree = BeautifulSoup(config_data, 'html5lib')
+			if not config_tree.error:
+				feed_url = config_tree.feed.string
+				feed_url = feed_url.replace('{uri}', uri).replace('&amp;', '&').replace('{device}', DEVICE).replace('{ref}', 'None').strip()
+			else:
+				exception = True
+				error_text = config_tree.error.string.split('/')[-1].split('_') 
+				_common.show_exception(error_text[1], error_text[2])
+		except:
+			_common.show_exception("", swf_url)
 	else:
 		feed_url = video_url
 
