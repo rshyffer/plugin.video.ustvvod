@@ -308,3 +308,7 @@ msgstr "Qualität auswählen"
 msgctxt "#39023"
 msgid "Page Limit"
 msgstr "Seitenlimit"
+
+msgctxt "#39024"
+msgid "Exception"
+msgstr "Fehler"
