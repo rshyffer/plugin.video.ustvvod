@@ -646,7 +646,7 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 		thumb = tvdbposter
 	else:
 		thumb = os.path.join(IMAGEPATH, mode + '.png')
-	orig_series_title = series_title
+	orig_series_title = smart_utf8(series_title)
 	if tvdb_series_title is not None:
 		series_title = smart_utf8(tvdb_series_title)
 	infoLabels['title'] = series_title
