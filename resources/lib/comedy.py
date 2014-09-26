@@ -183,10 +183,9 @@ def add_items_from_southpark(show_url):
 				continue
 			try:
 				display = 'Season %s' % str(int(season_number))
-				_common.add_directory(display,  SITE, 'episodes', season_url )
 			except:
 				pass
-			
+			_common.add_directory(display,  SITE, 'episodes', season_url )
 	
 def episodes_from_html(episode_url = _common.args.url, page = 1):
 	""" Add episodes by analysing the HTML of the page """
@@ -359,8 +358,7 @@ def add_video_from_manifestfile(manifest_feed):
 def add_fullepisodes_southpark(episode_tree):
 	try:
 		season = urllib.unquote(sys.argv[2].split('&')[2].split('=')[1].replace('%22','')).split(' ')[1]
-		episode_menu = episode_tree.find_all(class_ = 'thumbnail')
-		print episode_tree
+		episode_menu = episode_tree.find_all('article', class_ = 'thumb')
 		for episode_item in episode_menu:
 			episode_name = episode_item.find(class_ = 'title')
 			if episode_name is None:
