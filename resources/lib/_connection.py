@@ -151,6 +151,7 @@ def prepare_dns_proxy(cookie_handler):
 	dnsproxy = []
 	dnsproxy.append(_addoncompat.get_setting('dns_proxy'))
 	dnsproxy.append(_addoncompat.get_setting('dns_proxy_2'))
+	dnsproxy.append(_addoncompat.get_setting('dns_proxy_3'))
 	MyHTTPHandler._dnsproxy = dnsproxy
 	opener = urllib2.build_opener(MyHTTPHandler, cookie_handler)
 	return opener
