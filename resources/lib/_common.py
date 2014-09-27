@@ -800,7 +800,7 @@ def add_video(video_url, displayname, thumb = None, fanart = None, infoLabels = 
 			thumb = args.thumb
 		else:
 			thumb = ''
-	if 'episode' in infoLabels.keys() and 'season' in infoLabels.keys():
+	if 'episode' in infoLabels.keys() and 'season' in infoLabels.keys() and _addoncompat.get_setting('add_episode_identifier') == 'true':
 			displayname = 'S' + str(infoLabels['season']).zfill(2) + 'E' + str(infoLabels['episode']).zfill(2) + ' - ' + displayname
 
 	item = xbmcgui.ListItem(displayname, iconImage = thumb, thumbnailImage = thumb)
