@@ -94,8 +94,8 @@ class TorHandler():
 
 	def start_tor(self):
 		try:
-			self.tor_process = stem.process.launch_tor_with_config(
-				config = {
+			tor_cmd = None
+			config = {
 						'AvoidDiskWrites' : '1',
 						'ClientOnly' : '1',
 						'DirReqStatistics' : '0',
@@ -106,10 +106,21 @@ class TorHandler():
 						'SocksListenAddress' : '127.0.0.1',
 						'SocksPort' : self.SocksPort,
 						'StrictNodes' : '1'
-				},
-				init_msg_handler = self.print_bootstrap_lines,
-				take_ownership = True
-			)
+				}
+			if 'Tor' not in os.environ['PATH'] and os.name== 'nt':
+				tor_cmd = os.environ['ProgramFiles'] + '\Tor\Tor.exe'
+			
+			if tor_cmd is None:
+				self.tor_process = stem.process.launch_tor_with_config(
+					config = config,
+					init_msg_handler = self.print_bootstrap_lines,
+					take_ownership = True,)
+			else:
+				self.tor_process = stem.process.launch_tor_with_config(
+					config = config,
+					init_msg_handler = self.print_bootstrap_lines,
+					take_ownership = True,
+					tor_cmd = tor_cmd)
 			return True
 		except OSError:
 			return False
