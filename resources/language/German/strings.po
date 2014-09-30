@@ -157,6 +157,10 @@ msgctxt "#31016"
 msgid "Running as Service"
 msgstr "Läuft als Dienst"
 
+msgctxt "#31017"
+msgid "DNS Proxy IP 3"
+msgstr "DNS Proxy IP 3"
+
 msgctxt "#32000"
 msgid "Views"
 msgstr "Ansicht"
@@ -312,3 +316,7 @@ msgstr "Seitenlimit"
 msgctxt "#39024"
 msgid "Exception"
 msgstr "Fehler"
+
+msgctxt "#39025"
+msgid "Add Episode Identifier"
+msgstr "Episodennummer hinzufügen"
