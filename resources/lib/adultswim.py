@@ -17,13 +17,13 @@ SITE = 'adultswim'
 NAME = "Adult Swim"
 DESCRIPTION = "Cartoon Network (CartoonNetwork.com), currently seen in more than 97 million U.S. homes and 166 countries around the world, is Turner Broadcasting System, Inc.'s ad-supported cable service now available in HD offering the best in original, acquired and classic entertainment for youth and families.  Nightly from 10 p.m. to 6 a.m. (ET, PT), Cartoon Network shares its channel space with Adult Swim, a late-night destination showcasing original and acquired animated and live-action programming for young adults 18-34 "
 SHOWS = 'http://www.adultswim.com/mobile/tools/feeds/shows.plist'
-SEASONSCLIPS = 'http://video.adultswim.com/adultswimdynamic/asfix-svc/episodeSearch/getAllEpisodes?limit=0&offset=0&sortByDate=DESC&filterByEpisodeType=PRE,CLI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true'
-SEASONSEPISODES = 'http://video.adultswim.com/adultswimdynamic/asfix-svc/episodeSearch/getAllEpisodes?limit=0&offset=0&sortByDate=DESC&filterByEpisodeType=EPI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true'
-SEASONSCLIPSEXTRA = 'http://video.adultswim.com/adultswimdynamic/asfix-svc/episodeSearch/getAllEpisodes?limit=1&offset=0&sortByDate=DESC&filterByEpisodeType=PRE,CLI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true'
-SEASONSEPISODESEXTRA = 'http://video.adultswim.com/adultswimdynamic/asfix-svc/episodeSearch/getAllEpisodes?limit=1&offset=0&sortByDate=DESC&filterByEpisodeType=EPI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true'
-CLIPS = 'http://video.adultswim.com/adultswimdynamic/asfix-svc/episodeSearch/getAllEpisodes?limit=50&offset=0&sortByDate=DESC&filterByEpisodeType=CLI&filterByCollectionId=%s&filterByAuthType=true&networkName=AS'
-FULLEPISODES = 'http://video.adultswim.com/adultswimdynamic/asfix-svc/episodeSearch/getAllEpisodes?limit=50&offset=0&sortByDate=DESC&filterByEpisodeType=EPI&filterByCollectionId=%s&filterByAuthType=true&networkName=AS'
-EPISODE = 'http://asfix.adultswim.com/asfix-svc/episodeservices/getCvpPlaylist?networkName=AS&id=%s'
+SEASONSCLIPS = 'http://www.adultswim.com/videos/api/v0/videos?limit=0&offset=0&sortByDate=DESC&filterByEpisodeType=PRE,CLI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true'
+SEASONSEPISODES = 'http://www.adultswim.com/videos/api/v0/videos?limit=0&offset=0&sortByDate=DESC&filterByEpisodeType=EPI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true'
+SEASONSCLIPSEXTRA = 'http://www.adultswim.com/videos/api/v0/videos?limit=1&offset=0&sortByDate=DESC&filterByEpisodeType=PRE,CLI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true'
+SEASONSEPISODESEXTRA = 'http://www.adultswim.com/videos/api/v0/videos?limit=1&offset=0&sortByDate=DESC&filterByEpisodeType=EPI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true'
+CLIPS = 'http://www.adultswim.com/videos/api/v0/videos?limit=50&offset=0&sortByDate=DESC&filterByEpisodeType=CLI&filterByCollectionId=%s&filterByAuthType=true&networkName=AS'
+FULLEPISODES = 'http://www.adultswim.com/videos/api/v0/videos?limit=50&offset=0&sortByDate=DESC&filterByEpisodeType=EPI&filterByCollectionId=%s&filterByAuthType=true&networkName=AS'
+EPISODE = 'http://www.adultswim.com/videos/api/v0/assets?id=%s&networkName=AS'
 
 def masterlist():
 	master_db = []
@@ -49,7 +49,6 @@ def seasons(collection_ids = _common.args.url):
 		else:
 			season_url = SEASONSEPISODESEXTRA
 		season_data = _connection.getURL(season_url % collection_id)
-		print BeautifulSoup(season_data, 'html.parser').episodes
 		season_tree = BeautifulSoup(season_data, 'html.parser')
 		episode_count = int(season_tree.episodes['totalitems'])
 		if episode_count > 0:
@@ -65,7 +64,6 @@ def seasons(collection_ids = _common.args.url):
 			seasonclips_url = SEASONSCLIPSEXTRA
 		season_data2 = _connection.getURL(seasonclips_url % collection_id)
 		season_tree2 = BeautifulSoup(season_data2, 'html.parser')
-		print BeautifulSoup(season_data2, 'html.parser').episodes
 		episode_count = int(season_tree2.episodes['totalitems'])
 		if episode_count > 0:
 			if ',' not in collection_ids:
