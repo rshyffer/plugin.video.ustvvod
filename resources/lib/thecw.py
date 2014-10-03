@@ -111,11 +111,14 @@ def play_video(video_url = _common.args.url):
 	video_data = _connection.getURL(VIDEOURL % video_url)
 	video_tree = simplejson.loads(video_data)
 	for video_key in video_tree['videos']:
-		video_index = video_tree['videos'][video_key]
-		bitrate = int(video_index['bitrate'])
-		if bitrate > hbitrate and bitrate <= sbitrate:
-			hbitrate = bitrate
-			playpath_url = video_index['uri'].split('mp4:')[1].replace('Level3', '') 
+		try:
+			video_index = video_tree['videos'][video_key]
+			bitrate = int(video_index['bitrate'])
+			if bitrate > hbitrate and bitrate <= sbitrate:
+				hbitrate = bitrate
+				playpath_url = video_index['uri'].split('mp4:')[1].replace('Level3', '') 
+		except:
+			pass
 	finalurl = RTMPURL + ' playpath=mp4:' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
 	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
 	if _addoncompat.get_setting('enablesubtitles') == 'true':
