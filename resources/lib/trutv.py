@@ -27,7 +27,6 @@ def masterlist():
 	master_menu = simplejson.loads(master_data)['entries']
 	for master_item in master_menu:
 		master_name = master_item['title']
-		print master_item
 		try:
 			collection_id = master_item['pl1$collectionID']
 		except:
