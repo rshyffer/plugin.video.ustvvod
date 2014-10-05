@@ -21,6 +21,7 @@ COOKIE = os.path.join(CACHEPATH,'cookie.txt')
 DNS_REFESH_DELAY = 10
 IPURL = 'http://icanhazip.com'
 IPFILE = os.path.join(CACHEPATH,'ip.txt')
+TIMEOUT = 18
 
 class MyHTTPConnection(httplib.HTTPConnection):
 	_dnsproxy = []
@@ -237,7 +238,7 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 			except:
 				print 'Cookie Loading Error'
 				pass
-		response = urllib2.urlopen(req)
+		response = urllib2.urlopen(req, timeout = TIMEOUT)
 		link = response.read()
 		if savecookie is True:
 			try:
@@ -284,7 +285,7 @@ def getRedirect(url, values = None , header = {}, connectiontype = _addoncompat.
 			header.update({'X-Forwarded-For' : _addoncompat.get_setting('us_proxy')})
 		for key, value in header.iteritems():
 			req.add_header(key, value)
-		response = urllib2.urlopen(req)
+		response = urllib2.urlopen(req, timeout = TIMEOUT)
 		finalurl = response.geturl()
 		response.close()
 		if ((int(connectiontype) == 3) and (_addoncompat.get_setting('tor_use_local') == 'true') and (_addoncompat.get_setting('tor_as_service') == 'false')):
