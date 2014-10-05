@@ -32,6 +32,8 @@ BITRATETABLE = {	60 : 'a',
 					590 : 'e',
 					1010 : 'f',
 					2100 : 'g' }
+					
+player = _common.XBMCPlayer()
 
 def masterlist(SITE, BRANDID):
 	master_db = []
@@ -245,19 +247,13 @@ def play_video(SITE, BRANDID, PARTNERID):
 		try:
 			closedcaption = CLOSEDCAPTIONHOST + video_data2['closedcaption']['src']['$'].split('.com')[1]
 			convert_subtitles(closedcaption)
+			player._subtitles_Enabled = True
 		except:
 			video_closedcaption = 'false'
 	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (video_closedcaption != 'false'):
-		while not xbmc.Player().isPlaying():
-			xbmc.sleep(100)
-		xbmc.Player().setSubtitles(_common.SUBTITLE)
-	if localhttpserver is True:
-		time.sleep(100)
-		try:
-			_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
-		except:
-			pass
+	while player.is_active:
+		player.sleep(250)
+
 
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')
