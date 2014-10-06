@@ -59,10 +59,12 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		feed_data = _connection.getURL(feed_url)
 		video_tree = BeautifulSoup(feed_data, 'html.parser', parse_only = SoupStrainer('media:group'))
 		video_segments = video_tree.find_all('media:content')
-		
 		segments = []
 		for act, video_segment in enumerate(video_segments):
-			video_url3 = video_segment['url'].replace('{device}', DEVICE)
+			if 'device' in video_segment['url']:
+				video_url3 = video_segment['url'].replace('{device}', DEVICE)
+			else:
+				video_url3 = video_segment['url'] + '&device=' + DEVICE
 			video_data3 = _connection.getURL(video_url3, header = {'X-Forwarded-For' : '12.13.14.15'})
 			video_tree3 = BeautifulSoup(video_data3, 'html5lib')
 			try:
@@ -72,46 +74,48 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 			except:
 				segments.append(0)
 
-
-			video_menu = video_tree3.find('src').string
-			hbitrate = -1
-			lbitrate = -1
-			m3u8_url = None
-			m3u_master_data = _connection.getURL(video_menu, savecookie = True)
-			m3u_master = _m3u8.parse(m3u_master_data)
-			sbitrate = int(_addoncompat.get_setting('quality')) * 1024
-			for video_index in m3u_master.get('playlists'):
-				bitrate = int(video_index.get('stream_info')['bandwidth'])
-				if qbitrate is None:
-					if bitrate < lbitrate or lbitrate == -1:
-						lbitrate = bitrate
-						lm3u8_url = video_index.get('uri')
-					if bitrate > hbitrate and bitrate <= sbitrate:
-						hbitrate = bitrate
+			try:
+				video_menu = video_tree3.src.string
+				hbitrate = -1
+				lbitrate = -1
+				m3u8_url = None
+				m3u_master_data = _connection.getURL(video_menu, savecookie = True)
+				m3u_master = _m3u8.parse(m3u_master_data)
+				sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+				for video_index in m3u_master.get('playlists'):
+					bitrate = int(video_index.get('stream_info')['bandwidth'])
+					if qbitrate is None:
+						if bitrate < lbitrate or lbitrate == -1:
+							lbitrate = bitrate
+							lm3u8_url = video_index.get('uri')
+						if bitrate > hbitrate and bitrate <= sbitrate:
+							hbitrate = bitrate
+							m3u8_url =  video_index.get('uri')
+					elif  (qbitrate  * (100 - BITRATERANGE))/100 <  bitrate  and (qbitrate  * (100 + BITRATERANGE))/100 >  bitrate:
 						m3u8_url =  video_index.get('uri')
-				elif  (qbitrate  * (100 - BITRATERANGE))/100 <  bitrate  and (qbitrate  * (100 + BITRATERANGE))/100 >  bitrate:
-					m3u8_url =  video_index.get('uri')
-			if 	m3u8_url is None and qbitrate is None:
-				m3u8_url = lm3u8_url
-			m3u_data = _connection.getURL(m3u8_url, loadcookie = True)
-			key_url = re.compile('URI="(.*?)"').findall(m3u_data)[0]
-			key_data = _connection.getURL(key_url, loadcookie = True)		
-			key_file = open(_common.KEYFILE + str(act), 'wb')
-			key_file.write(key_data)
-			key_file.close()
-			video_url5 = re.compile('(http:.*?)\n').findall(m3u_data)
-			for i, video_item in enumerate(video_url5):
-				newurl = base64.b64encode(video_item)
-				newurl = urllib.quote_plus(newurl)
-				m3u_data = m3u_data.replace(video_item, 'http://127.0.0.1:12345/foxstation/' + newurl)
-			
-			m3u_data = m3u_data.replace(key_url, 'http://127.0.0.1:12345/play.key' + str(act))
+				if 	m3u8_url is None and qbitrate is None:
+					m3u8_url = lm3u8_url
+				m3u_data = _connection.getURL(m3u8_url, loadcookie = True)
+				key_url = re.compile('URI="(.*?)"').findall(m3u_data)[0]
+				key_data = _connection.getURL(key_url, loadcookie = True)		
+				key_file = open(_common.KEYFILE + str(act), 'wb')
+				key_file.write(key_data)
+				key_file.close()
+				video_url5 = re.compile('(http:.*?)\n').findall(m3u_data)
+				for i, video_item in enumerate(video_url5):
+					newurl = base64.b64encode(video_item)
+					newurl = urllib.quote_plus(newurl)
+					m3u_data = m3u_data.replace(video_item, 'http://127.0.0.1:12345/foxstation/' + newurl)
+				
+				m3u_data = m3u_data.replace(key_url, 'http://127.0.0.1:12345/play.key' + str(act))
 
 
-			playfile = open(_common.PLAYFILE.replace('.m3u8',  '_' + str(act)  + '.m3u8'), 'w')
-			playfile.write(m3u_data)
-			playfile.close()
-			video_url6 +=  _common.PLAYFILE.replace('.m3u8',  '_' + str(act)  + '.m3u8') + ' , '
+				playfile = open(_common.PLAYFILE.replace('.m3u8',  '_' + str(act)  + '.m3u8'), 'w')
+				playfile.write(m3u_data)
+				playfile.close()
+				video_url6 +=  _common.PLAYFILE.replace('.m3u8',  '_' + str(act)  + '.m3u8') + ' , '
+			except:
+				pass
 		player._segments_array = segments
 		filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
 		xbmc.executebuiltin(filestring)
