@@ -54,7 +54,7 @@ def add_master_shows(url, doubles = [], master_db = []):
 	if next:
 		master_db, doubles = add_master_shows(BASE + next['href'], doubles, master_db)
 	return master_db, doubles
-	
+
 def seasons(url = _common.args.url):
 	if 'shows' in url:
 		for type in TYPES:
@@ -194,7 +194,7 @@ def add_video(episode_tree):
 			u += '&sitemode="play"'
 			_common.add_video(u, name, thumb, infoLabels = {'title' : name, "Episode" : episode_number, "Season" : season_number, "Plot" : plot, "premiered" : airDate, "durationinseconds" : durationinseconds}, quality_mode  = 'list_qualities')
 			_common.set_view('episodes')
-			
+
 def play(video_uri = _common.args.url):
 	if BASE in video_uri:
 		video_data = _connection.getURL(video_uri)

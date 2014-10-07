@@ -47,7 +47,7 @@ def open_settings():
 		__addon__.openSettings() 
 	else:
 		xbmcplugin.openSettings(sys.argv[ 0 ])
-        
+
 def get_path():
 	pluginpath = xbmc.translatePath(__addon__.getAddonInfo('path')).decode('utf-8') 
 	return pluginpath

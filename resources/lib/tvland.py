@@ -154,4 +154,3 @@ def list_qualities(video_url = _common.args.url):
 	video_data = _connection.getURL(video_url)
 	video_url2 = BeautifulSoup(video_data, 'html5lib').find('div', class_ = 'videoShare')['data-unique-id']
 	return _main_viacom.list_qualities(BASE, video_url2, media_base = VIDEOURL)
-

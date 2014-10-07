@@ -25,7 +25,6 @@ def masterlist(SITE, SHOWS):
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-
 def seasons(SITE, FULLEPISODES, CLIPS):
 	season_url = _common.args.url
 	season_data = _connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
@@ -128,7 +127,7 @@ def list_qualities():
 		dialog = xbmcgui.Dialog()
 		dialog.ok("Exception", video_tree.ref['title'], video_tree.ref['abstract'])
 		return []
-		
+
 def play_video():
 	try:
 		qbitrate = _common.args.quality

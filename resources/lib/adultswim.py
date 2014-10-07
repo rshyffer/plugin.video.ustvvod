@@ -75,10 +75,9 @@ def seasons(collection_ids = _common.args.url):
 
 def episodes():
 	_main_turner.episodes(SITE)
-	
+
 def play_video():
 	_main_turner.play_video(SITE, EPISODE)
-	
+
 def list_qualities():
 	return _main_turner.list_qualities(SITE, EPISODE)
-	

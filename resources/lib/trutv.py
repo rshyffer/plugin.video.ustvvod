@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
 import _connection
 import _common
 import _main_turner
@@ -9,7 +8,6 @@ import sys
 import urllib
 import xbmcgui
 import xbmcplugin
-
 
 pluginHandle = int(sys.argv[1])
 
@@ -135,6 +133,6 @@ def play_video(video_url = _common.args.url):
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	else:
 		_main_turner.play_video(SITE, EPISODE)
-		
+
 def list_qualities():
 	return _main_turner.list_qualities(SITE, EPISODE)

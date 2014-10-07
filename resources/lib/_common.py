@@ -53,9 +53,9 @@ class XBMCPlayer( xbmc.Player ):
 		print "**************************** Speed Event *****************************" + str(speed)
 	
 	def onPlayBackStarted( self ):
+		# Will be called when xbmc starts playing a segment
 		print "**************************** Play Event *****************************"
 		play_time = self.getTime()
-		# Will be called when xbmc starts playing a segment
 		if len(self._segments_array) > 1:
 			self._segments = len(self._segments_array)
 		if len(self._segments_array) > 1:
@@ -89,7 +89,6 @@ class XBMCPlayer( xbmc.Player ):
 			self.is_active = False
 			if self._localHTTPServer:
 				_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
-			
 
 	def onPlayBackStopped( self ):
 		# Will be called when user stops xbmc playing a file
@@ -100,7 +99,6 @@ class XBMCPlayer( xbmc.Player ):
 
 	def sleep(self, s):
 		xbmc.sleep(s) 
-
 
 class _Info:
 	def __init__(self, s):
@@ -161,7 +159,7 @@ def get_network(module_name):
 			print "error loading site, SITE and materlist must be defined"
 	except Exception, e:
 		print str(e)
-		
+
 def get_networks():
 	""" 
 	Loads all networks using a quick and dirty plugin method
@@ -180,7 +178,7 @@ def get_quality_method():
 	if val == "Lowest":
 		return "LOW"
 	return "HIGH"
-	
+
 def set_view(type = 'root'):
 	confluence_views = [500,501,50,503,504,508,51]
 	if type == 'root':
@@ -630,7 +628,6 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 	network_module = get_network(mode)
 	if not network_module:
 		return
-		
 	network_name = network_module.NAME
 	network_description = network_module.DESCRIPTION
 	if tvdbfanart is not None:
@@ -651,7 +648,6 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 		series_title = smart_utf8(tvdb_series_title)
 	infoLabels['title'] = series_title
 	infoLabels['tvShowtitle'] = series_title
-	
 	if network_name.endswith(', The'):
 		station = 'The ' + network_name.replace(', The', '')
 	else:
@@ -802,7 +798,6 @@ def add_video(video_url, displayname, thumb = None, fanart = None, infoLabels = 
 			thumb = ''
 	if 'episode' in infoLabels.keys() and 'season' in infoLabels.keys() and _addoncompat.get_setting('add_episode_identifier') == 'true':
 			displayname = 'S' + str(infoLabels['season']).zfill(2) + 'E' + str(infoLabels['episode']).zfill(2) + ' - ' + displayname
-
 	item = xbmcgui.ListItem(displayname, iconImage = thumb, thumbnailImage = thumb)
 	item.setInfo(type = 'Video', infoLabels = infoLabels)
 	try:

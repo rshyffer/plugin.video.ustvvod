@@ -1,9 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
 import _main_turner
 import sys
-
 
 pluginHandle = int(sys.argv[1])
 

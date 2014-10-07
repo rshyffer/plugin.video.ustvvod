@@ -189,10 +189,10 @@ def list_qualities(video_url = _common.args.url):
 	video_url2 = video_tree.switch.find_all('video')
 	for video in video_url2:
 		bitrate = video['system-bitrate']
-		display = int(bitrate)/1024
+		display = int(bitrate) / 1024
 		bitrates.append((display, bitrate))
 	return bitrates
-	
+
 def play_video(video_url = _common.args.url):
 	try:
 		qbitrate = _common.args.quality

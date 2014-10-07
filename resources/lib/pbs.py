@@ -69,7 +69,6 @@ def seasons(season_urls = _common.args.url):
 		season_url = season_url.split('#')[1]
 		for type in TYPES:
 			season_data = cove.videos.filter(fields = 'mediafiles', filter_program = season_url, order_by = '-airdate', filter_availability_status = 'Available', limit_start = 0, filter_type = type)
-			
 			try:
 				season_menu = int(season_data['count'])
 			except:

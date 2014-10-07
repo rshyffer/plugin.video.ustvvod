@@ -16,6 +16,7 @@ import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
 pluginHandle = int(sys.argv[1])
+player = _common.XBMCPlayer()
 
 SHOWS = 'http://api.watchabc.go.com/vp2/ws/s/contents/2015/shows/jsonp/%s/001/-1'
 VIDEOLIST = 'http://api.watchabc.go.com/vp2/ws/s/contents/2015/videos/jsonp/%s/'
@@ -32,8 +33,6 @@ BITRATETABLE = {	60 : 'a',
 					590 : 'e',
 					1010 : 'f',
 					2100 : 'g' }
-					
-player = _common.XBMCPlayer()
 
 def masterlist(SITE, BRANDID):
 	master_db = []
@@ -253,7 +252,6 @@ def play_video(SITE, BRANDID, PARTNERID):
 	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
 	while player.is_active:
 		player.sleep(250)
-
 
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')

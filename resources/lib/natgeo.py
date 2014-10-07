@@ -12,9 +12,6 @@ SHOWS = 'http://video.nationalgeographic.com/video/national-geographic-channel?g
 def masterlist():
 	return _main_natgeo.masterlist(SITE, SHOWS, SPECIALS)
 
-# def rootlist():
-	# _main_natgeo.rootlist(SITE, SHOWS, SPECIALS)
-
 def episodes():
 	_main_natgeo.episodes(SITE)
 

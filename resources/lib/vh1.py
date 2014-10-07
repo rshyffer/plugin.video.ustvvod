@@ -93,7 +93,7 @@ def masterlist():
 				master_name = master_name.split('(')[0].strip()
 			master_db.append((master_name, SITE, mode, season_url))
 	return master_db
-        
+
 def seasons(url = _common.args.url):
 	show_data = _connection.getURL(url)
 	show_tree = BeautifulSoup(show_data)

@@ -18,9 +18,9 @@ PLUGINPATH = xbmc.translatePath(_addoncompat.get_path())
 RESOURCESPATH = os.path.join(PLUGINPATH,'resources')
 CACHEPATH = os.path.join(RESOURCESPATH,'cache')
 COOKIE = os.path.join(CACHEPATH,'cookie.txt')
-DNS_REFESH_DELAY = 10
 IPURL = 'http://icanhazip.com'
 IPFILE = os.path.join(CACHEPATH,'ip.txt')
+DNS_REFESH_DELAY = 10
 TIMEOUT = 18
 
 class MyHTTPConnection(httplib.HTTPConnection):
@@ -110,7 +110,6 @@ class TorHandler():
 				}
 			if 'Tor' not in os.environ['PATH'] and os.name== 'nt':
 				tor_cmd = os.environ['ProgramFiles'] + '\Tor\Tor.exe'
-			
 			if tor_cmd is None:
 				self.tor_process = stem.process.launch_tor_with_config(
 					config = config,

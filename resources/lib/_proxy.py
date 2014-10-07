@@ -40,7 +40,6 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		self._writeheaders()
 
 	def do_GET(self):
-		#print 'XBMCLocalProxy: Serving GET request...'
 		self.answer_request(1)
 
 	def answer_request(self, sendData):
@@ -83,7 +82,6 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			cj.add_cookie_header(request)
 		response = opener.open(request)
 		self.send_response(200)
-		#print 'XBMCLocalProxy: Sending headers...'
 		headers = response.info()
 		for key in headers:
 			try:
@@ -94,7 +92,6 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				pass
 		self.end_headers()
 		if (sendData):
-			#print 'XBMCLocalProxy: Sending data...'
 			fileout = self.wfile
 			try:
 				buf = 'INIT'
@@ -105,7 +102,6 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 						fileout.flush()
 					response.close()
 					fileout.close()
-					#print time.asctime(), 'Closing connection'
 				except socket.error, e:
 					print time.asctime(), 'Client closed the connection.'
 					try:
@@ -125,7 +121,7 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			fileout.close()
 		except:
 			pass
-			
+
 	def decodeHeaderString(self, hs):
 		di = {}
 		hss = hs.replace('\r', '').split('\n')
@@ -142,6 +138,6 @@ def runserver(server_class = StoppableHTTPServer,
 	server_address = (HOST_NAME, PORT_NUMBER)
 	httpd = server_class(server_address, handler_class)
 	httpd.serve_forever()
-		
+
 if __name__ == '__main__':
 	runserver()

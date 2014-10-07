@@ -61,7 +61,7 @@ def refresh_show():
 	_common.args.name = series_title
 	_common.args.url = url
 	refresh_menu(mode, submode, url)
-	
+
 def refresh_db():
 	_common.refresh_db()
 
@@ -92,4 +92,3 @@ def select_quality():
 	setattr(_common.args, 'season_number', int(season))
 	setattr(_common.args, 'show_title', show_title)
 	exec 'sitemodule.%s()' % _common.args.sitemode
-	

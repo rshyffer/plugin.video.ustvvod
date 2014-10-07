@@ -3,7 +3,6 @@
 import _main_turner
 import sys
 
-
 pluginHandle = int(sys.argv[1])
 
 SITE = 'tnt'
@@ -30,5 +29,3 @@ def play_video():
 
 def list_qualities():
 	return _main_turner.list_qualities(SITE, EPISODE)
-
-

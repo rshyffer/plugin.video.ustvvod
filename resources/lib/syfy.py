@@ -33,10 +33,8 @@ def seasons():
 def episodes():
 	_main_nbcu.episodes(SITE)
 
-	
 def list_qualities():
 	return _main_nbcu.list_qualities()
-	
+
 def play_video():
 	_main_nbcu.play_video()
-	

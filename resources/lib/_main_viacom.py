@@ -17,12 +17,11 @@ import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
 pluginHandle = int(sys.argv[1])
+player = _common.XBMCPlayer()
 
 VIDEOURL = 'http://media.mtvnservices.com/'
 DEVICE = 'Xbox'
 BITRATERANGE = 10
-
-player = _common.XBMCPlayer()
 
 def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	if media_base not in video_url:
@@ -54,7 +53,6 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 			_common.show_exception("", swf_url)
 	else:
 		feed_url = video_url
-
 	if not exception:
 		feed_data = _connection.getURL(feed_url)
 		video_tree = BeautifulSoup(feed_data, 'html.parser', parse_only = SoupStrainer('media:group'))
@@ -73,7 +71,6 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 				segments.append(duration)
 			except:
 				segments.append(0)
-
 			try:
 				video_menu = video_tree3.src.string
 				hbitrate = -1
@@ -106,10 +103,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 					newurl = base64.b64encode(video_item)
 					newurl = urllib.quote_plus(newurl)
 					m3u_data = m3u_data.replace(video_item, 'http://127.0.0.1:12345/foxstation/' + newurl)
-				
 				m3u_data = m3u_data.replace(key_url, 'http://127.0.0.1:12345/play.key' + str(act))
-
-
 				playfile = open(_common.PLAYFILE.replace('.m3u8',  '_' + str(act)  + '.m3u8'), 'w')
 				playfile.write(m3u_data)
 				playfile.close()
@@ -122,7 +116,6 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		finalurl = video_url6[:-3]
 		localhttpserver = True
 		time.sleep(20)
-
 		if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
 			convert_subtitles(closedcaption)
 			player._subtitles_Enabled = True
@@ -136,7 +129,6 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 		while player.is_active:
 			player.sleep(250)
-
 
 def list_qualities(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	bitrates = []
@@ -159,13 +151,10 @@ def list_qualities(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 			_common.show_exception(error_text[1], error_text[2])
 	else:
 		feed_url = video_url
-
 	if not exception:
 		feed_data = _connection.getURL(feed_url)
 		video_tree = BeautifulSoup(feed_data, 'html.parser', parse_only = SoupStrainer('media:group'))
 		video_segments = video_tree.find_all('media:content')
-		
-
 		video_segment = video_segments[0]
 		video_url3 = video_segment['url'].replace('{device}', DEVICE)
 		video_data3 = _connection.getURL(video_url3, header = {'X-Forwarded-For' : '12.13.14.15'})
@@ -179,7 +168,7 @@ def list_qualities(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 			display = int(bitrate) / 1024
 			bitrates.append((display, bitrate))
 		return bitrates
-				
+
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')
 	tag = re.compile(r'<.*?>')

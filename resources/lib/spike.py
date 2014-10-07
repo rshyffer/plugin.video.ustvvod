@@ -181,12 +181,12 @@ def add_clips(episode_tree):
 			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
 	except:
 		pass
-		
+
 def play_video(video_uri = _common.args.url):
 	video_data = _connection.getURL(video_uri)
 	video_url = BeautifulSoup(video_data, 'html5lib').find('div', id = 'video_player_box')['data-mgid']
 	_main_viacom.play_video(BASE, video_url)	
-	
+
 def list_qualities(video_url = _common.args.url):
 	video_data = _connection.getURL(video_url)
 	video_url = BeautifulSoup(video_data, 'html5lib').find('div', id = 'video_player_box')['data-mgid']

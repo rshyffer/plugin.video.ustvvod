@@ -48,7 +48,7 @@ def movielist(url = _common.args.url):
 		season_url = FULLEPISODES % root_item['ID']
 		_common.add_show(root_name, SITE, 'episodes', season_url)
 	_common.set_view('tvshows')
-	
+
 def seasons(season_url = _common.args.url):
 	seasons = []
 	season_data = _connection.getURL(season_url)
@@ -121,7 +121,7 @@ def episodes(episode_url = _common.args.url):
 
 def list_qualities(video_url = _common.args.url):
 	return QUALITIES
-		
+
 def play_video(video_url = _common.args.url):
 	try:
 		qbitrate = _common.args.quality

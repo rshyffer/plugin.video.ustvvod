@@ -125,7 +125,7 @@ def play_video(video_url = _common.args.url):
 		while not xbmc.Player().isPlaying():
 			xbmc.sleep(100)
 		xbmc.Player().setSubtitles(_common.SUBTITLE)
-		
+
 def convert_subtitles(video_guid):
 	str_output = ''
 	subtitle_data = _connection.getURL(CLOSEDCAPTION % video_guid, connectiontype = 0)

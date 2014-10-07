@@ -100,4 +100,3 @@ def list_qualities(video_url = _common.args.url):
 	except:
 		video_url2 = re.compile("NICK.unlock.uri = '(.+?)';").findall(video_data)[0]
 	return _main_viacom.list_qualities(BASE, video_url2, media_base = BASE2)
-

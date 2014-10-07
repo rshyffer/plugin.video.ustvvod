@@ -111,9 +111,7 @@ def episodes(SITE):
 			episode_season_number = int(episode_item['episeasonnumber'])
 		except:
 			episode_season_number = 0
-		print "Es", episode_season_number
 		if episode_season_number == season_number or 'filterBySeasonNumber'  not in episode_url:
-			print "HRE"
 			segments = episode_item.find_all('segment')
 			if len(segments) == 0:
 				url = episode_item['id']
@@ -162,7 +160,7 @@ def episodes(SITE):
 							'premiered' : episode_airdate }
 			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 	_common.set_view('episodes')
-	
+
 def play_video(SITE, EPISODE):
 	try:
 		qbitrate = _common.args.quality
@@ -201,8 +199,6 @@ def play_video(SITE, EPISODE):
 				file_url = lfile_url 
 		else:
 			file_url = video_tree.find('file', attrs = {'bitrate' : qbitrate}).string
-		
-		print file_url
 		if 'mp4:'  in file_url:
 			filename = file_url[1:len(file_url)-4]
 			serverDetails = video_tree.find('akamai')
@@ -221,7 +217,6 @@ def play_video(SITE, EPISODE):
 	if ', ' in stack_url:
 		stack_url = 'stack://' + stack_url
 	finalurl = stack_url[:-3]
-	print finalurl
 	item = xbmcgui.ListItem(path = finalurl)
 	if qbitrate is not None:
 		item.setThumbnailImage(_common.args.thumb)
@@ -254,9 +249,8 @@ def list_qualities(SITE, EPISODE):
 				bitrates.append((display,int(bitrate)))
 		except:
 			pass
-	print bitrates
 	return bitrates
-	
+
 def getAUTH(aifp, window, tokentype, vid, filename, site):
 	parameters = {'aifp' : aifp,
 				'window' : window,
@@ -266,6 +260,4 @@ def getAUTH(aifp, window, tokentype, vid, filename, site):
 				'path' : filename
 				}
 	link = _connection.getURL(AUTHURL, parameters)
-	print link
 	return re.compile('<token>(.+?)</token>').findall(link)[0]
-

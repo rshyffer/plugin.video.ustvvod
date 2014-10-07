@@ -6,10 +6,11 @@ import _connection
 import _main_viacom
 import os
 import re
+import simplejson
 import sys
 import urllib
 from bs4 import BeautifulSoup, SoupStrainer
-import simplejson
+
 pluginHandle = int(sys.argv[1])
 
 SITE = 'nick'
@@ -73,11 +74,12 @@ def episodes(episode_url = _common.args.url):
 						'tvshowtitle' : show_name }
 		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 	_common.set_view('episodes')
-			
+
 def play_video(video_url = _common.args.url):
 	video_data = _connection.getURL(video_url, header = {'X-Forwarded-For' : '12.13.14.15'})
 	video_url2 = re.compile('<meta content="http://media.mtvnservices.com/fb/(.+?).swf" property="og:video"/>').findall(video_data)[0]
 	_main_viacom.play_video(BASE, video_url2)
+
 def list_qualities(video_url = _common.args.url):
 	video_data = _connection.getURL(video_url, header = {'X-Forwarded-For' : '12.13.14.15'})
 	video_url2 = re.compile('<meta content="http://media.mtvnservices.com/fb/(.+?).swf" property="og:video"/>').findall(video_data)[0]

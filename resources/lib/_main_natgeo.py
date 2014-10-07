@@ -16,7 +16,6 @@ pluginHandle = int(sys.argv[1])
 BASE = 'http://video.nationalgeographic.com'
 
 def masterlist(SITE, SHOWS, SPECIALS = None):
-
 	master_db = []
 	root_dict = {}
 	root_url = SHOWS
@@ -33,7 +32,6 @@ def masterlist(SITE, SHOWS, SPECIALS = None):
 				root_dict[tvdb_name] = root_name
 			else:
 				root_dict[tvdb_name] = root_dict[tvdb_name] + ',' + root_name
-			
 	for root_name in root_dict:
 		season_url = root_dict[root_name]
 		master_db.append((root_name, SITE, 'episodes', season_url))
@@ -41,13 +39,12 @@ def masterlist(SITE, SHOWS, SPECIALS = None):
 	if more:
 		master_db.extend(masterlist(SITE, BASE + more['href']))
 	return master_db
-	
 
 def seasons(SITE, season_urls):
 	for season_url in season_urls.split(','):
 		_common.add_directory(season_url.split('#')[0],  SITE, 'episodes', season_url.split('#')[1])
 	_common.set_view('seasons')
-	
+
 def episodes(SITE):
 	episode_url = _common.args.url
 	if ',' in episode_url:

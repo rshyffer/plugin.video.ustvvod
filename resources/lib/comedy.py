@@ -31,7 +31,6 @@ def masterlist():
 	root_url = SHOWS
 	root_data = _connection.getURL(root_url)
 	root_tree = BeautifulSoup(root_data, 'html5lib')
-
 	root_menu = root_tree.find('div', class_ = 'full_episodes').find_all('a', href = re.compile('^http+'))
 	for root_item in root_menu:
 		root_name = root_item.string
@@ -39,7 +38,6 @@ def masterlist():
 			root_doubles.append(root_name.lower().split(' with ')[0])
 			season_url = root_item['href']
 			master_db.append((root_name, SITE, 'seasons', season_url))
-
 	root_menu = root_tree.find_all('li', itemtype = 'http://schema.org/TVSeries')
  	for root_item in root_menu:
 		try:
@@ -55,7 +53,6 @@ def masterlist():
 		if root_name.lower() not in root_doubles and root_name.split(' with ')[0].lower() not in root_doubles:
 			root_doubles.append(root_name.lower().split(' with ')[0])
 			master_db.append((root_name, SITE, 'seasons', season_url))
-
 	return master_db
 
 def _get_manifest(page_url):
@@ -108,14 +105,12 @@ def seasons(show_url = _common.args.url):
 		else:
 			full_episodes_url = get_full_episodes_url(show_url)
 			clips_url = get_clips_url(show_url)
-
 			if full_episodes_url:
 				triforceManifestFeed = _get_manifest(full_episodes_url)
 				if triforceManifestFeed:
 					add_items_from_manifestfile(triforceManifestFeed, full_episodes_url)
 				else:
 					_common.add_directory('Full Episodes',  SITE, 'episodes', full_episodes_url)
-
 			if clips_url:
 				triforceManifestFeed = _get_manifest(clips_url)
 				if triforceManifestFeed:
@@ -186,7 +181,7 @@ def add_items_from_southpark(show_url):
 			except:
 				pass
 			_common.add_directory(display,  SITE, 'episodes', season_url )
-	
+
 def episodes_from_html(episode_url = _common.args.url, page = 1):
 	""" Add episodes by analysing the HTML of the page """
 	if page == 1:
@@ -253,7 +248,7 @@ def _keyinfeed(keys1, keys2):
 def add_items_from_manifestfile(triforceManifestFeed, season_url):
 	""" Add container items based on the manifest feed. If there are no items in the feed
 	    skip it. Special rule not to add Daily Show items to Colbert Report and vice versa """
-	if True: #try:
+	if True:
 		feeds = []
 		for zone in triforceManifestFeed['manifest']['zones']:
 			thiszone = triforceManifestFeed['manifest']['zones'][zone]
@@ -293,14 +288,11 @@ def add_items_from_manifestfile(triforceManifestFeed, season_url):
 				continue
 			# add #ManifestFeed at the end of the URL, so we can detect that this is a feed, not a full page
 			_common.add_directory(feed['title'],  SITE, 'episodes', feed['url'] + "#ManifestFeed")
-	#except:
-	#	pass
 
 def add_video_from_manifestfile(manifest_feed):
 	""" Add videos based on a manifest feed """
 	try:
 		shows = []
-
 		items = manifest_feed['result']
 		if 'episodes' in items:
 			items = items['episodes']
@@ -372,13 +364,11 @@ def add_fullepisodes_southpark(episode_tree):
 			
 			if int(season) != int(season_number):
 				continue
-
 			episode_name = episode_name.string.strip()
 			episode_plot = episode_item.find('p', class_ = 'episode').string.strip()
 			episode_airdate = episode_item.find(class_ = 'air-date').string.strip()
 			episode_airdate = _common.format_date(episode_airdate , '%m.%d.%Y', '%d.%m.%Y')
 			episode_thumb = re.match('(.*?)url\(\'(.*?)\'\)', episode_item.find('a', class_ = 'fill')['style']).group(2)
-			
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'
 			u += '&mode="' + SITE + '"'
@@ -388,7 +378,6 @@ def add_fullepisodes_southpark(episode_tree):
 							'episode' : episode_number,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate }
-
 			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 	except:
 		pass

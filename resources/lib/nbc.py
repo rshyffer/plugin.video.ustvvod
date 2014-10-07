@@ -15,7 +15,6 @@ import urllib
 import xbmc
 import xbmcgui
 import xbmcplugin
-
 from bs4 import BeautifulSoup, SoupStrainer
 
 pluginHandle = int(sys.argv[1])
@@ -304,7 +303,7 @@ def get_rtmp():
 	ip = ident_tree.ip.string
 	rtmpurl = 'rtmp://' + ip + ':1935/' + APP + '?_fcs_vhost=' + RTMP
 	return str(rtmpurl)
-	
+
 def list_qualities(video_url = _common.args.url):
 	bitrates = []
 	video_data = _connection.getURL(video_url)
