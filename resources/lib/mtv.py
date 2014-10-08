@@ -47,7 +47,13 @@ def videos(episode_url = _common.args.url):
 	for episode in episodes['series']['playlists']:
 		show_name = episodes['series']['title']
 		episode = episode['playlist']
-		episode_name = episode['headline']
+		episode_name = episode['headline'].split('|')[-1].strip()
+		episode_info = re.compile('s([0-9]).e?([0-9]{0,2}).*').findall(episode['title'])
+		try:
+			episode_season, episode_number =  episode_info[0]
+		except:
+			episode_season =  episode_info
+			episode_number = -1
 		url = episode['canonicalLink']
 		try:episode_plot = episode['subhead']
 		except:episode_plot=''
@@ -60,7 +66,9 @@ def videos(episode_url = _common.args.url):
 		infoLabels = {	'title' : episode_name,
 						'plot' : episode_plot,
 						'durationinseconds' : episode_duration,
-						'tvshowtitle' : show_name }
+						'tvshowtitle' : show_name,
+						'season' : episode_season,
+						'episode' : episode_number}
 		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 	_common.set_view('episodes')
 
