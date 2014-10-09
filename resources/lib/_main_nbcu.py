@@ -177,7 +177,6 @@ def play_video():
 		if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
 			video_url2 = video_tree.seq.find_all('video')[0]
 			video_url3 = video_url2['src']
-			video_url4 = video_url3.split('/')[-1]
 			video_data2 = _connection.getURL(video_url3)
 			video_url5 = _m3u8.parse(video_data2)
 			for video_index in video_url5.get('playlists'):
@@ -190,14 +189,14 @@ def play_video():
 					if (bitrate < lbitrate or lbitrate == -1) and 'mp4a.40.2' not in codecs:
 						lbitrate = bitrate
 						lplaypath_url =  video_index.get('uri')
-					if (bitrate > hbitrate and bitrate <= sbitrate) and 'mp4a.40.2' not in  codecs:
+					if (bitrate > hbitrate and bitrate <= sbitrate) and 'mp4a.40.2'  in  codecs:
 						hbitrate = bitrate
 						playpath_url = video_index.get('uri')
 				elif  bitrate == qbitrate:
 					playpath_url =  video_index.get('uri')
 			if playpath_url is None:
 				playpath_url = lplaypath_url
-			finalurl = video_url3.replace(video_url4, playpath_url)
+			finalurl = playpath_url
 		else:
 			exception = True
 	if  not exception:
