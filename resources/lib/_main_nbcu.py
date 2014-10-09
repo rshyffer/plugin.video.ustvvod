@@ -26,24 +26,32 @@ def masterlist(SITE, SHOWS):
 	return master_db
 
 def seasons(SITE, FULLEPISODES, CLIPS):
-	season_url = _common.args.url
-	season_data = _connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
-	try:
-		season_menu = int(simplejson.loads(season_data)['totalResults'])
-	except:
-		season_menu = 0
-	if season_menu > 0:
-		season_url2 = FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu)
-		_common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
-	season_data2 = _connection.getURL(CLIPS % urllib.quote_plus(season_url) + '&range=0-1')
-	try:
-		season_menu2 = int(simplejson.loads(season_data2)['totalResults'])
-	except:
-		season_menu2 = 0
-	if season_menu2 > 0:
-		season_url3 = CLIPS % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu2)
-		_common.add_directory('Clips',  SITE, 'episodes', season_url3)
+
+	season_urls = _common.args.url
+	print season_urls
+	for season_url in season_urls.split(','):
+		print "xxxxxxxxxxxxxxx"
+		season_data = _connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
+		try:
+			season_menu = int(simplejson.loads(season_data)['totalResults'])
+		except:
+			season_menu = 0
+		if season_menu > 0:
+			season_url2 = FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu)
+			_common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
+		season_data2 = _connection.getURL(CLIPS % urllib.quote_plus(season_url) + '&range=0-1')
+		try:
+			season_menu2 = int(simplejson.loads(season_data2)['totalResults'])
+		except:
+			season_menu2 = 0
+		if season_menu2 > 0:
+			season_url3 = CLIPS % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu2)
+			if ',' in season_urls:
+				_common.add_directory('Clips %s'%season_url,  SITE, 'episodes', season_url3)
+			else:
+				_common.add_directory('Clips',  SITE, 'episodes', season_url3)
 	_common.set_view('seasons')
+
 
 def episodes(SITE):
 	episode_url = _common.args.url
