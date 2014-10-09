@@ -66,11 +66,17 @@ def episodes(SITE):
 		try:
 			season_number = int(episode_item['pl' + str(i + 1) + '$season'][0])
 		except:
-			season_number = -1
+			try:
+				season_number = int(episode_item['nbcu$seasonNumber'])
+			except:
+				season_number = -1
 		try:
 			episode_number = int(episode_item['pl' + str(i + 1) + '$episode'][0])
 		except:
-			episode_number = -1
+			try:
+				episode_number = int(episode_item['nbcu$episodeNumber'])
+			except:
+				episode_number = -1
 		try:
 			episode_thumb = episode_item['plmedia$defaultThumbnailUrl']
 		except:
