@@ -3,6 +3,7 @@
 import _addoncompat
 import _common
 import _connection
+import _main_nbcu
 import re
 import simplejson
 import sys
@@ -47,48 +48,9 @@ def seasons(season_url = _common.args.url):
 		pass
 	_common.set_view('seasons')
 
-def episodes(episode_url = _common.args.url):
-	episode_data = _connection.getURL(episode_url)
-	episode_menu = simplejson.loads(episode_data)['entries']
-	for i, episode_item in enumerate(episode_menu):
-		default_mediacontent = None
-		for mediacontent in episode_item['media$content']:
-			if (mediacontent['plfile$isDefault'] == True) and (mediacontent['plfile$format'] == 'MPEG4'):
-				default_mediacontent = mediacontent
-			elif (mediacontent['plfile$format'] == 'MPEG4'):
-				mpeg4_mediacontent = mediacontent
-		if default_mediacontent is None:
-			default_mediacontent = mpeg4_mediacontent
-		url = default_mediacontent['plfile$url']
-		episode_duration = int(default_mediacontent['plfile$duration'])
-		episode_plot = episode_item['description']
-		episode_airdate = _common.format_date(epoch = episode_item['pubDate']/1000)
-		episode_name = episode_item['title']
-		try:
-			season_number = int(episode_item['pl' + str(i + 1) + '$season'][0])
-		except:
-			season_number = -1
-		try:
-			episode_number = int(episode_item['pl' + str(i + 1) + '$episode'][0])
-		except:
-			episode_number = -1
-		try:
-			episode_thumb = episode_item['plmedia$defaultThumbnailUrl']
-		except:
-			episode_thumb = None
-		u = sys.argv[0]
-		u += '?url="' + urllib.quote_plus(url) + '"'
-		u += '&mode="' + SITE + '"'
-		u += '&sitemode="play_video"'
-		infoLabels={	'title' : episode_name,
-						'durationinseconds' : episode_duration,
-						'season' : season_number,
-						'episode' : episode_number,
-						'plot' : episode_plot,
-						'premiered' : episode_airdate }
-		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
-	_common.set_view('episodes')
-
+def episodes():
+	_main_nbcu.episodes(SITE)
+	
 def play_video(video_url = _common.args.url):
 	hbitrate = -1
 	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
