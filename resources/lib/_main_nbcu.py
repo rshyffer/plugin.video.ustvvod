@@ -30,7 +30,6 @@ def seasons(SITE, FULLEPISODES, CLIPS):
 	season_urls = _common.args.url
 	print season_urls
 	for season_url in season_urls.split(','):
-		print "xxxxxxxxxxxxxxx"
 		season_data = _connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
 		try:
 			season_menu = int(simplejson.loads(season_data)['totalResults'])
