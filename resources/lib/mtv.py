@@ -4,10 +4,10 @@ import _addoncompat
 import _common
 import _connection
 import _main_viacom
+import simplejson
 import sys
 import re
 import urllib
-import simplejson
 from bs4 import BeautifulSoup, SoupStrainer
 
 pluginHandle = int(sys.argv[1])
@@ -25,8 +25,8 @@ def masterlist(master_url = SHOWS):
 	showdata = simplejson.loads(master_data)
 	for data in showdata['promoList']['promos']:
 		data = data['promo']['associatedContent']['series']
-		master_name = data.get('title')
-		seriesId = data.get('seriesId')
+		master_name = data['title']
+		seriesId = data['seriesId']
 		if seriesId is not None:
 			master_db.append((master_name, SITE, 'seasons', seriesId))
 		else: pass
@@ -34,12 +34,15 @@ def masterlist(master_url = SHOWS):
 
 def seasons(id = _common.args.url):
 	for type in TYPES:
-		url = 'http://api.mtv.com/api/vLaNWq0xlbQB/series/'+id+'/playlists.json?page=0&pageSize=500&type='+type[0]
+		url = 'http://api.mtv.com/api/vLaNWq0xlbQB/series/' + id + '/playlists.json?page=0&pageSize=500&type=' + type[0]
 		data = _connection.getURL(url, header = {'X-Forwarded-For' : '12.13.14.15'})
-		try: count = len(simplejson.loads(data)['series']['playlists'])
-		except: count = 0
+		try:
+			count = len(simplejson.loads(data)['series']['playlists'])
+		except:
+			count = 0
 		if count > 0:
 			_common.add_directory(type[1],  SITE, 'videos', url)
+	_common.set_view('seasons')
 
 def videos(episode_url = _common.args.url):
 	episode_data = _connection.getURL(episode_url, header = {'X-Forwarded-For' : '12.13.14.15'})
@@ -50,13 +53,15 @@ def videos(episode_url = _common.args.url):
 		episode_name = episode['headline'].split('|')[-1].strip()
 		episode_info = re.compile('s([0-9]).e?([0-9]{0,2}).*').findall(episode['title'])
 		try:
-			episode_season, episode_number =  episode_info[0]
+			episode_season, episode_number = episode_info[0]
 		except:
-			episode_season =  episode_info
+			episode_season = episode_info
 			episode_number = -1
-		url = episode['canonicalLink']
-		try:episode_plot = episode['subhead']
-		except:episode_plot=''
+		url = episode['mgid']
+		try:
+			episode_plot = episode['subhead']
+		except:
+			episode_plot = ''
 		episode_thumb = episode['image']
 		episode_duration = _common.format_seconds(episode['duration']['timecode'])
 		u = sys.argv[0]
@@ -72,20 +77,8 @@ def videos(episode_url = _common.args.url):
 		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 	_common.set_view('episodes')
 
-def play(video_uri = _common.args.url):
-	if BASE in video_uri:
-		video_data = _connection.getURL(video_uri)
-		video_tree = BeautifulSoup(video_data)
-		video_uri = video_tree.find('meta', {'property' : 'og:video'})['content']
-		video_uri = re.compile('http://media.mtvnservices.com/fb/(.*?).swf').findall(video_uri)[0]
-	video_url = video_uri
+def play(video_url = _common.args.url):
 	_main_viacom.play_video(BASE, video_url)
 
-def list_qualities(video_uri = _common.args.url):
-	if BASE in video_uri:
-		video_data = _connection.getURL(video_uri)
-		video_tree = BeautifulSoup(video_data)
-		video_uri = video_tree.find('meta', {'property' : 'og:video'})['content']
-		video_uri = re.compile('http://media.mtvnservices.com/fb/(.*?).swf').findall(video_uri)[0]
-	video_url = video_uri
+def list_qualities(video_url = _common.args.url):
 	return _main_viacom.list_qualities(BASE, video_url)
