@@ -1,3 +1,37 @@
+version 1.1.0
+
+  * replace polling in viacomm with events
+  * added additional logging
+  * fix multi event issue on stop viacomm
+  * fixed CBS quality selection
+  * handle seeking in CC
+  * fixed errors with stopping server
+  * tidy up error reporting in viacomm
+  * handle dns proxy exceptions
+  * Added episode identifier to name
+  * updated german language
+  * encoding fix on CBS
+  * make episode identify optional
+  * added support for a third dns proxy ip
+  * fix proxy settings
+  * simplify tor set up
+  * fix adultswim
+  * new truTV logo
+  * new crackle logo
+  * fix CW
+  * remove unnecessary print codes
+  * increased getURL timeout (fixes issues with some abc shows)
+  * integrated custom events with ABC/Disney (May reduce the odd errors people have seen.)
+  * updated NICK (switches to JSON API)
+  * fix/rewrote MTV; changed to API loading
+  * tidy up episode names on MTV
+  * fix SyFy
+  * fix for BRAVO playback
+  * hide series identifier if there isn't one
+  * use common code for MSNBC episodes
+  * issue #22 solution
+  * MTV code simplified
+
 version 1.0.9
 
   * added script.module.stem
