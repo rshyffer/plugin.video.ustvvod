@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 import _common
 import _connection
-import pyamf
+import _main_brightcove
 import simplejson
 import sys
 import urllib
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup
-from pyamf import remoting
 
 pluginHandle = int(sys.argv[1])
 
@@ -42,8 +41,8 @@ def seasons():
 				if season_videoitem['value'] in season_category:
 					season_name = season_videoitem.string
 					season_url = 'rb-video-browser-num_items=100&module_id_base=rb-video-browser'
-					season_url += '&rb-video-browser-show='+season_item['value']
-					season_url += '&rb-video-browser-content_type='+season_videoitem['value']
+					season_url += '&rb-video-browser-show=' + season_item['value']
+					season_url += '&rb-video-browser-content_type=' + season_videoitem['value']
 					_common.add_directory(season_name, SITE, 'episodes', season_url)
 	_common.set_view('seasons')
 
@@ -74,66 +73,21 @@ def episodes():
 def play_video(video_url = _common.args.url):
 	stored_size = 0
 	video_data = _connection.getURL(video_url)
-	video_tree = BeautifulSoup(video_data, 'html5lib')
+	video_tree = BeautifulSoup(video_data, 'html.parser')
 	video_player_key = video_tree.find('param', attrs = {'name' : 'playerKey'})['value']
 	video_content_id = video_tree.find('param', attrs = {'name' : '@videoPlayer'})['value']
 	video_player_id = video_tree.find('param', attrs = {'name' : 'playerID'})['value']
-	renditions = get_episode_info(video_player_key, video_content_id, video_url, video_player_id)
+	renditions = _main_brightcove.get_episode_info(video_player_key, video_content_id, video_url, video_player_id, CONST)
 	video_url2 = renditions['programmedContent']['videoPlayer']['mediaDTO']['FLVFullLengthURL']
+	print video_url2
 	for item in sorted(renditions['programmedContent']['videoPlayer']['mediaDTO']['renditions'], key = lambda item:item['frameHeight'], reverse = False):
 		stream_size = item['size']
 		if (int(stream_size) > stored_size):
 			video_url2 = item['defaultURL']
 			stored_size = stream_size
+	print video_url2
 	try:
 		finalurl = video_url2.split('&', 2)[0] + '?' + video_url2.split('&', 2)[2] + ' playpath=' + video_url2.split('&', 2)[1]
 	except:
 		finalurl = video_url2.split('&', 1)[0] + ' playpath=' + video_url2.split('&', 1)[1]
 	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
-
-def get_episode_info(video_player_key, video_content_id, video_url, video_player_id):
-	envelope = build_amf_request(video_player_key, video_content_id, video_url, video_player_id)
-	connection_url = "http://c.brightcove.com/services/messagebroker/amf?playerKey=" + video_player_key
-	values = bytes(remoting.encode(envelope).read())
-	header = {'Content-Type' : 'application/x-amf'}
-	response = remoting.decode(_connection.getURL(connection_url, values, header, amf = True)).bodies[0][1].body
-	return response
-
-class ViewerExperienceRequest(object):
-	def __init__(self, URL, contentOverrides, experienceId, playerKey, TTLToken = ''):
-		self.TTLToken = TTLToken
-		self.URL = URL
-		self.deliveryType = float(0)
-		self.contentOverrides = contentOverrides
-		self.experienceId = experienceId
-		self.playerKey = playerKey
-
-class ContentOverride(object):
-	def __init__(self, contentId, contentType = 0, target = 'videoPlayer'):
-		self.contentType = contentType
-		self.contentId = contentId
-		self.target = target
-		self.contentIds = None
-		self.contentRefId = None
-		self.contentRefIds = None
-		self.contentType = 0
-		self.featureId = float(0)
-		self.featuredRefId = None
-
-def build_amf_request(video_player_key, video_content_id, video_url, video_player_id):
-	pyamf.register_class(ViewerExperienceRequest, 'com.brightcove.experience.ViewerExperienceRequest')
-	pyamf.register_class(ContentOverride, 'com.brightcove.experience.ContentOverride')
-	content_override = ContentOverride(int(video_content_id))
-	viewer_exp_req = ViewerExperienceRequest(video_url, [content_override], int(video_player_id), video_player_key)
-	env = remoting.Envelope(amfVersion=3)
-	env.bodies.append(
-	(
-		"/1",
-		remoting.Request(
-			target = "com.brightcove.experience.ExperienceRuntimeFacade.getDataForExperience",
-			body = [CONST, viewer_exp_req],
-			envelope = env
-		)
-	)
-	)
-	return env

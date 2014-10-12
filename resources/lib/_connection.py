@@ -21,7 +21,7 @@ COOKIE = os.path.join(CACHEPATH,'cookie.txt')
 IPURL = 'http://icanhazip.com'
 IPFILE = os.path.join(CACHEPATH,'ip.txt')
 DNS_REFESH_DELAY = 10
-TIMEOUT = 18
+TIMEOUT = 50
 
 class MyHTTPConnection(httplib.HTTPConnection):
 	_dnsproxy = []

@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 import _common
 import _connection
-import pyamf
+import _main_brightcove
 import re
 import sys
 import urllib
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup
-from pyamf import remoting
 
 pluginHandle = int (sys.argv[1])
 
@@ -23,7 +22,7 @@ CONST = '4c1b306cc23230173e7dfc04e68329d3c0c354cb'
 def masterlist():
 	master_db = []
 	master_data = _connection.getURL(SHOWS)
-	master_menu = BeautifulSoup(master_data, 'html5lib').find_all(href = re.compile('/shows/'))
+	master_menu = BeautifulSoup(master_data, 'html.parser').find_all(href = re.compile('/shows/'))
 	for master_item in master_menu:
 		master_name = master_item['title']
 		season_url = BASE + master_item['href']
@@ -65,10 +64,10 @@ def play_video(video_url = _common.args.url):
 	stored_size = 0
 	video_url, video_content_id = video_url.split('#')
 	video_data = _connection.getURL(video_url)
-	video_tree = BeautifulSoup(video_data, 'html5lib')
+	video_tree = BeautifulSoup(video_data, 'html.parser')
 	video_player_key = video_tree.find('param', attrs = {'name' : 'playerKey'})['value']
 	video_player_id = video_tree.find('param', attrs = {'name' : 'publisherID'})['value']
-	renditions = get_episode_info(video_player_key, video_content_id, video_url, video_player_id)
+	renditions = get_episode_info(video_player_key, video_content_id, video_url, video_player_id, CONST)
 	finalurl = renditions['programmedContent']['videoPlayer']['mediaDTO']['FLVFullLengthURL']
 	for item in sorted(renditions['programmedContent']['videoPlayer']['mediaDTO']['renditions'], key = lambda item:item['frameHeight'], reverse = False):
 		stream_size = item['size']
@@ -76,50 +75,3 @@ def play_video(video_url = _common.args.url):
 			finalurl = item['defaultURL']
 			stored_size = stream_size
 	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
-
-def get_episode_info(video_player_key, video_content_id, video_url, video_player_id):
-	envelope = build_amf_request(video_player_key, video_content_id, video_url, video_player_id)
-	connection_url = "http://c.brightcove.com/services/messagebroker/amf?playerKey=" + video_player_key
-	values = bytes(remoting.encode(envelope).read())
-	header = {'Content-Type' : 'application/x-amf'}
-	response = remoting.decode(_connection.getURL(connection_url, values, header, amf = True)).bodies[0][1].body
-	return response
-
-class ViewerExperienceRequest(object):
-	def __init__(self, URL, contentOverrides, experienceId, playerKey, TTLToken = ''):
-		self.TTLToken = TTLToken
-		self.URL = URL
-		self.deliveryType = float(0)
-		self.contentOverrides = contentOverrides
-		self.experienceId = experienceId
-		self.playerKey = playerKey
-
-class ContentOverride(object):
-	def __init__(self, contentId, contentType = 0, target = 'videoPlayer'):
-		self.contentType = contentType
-		self.contentId = contentId
-		self.target = target
-		self.contentIds = None
-		self.contentRefId = None
-		self.contentRefIds = None
-		self.contentType = 0
-		self.featureId = float(0)
-		self.featuredRefId = None
-
-def build_amf_request(video_player_key, video_content_id, video_url, video_player_id):
-	pyamf.register_class(ViewerExperienceRequest, 'com.brightcove.experience.ViewerExperienceRequest')
-	pyamf.register_class(ContentOverride, 'com.brightcove.experience.ContentOverride')
-	content_override = ContentOverride(int(video_content_id))
-	viewer_exp_req = ViewerExperienceRequest(video_url, [content_override], int(video_player_id), video_player_key)
-	env = remoting.Envelope(amfVersion=3)
-	env.bodies.append(
-	(
-		"/1",
-		remoting.Request(
-			target = "com.brightcove.experience.ExperienceRuntimeFacade.getDataForExperience",
-			body = [CONST, viewer_exp_req],
-			envelope = env
-		)
-	)
-	)
-	return env
