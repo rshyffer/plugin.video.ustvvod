@@ -137,9 +137,7 @@ def list_qualities():
 	if  not exception:
 		return bitrates
 	else:
-		dialog = xbmcgui.Dialog()
-		dialog.ok("Exception", video_tree.ref['title'], video_tree.ref['abstract'])
-		return []
+		_common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
 
 def play_video():
 	try:
@@ -226,8 +224,7 @@ def play_video():
 				xbmc.sleep(100)
 			xbmc.Player().setSubtitles(_common.SUBTITLE)
 	else:
-		dialog = xbmcgui.Dialog()
-		dialog.ok("Exception", video_tree.ref['title'], video_tree.ref['abstract'])
+		_common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
 
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')

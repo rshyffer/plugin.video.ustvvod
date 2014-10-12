@@ -186,12 +186,15 @@ def list_qualities(video_url = _common.args.url):
 	video_url = EPISODE % pid
 	video_data = _connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
-	video_url2 = video_tree.switch.find_all('video')
-	for video in video_url2:
-		bitrate = video['system-bitrate']
-		display = int(bitrate) / 1024
-		bitrates.append((display, bitrate))
-	return bitrates
+	if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
+		video_url2 = video_tree.switch.find_all('video')
+		for video in video_url2:
+			bitrate = video['system-bitrate']
+			display = int(bitrate) / 1024
+			bitrates.append((display, bitrate))
+		return bitrates
+	else:
+		_common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
 
 def play_video(video_url = _common.args.url):
 	try:
@@ -206,52 +209,55 @@ def play_video(video_url = _common.args.url):
 	video_url = EPISODE % pid
 	video_data = _connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
-	video_rtmp = video_tree.meta
-	playpath_url = None
-	if video_rtmp is not None:
-		base_url = video_rtmp['base']
-		if qbitrate is None:
-			video_url2 = video_tree.switch.find_all('video')
-			lbitrate = -1
-			hbitrate = -1
-			sbitrate = int(_addoncompat.get_setting('quality')) * 1024
-			for video_index in video_url2:
-				bitrate = int(video_index['system-bitrate'])
-				if bitrate < lbitrate or lbitrate == -1:
-					lbitrate = bitrate
-					lplaypath_url = video_index['src']	
-				if bitrate > hbitrate and bitrate <= sbitrate:
-					hbitrate = bitrate
-					playpath_url = video_index['src']	
-			if playpath_url is None:
-				playpath_url = lplaypath_url
-		else:
-			bitrate = qbitrate 
-			playpath_url = video_tree.switch.find('video', attrs = {'system-bitrate' : qbitrate})['src']
-		if '.mp4' in playpath_url:
-			playpath_url = 'mp4:' + playpath_url
-		else:
-			playpath_url = playpath_url.replace('.flv', '')
-		try:
-			closedcaption = video_tree.find('param', attrs = {'name' : 'ClosedCaptionURL'})['value']
-			if closedcaption == '':
-				closedcaption = None
-		except:
-			pass
+	if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
+		video_rtmp = video_tree.meta
+		playpath_url = None
+		if video_rtmp is not None:
+			base_url = video_rtmp['base']
+			if qbitrate is None:
+				video_url2 = video_tree.switch.find_all('video')
+				lbitrate = -1
+				hbitrate = -1
+				sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+				for video_index in video_url2:
+					bitrate = int(video_index['system-bitrate'])
+					if bitrate < lbitrate or lbitrate == -1:
+						lbitrate = bitrate
+						lplaypath_url = video_index['src']	
+					if bitrate > hbitrate and bitrate <= sbitrate:
+						hbitrate = bitrate
+						playpath_url = video_index['src']	
+				if playpath_url is None:
+					playpath_url = lplaypath_url
+			else:
+				bitrate = qbitrate 
+				playpath_url = video_tree.switch.find('video', attrs = {'system-bitrate' : qbitrate})['src']
+			if '.mp4' in playpath_url:
+				playpath_url = 'mp4:' + playpath_url
+			else:
+				playpath_url = playpath_url.replace('.flv', '')
+			try:
+				closedcaption = video_tree.find('param', attrs = {'name' : 'ClosedCaptionURL'})['value']
+				if closedcaption == '':
+					closedcaption = None
+			except:
+				pass
+			if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
+					convert_subtitles(closedcaption)
+			finalurl = base_url + ' playpath=' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
+		item = xbmcgui.ListItem( path = finalurl)
+		if qbitrate is not None:
+			item.setThumbnailImage(_common.args.thumb)
+			item.setInfo('Video', {	'title' : _common.args.name,
+							'season' : _common.args.season_number,
+							'episode' : _common.args.episode_number})
+		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 		if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
-				convert_subtitles(closedcaption)
-		finalurl = base_url + ' playpath=' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
-	item = xbmcgui.ListItem( path = finalurl)
-	if qbitrate is not None:
-		item.setThumbnailImage(_common.args.thumb)
-		item.setInfo('Video', {	'title' : _common.args.name,
-						'season' : _common.args.season_number,
-						'episode' : _common.args.episode_number})
-	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
-		while not xbmc.Player().isPlaying():
-			xbmc.sleep(100)
-		xbmc.Player().setSubtitles(_common.SUBTITLE)
+			while not xbmc.Player().isPlaying():
+				xbmc.sleep(100)
+			xbmc.Player().setSubtitles(_common.SUBTITLE)
+	else:
+		_common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
 
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')
