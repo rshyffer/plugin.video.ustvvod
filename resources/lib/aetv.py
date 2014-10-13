@@ -27,7 +27,7 @@ FULLEPISODES = 'http://www.aetv.com/views/ajax?view_name=video_playlist_view&vie
 def masterlist():
 	master_db = []
 	master_data = _connection.getURL(SHOWS)
-	master_tree = BeautifulSoup(master_data, 'html5lib')
+	master_tree = BeautifulSoup(master_data, 'html.parser')
 	master_menu = master_tree.find('div', id= 'shows-list').find_all('a')
 	for master_item in master_menu:
 		master_name = _common.smart_utf8(master_item.text)
