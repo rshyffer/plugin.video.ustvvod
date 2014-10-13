@@ -41,7 +41,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 			uri = urllib.unquote_plus(params['uri'])
 			config_url = urllib.unquote_plus(params['CONFIG_URL'].replace('Other', DEVICE))
 			config_data = _connection.getURL(config_url, header = {'Referer' : video_url, 'X-Forwarded-For' : '12.13.14.15'})
-			config_tree = BeautifulSoup(config_data, 'html5lib')
+			config_tree = BeautifulSoup(config_data, 'html.parser')
 			if not config_tree.error:
 				feed_url = config_tree.feed.string
 				feed_url = feed_url.replace('{uri}', uri).replace('&amp;', '&').replace('{device}', DEVICE).replace('{ref}', 'None').strip()
@@ -64,7 +64,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 			else:
 				video_url3 = video_segment['url'] + '&device=' + DEVICE
 			video_data3 = _connection.getURL(video_url3, header = {'X-Forwarded-For' : '12.13.14.15'})
-			video_tree3 = BeautifulSoup(video_data3, 'html5lib')
+			video_tree3 = BeautifulSoup(video_data3, 'html.parser')
 			try:
 				duration = video_tree3.find('rendition')['duration']
 				closedcaption.append((video_tree3.find('typographic', format = 'ttml'),duration))
@@ -141,7 +141,7 @@ def list_qualities(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		uri = urllib.unquote_plus(params['uri'])
 		config_url = urllib.unquote_plus(params['CONFIG_URL'].replace('Other', DEVICE))
 		config_data = _connection.getURL(config_url, header = {'Referer' : video_url, 'X-Forwarded-For' : '12.13.14.15'})
-		config_tree = BeautifulSoup(config_data, 'html5lib')
+		config_tree = BeautifulSoup(config_data, 'html.parser')
 		if not config_tree.error:
 			feed_url = config_tree.feed.string
 			feed_url = feed_url.replace('{uri}', uri).replace('&amp;', '&').replace('{device}', DEVICE).replace('{ref}', 'None').strip()
@@ -158,7 +158,7 @@ def list_qualities(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		video_segment = video_segments[0]
 		video_url3 = video_segment['url'].replace('{device}', DEVICE)
 		video_data3 = _connection.getURL(video_url3, header = {'X-Forwarded-For' : '12.13.14.15'})
-		video_tree3 = BeautifulSoup(video_data3, 'html5lib')
+		video_tree3 = BeautifulSoup(video_data3, 'html.parser')
 		video_menu = video_tree3.find('src').string
 		m3u8_url = None
 		m3u_master_data = _connection.getURL(video_menu, savecookie = True)

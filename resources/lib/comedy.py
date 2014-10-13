@@ -30,7 +30,7 @@ def masterlist():
 	root_doubles = []
 	root_url = SHOWS
 	root_data = _connection.getURL(root_url)
-	root_tree = BeautifulSoup(root_data, 'html5lib')
+	root_tree = BeautifulSoup(root_data, 'html.parser')
 	root_menu = root_tree.find('div', class_ = 'full_episodes').find_all('a', href = re.compile('^http+'))
 	for root_item in root_menu:
 		root_name = root_item.string
@@ -60,7 +60,7 @@ def _get_manifest(page_url):
 	    Returns the manifest feed as a JSON object if found, else return False """
 	triforceManifestFeed = None
 	page_data = _connection.getURL(page_url)
-	page_tree = BeautifulSoup(page_data, 'html5lib')
+	page_tree = BeautifulSoup(page_data, 'html.parser')
 	scripts = page_tree.find_all('script')
 	try:
 		for script in scripts:
@@ -478,9 +478,8 @@ def add_clips_southpark(episode_tree):
 def play_video(video_url = _common.args.url):
 	video_data = _connection.getURL(video_url)
 	try:
-		mgid = BeautifulSoup(video_data, 'html5lib').find('div', attrs = {'data-mgid' : True})['data-mgid']
+		mgid = BeautifulSoup(video_data, 'html.parser').find('div', attrs = {'data-mgid' : True})['data-mgid']
 		video_url2 = mgid
-		print video_url2
 	except:
 		video_url2 = re.compile('swfobject\.embedSWF\("(.*?)"').findall(video_data)[0]
 	if 'southpark' not in video_url2:
