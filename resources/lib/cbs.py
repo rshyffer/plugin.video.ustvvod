@@ -124,7 +124,7 @@ def episodes(episode_url = _common.args.url):
 
 def lookup_meta(url):
 	data = _connection.getURL(url)
-	tree = BeautifulSoup(data, 'html5lib')
+	tree = BeautifulSoup(data, 'html.parser')
 	try:
 		episode_plot = tree.find('meta', property = 'og:description')['content']
 	except:
