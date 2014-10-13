@@ -1,5 +1,6 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
+import _addoncompat
 import _common
 import _connection
 import _main_brightcove
@@ -78,16 +79,12 @@ def play_video(video_url = _common.args.url):
 	video_content_id = video_tree.find('param', attrs = {'name' : '@videoPlayer'})['value']
 	video_player_id = video_tree.find('param', attrs = {'name' : 'playerID'})['value']
 	renditions = _main_brightcove.get_episode_info(video_player_key, video_content_id, video_url, video_player_id, CONST)
-	video_url2 = renditions['programmedContent']['videoPlayer']['mediaDTO']['FLVFullLengthURL']
-	print video_url2
-	for item in sorted(renditions['programmedContent']['videoPlayer']['mediaDTO']['renditions'], key = lambda item:item['frameHeight'], reverse = False):
-		stream_size = item['size']
-		if (int(stream_size) > stored_size):
+	hbitrate = -1
+	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+	for item in  renditions['programmedContent']['videoPlayer']['mediaDTO']['IOSRenditions']:
+		bitrate = int(item['encodingRate'])
+		if bitrate > hbitrate and bitrate <= sbitrate and item['audioOnly'] == False:
+			hbitrate = bitrate
 			video_url2 = item['defaultURL']
-			stored_size = stream_size
-	print video_url2
-	try:
-		finalurl = video_url2.split('&', 2)[0] + '?' + video_url2.split('&', 2)[2] + ' playpath=' + video_url2.split('&', 2)[1]
-	except:
-		finalurl = video_url2.split('&', 1)[0] + ' playpath=' + video_url2.split('&', 1)[1]
+	finalurl = video_url2
 	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
