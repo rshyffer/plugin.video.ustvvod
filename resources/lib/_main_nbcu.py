@@ -200,7 +200,7 @@ def play_video():
 					if (bitrate < lbitrate or lbitrate == -1) and 'mp4a.40.2' not in codecs:
 						lbitrate = bitrate
 						lplaypath_url =  video_index.get('uri')
-					if (bitrate > hbitrate and bitrate <= sbitrate) and 'mp4a.40.2'  in  codecs:
+					if (bitrate > hbitrate and bitrate <= sbitrate) and 'mp4a.40.2'  not in  codecs:
 						hbitrate = bitrate
 						playpath_url = video_index.get('uri')
 				elif  bitrate == qbitrate:
