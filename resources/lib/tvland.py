@@ -30,7 +30,7 @@ def masterlist():
 	master_db = []
 	for master_url in (CLIPS, SHOWS):
 		master_data = _connection.getURL(master_url)
-		master_tree = BeautifulSoup(master_data, 'html5lib')
+		master_tree = BeautifulSoup(master_data, 'html.parser')
 		master_menu = master_tree.find('div', class_ = 'showsList').find_all('a')
 		for master_item in master_menu:
 			master_name = master_item.contents[0].strip()
@@ -42,8 +42,8 @@ def masterlist():
 
 def seasons(season_url = _common.args.url):
 	season_data = _connection.getURL(season_url)
-	season_menu = BeautifulSoup(season_data, 'html5lib').find('a', class_ = 'full_episodes')
-	season_menu2 = BeautifulSoup(season_data, 'html5lib').find('a', class_ = 'video_clips')
+	season_menu = BeautifulSoup(season_data, 'html.parser').find('a', class_ = 'full_episodes')
+	season_menu2 = BeautifulSoup(season_data, 'html.parser').find('a', class_ = 'video_clips')
 	if season_menu is not None:
 		season_url2 = BASE + season_menu['href']
 		_common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
@@ -147,10 +147,10 @@ def add_clips(episode_tree, season_number = -1):
 
 def play_video(video_url = _common.args.url):
 	video_data = _connection.getURL(video_url)
-	video_url2 = BeautifulSoup(video_data, 'html5lib').find('div', class_ = 'videoShare')['data-unique-id']
+	video_url2 = BeautifulSoup(video_data, 'html.parser').find('div', class_ = 'videoShare')['data-unique-id']
 	_main_viacom.play_video(BASE, video_url2, VIDEOURL)	
 
 def list_qualities(video_url = _common.args.url):
 	video_data = _connection.getURL(video_url)
-	video_url2 = BeautifulSoup(video_data, 'html5lib').find('div', class_ = 'videoShare')['data-unique-id']
+	video_url2 = BeautifulSoup(video_data, 'html.parser').find('div', class_ = 'videoShare')['data-unique-id']
 	return _main_viacom.list_qualities(BASE, video_url2, media_base = VIDEOURL)

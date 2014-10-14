@@ -31,7 +31,6 @@ def favor_show():
 	series_title, mode, submode, url = args.url.split('<join>')
 	command = 'update shows set favor = 1 where tvdb_series_title = ? and mode = ? and submode = ?;'
 	values = (series_title, mode, submode)
-	print values
 	_database.execute_command(command, values, commit = True)
 
 def unfavor_show():
