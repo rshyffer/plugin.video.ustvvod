@@ -52,7 +52,7 @@ def seasons(SITE, FULLEPISODES, CLIPS):
 	_common.set_view('seasons')
 
 
-def episodes(SITE):
+def episodes(SITE, quailty = True):
 	episode_url = _common.args.url
 	episode_data = _connection.getURL(episode_url)
 	episode_menu = simplejson.loads(episode_data)['entries']
@@ -98,7 +98,10 @@ def episodes(SITE):
 						'episode' : episode_number,
 						'plot' : episode_plot,
 						'premiered' : episode_airdate }
-		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+		if quailty:
+			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+		else:
+			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
 	_common.set_view('episodes')
 
 def list_qualities():

@@ -49,7 +49,8 @@ def seasons(season_url = _common.args.url):
 	_common.set_view('seasons')
 
 def episodes():
-	_main_nbcu.episodes(SITE)
+	_main_nbcu.episodes(SITE, False)
+	
 	
 def play_video(video_url = _common.args.url):
 	hbitrate = -1
