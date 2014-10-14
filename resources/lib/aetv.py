@@ -24,6 +24,9 @@ SEASONSEPISODES = 'http://www.aetv.com/minisite/videoajx.jsp?homedir=%s&pfilter=
 CLIPS = 'http://www.aetv.com/minisite/videoajx.jsp?homedir=%s&pfilter=CLIPS&sfilter=%s'
 FULLEPISODES = 'http://www.aetv.com/views/ajax?view_name=video_playlist_view&view_display_id=block&view_args=%s&view_path=&view_base_path=&view_dom_id=1&pager_element='
 
+blacklist = [   "A&E; IndieFilms"
+                ]
+
 def masterlist():
 	master_db = []
 	master_data = _connection.getURL(SHOWS)
@@ -31,12 +34,14 @@ def masterlist():
 	master_menu = master_tree.find('div', id= 'shows-list').find_all('a')
 	for master_item in master_menu:
 		master_name = _common.smart_utf8(master_item.text)
-		master_db.append((master_name, SITE, 'seasons', master_item['href']))
+		if master_name in blacklist:
+			continue
+		else:
+			master_db.append((master_name, SITE, 'seasons', master_item['href']))
 	return master_db
 
 def seasons(url = _common.args.url):
 	homedir = url.split('/')[-1].replace('-','+')
-	print homedir
 	season_url = FULLEPISODES % homedir
 	season_data = _connection.getURL(season_url)
 	season_menu = simplejson.loads(season_data)[2]['data']
