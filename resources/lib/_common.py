@@ -264,7 +264,6 @@ def replace_signs(text):
 
 def refresh_db():
 	if not os.path.isfile(_database.DBFILE):
-		print "Creating db"
 		_database.create_db()
 	networks = get_networks()
 	dialog = xbmcgui.DialogProgress()
@@ -311,7 +310,7 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False):
 		tvdb_setting = int(_addoncompat.get_setting('strict_names'))
 	except:
 		tvdb_setting = 0
-	if checkdata and not forceRefresh and checkdata[24]  is not None:
+	if checkdata and not forceRefresh and checkdata[24]  is not None and checkdata[20] != 'None':
 		if checkdata[3] != url: 
 			command = 'update shows set url = ? where series_title = ? and mode = ? and submode = ?;'
 			values = (url, series_title, mode, submode)
@@ -335,6 +334,7 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False):
 		return _database.execute_command(command, values, fetchone = True)
 	else:
 		command = 'insert or replace into shows values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);'
+		empty_values[20] = 'None'
 		_database.execute_command(command, empty_values, commit = True)
 		return empty_values
 
