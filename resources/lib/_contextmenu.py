@@ -23,30 +23,35 @@ args = _Info(sys.argv[2][1:].replace('&', ' , '))
 
 def delete_show():
 	series_title, mode, submode, url = args.url.split('<join>')
+	series_title = urllib.unquote_plus(series_title)
 	command = 'delete from shows where tvdb_series_title = ? and mode = ? and submode = ?;'
 	values = (series_title, mode, submode)
 	_database.execute_command(command, values, commit = True)
 
 def favor_show():
 	series_title, mode, submode, url = args.url.split('<join>')
+	series_title = urllib.unquote_plus(series_title)
 	command = 'update shows set favor = 1 where tvdb_series_title = ? and mode = ? and submode = ?;'
 	values = (series_title, mode, submode)
 	_database.execute_command(command, values, commit = True)
 
 def unfavor_show():
 	series_title, mode, submode, url = args.url.split('<join>')
+	series_title = urllib.unquote_plus(series_title)
 	command = 'update shows set favor = 0 where tvdb_series_title = ? and mode = ? and submode = ?;'
 	values = (series_title, mode, submode)
 	_database.execute_command(command, values, commit = True)
 
 def hide_show():
 	series_title, mode, submode, url = args.url.split('<join>')
+	series_title = urllib.unquote_plus(series_title)
 	command = 'update shows set hide = 1 where tvdb_series_title = ? and mode = ? and submode = ?;'
 	values = (series_title, mode, submode)
 	_database.execute_command(command, values, commit = True)
 
 def unhide_show():
 	series_title, mode, submode, url = args.url.split('<join>')
+	series_title = urllib.unquote_plus(series_title)
 	command = 'update shows set hide = 0 where tvdb_series_title = ? and mode = ? and submode = ?;'
 	values = (series_title, mode, submode)
 	_database.execute_command(command, values, commit = True)
@@ -56,6 +61,7 @@ def unhide_show():
 
 def refresh_show():
 	series_title, mode, submode, url = args.url.split('<join>')
+	series_title = urllib.unquote_plus(series_title)
 	_common.get_serie(series_title, mode, submode, url, forceRefresh = True)
 	_common.args.name = series_title
 	_common.args.url = url

@@ -334,6 +334,8 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False):
 		values = (series_title, mode, submode)
 		return _database.execute_command(command, values, fetchone = True)
 	else:
+		command = 'insert or replace into shows values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);'
+		_database.execute_command(command, empty_values, commit = True)
 		return empty_values
 
 def get_series_id(seriesdata, seriesname, site = '', allowManual = False):
@@ -643,7 +645,7 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 		thumb = tvdbposter
 	else:
 		thumb = os.path.join(IMAGEPATH, mode + '.png')
-	orig_series_title = smart_utf8(series_title)
+	orig_series_title = urllib.quote_plus(smart_utf8(series_title))
 	if tvdb_series_title is not None:
 		series_title = smart_utf8(tvdb_series_title)
 	infoLabels['title'] = series_title
@@ -714,18 +716,18 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 	refresh_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=refresh_show'
 	contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39008)), 'XBMC.RunPlugin(%s)' % refresh_u))
 	if favor is 1:
-		fav_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=unfavor_show'
+		fav_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=unfavor_show'
 		contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39006)), 'XBMC.RunPlugin(%s)' % fav_u))
 	else:
-		fav_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=favor_show'
+		fav_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=favor_show'
 		contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39007)), 'XBMC.RunPlugin(%s)' % fav_u))
 	if hide is 1:
-		hide_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=unhide_show'
+		hide_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=unhide_show'
 		contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39009)), 'XBMC.RunPlugin(%s)' % hide_u))
 	else: 
-		hide_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=hide_show'
+		hide_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=hide_show'
 		contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39010)), 'XBMC.RunPlugin(%s)' % hide_u))
-	delete_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=delete_show'
+	delete_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=delete_show'
 	contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39011)), 'XBMC.RunPlugin(%s)' % delete_u))
 	if masterList:
 		displayname = name + ' on ' + network_name
