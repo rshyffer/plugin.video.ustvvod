@@ -4,13 +4,13 @@ import _addoncompat
 import _common
 import _connection
 import _m3u8
-import os
 import base64
+import os
 import HTMLParser
-import time
 import re
 import simplejson
 import sys
+import time
 import urllib
 import xbmc
 import xbmcgui
