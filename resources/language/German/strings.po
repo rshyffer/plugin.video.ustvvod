@@ -320,3 +320,23 @@ msgstr "Fehler"
 msgctxt "#39025"
 msgid "Add Episode Identifier"
 msgstr "Episodennummer hinzufügen"
+
+msgctxt "#39026"
+msgid "Loading Subtitles"
+msgstr "Lade Untertitel"
+
+msgctxt "#39027"
+msgid "Downloading"
+msgstr "Laden"
+
+msgctxt "#39028"
+msgid "Enumerating"
+msgstr "Durchzählen"
+
+msgctxt "#39029"
+msgid "Converting"
+msgstr "Konvertieren"
+
+msgctxt "#39030"
+msgid "Error loading subtitles"
+msgstr "Fehler beim Untertitel laden"
