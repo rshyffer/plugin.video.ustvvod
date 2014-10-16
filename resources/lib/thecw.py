@@ -11,6 +11,7 @@ import simplejson
 import sys
 import urllib
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
@@ -116,7 +117,7 @@ def play_video(video_url = _common.args.url):
 			bitrate = int(video_index['bitrate'])
 			if bitrate > hbitrate and bitrate <= sbitrate:
 				hbitrate = bitrate
-				playpath_url = video_index['uri'].split('mp4:')[1].replace('Level3', '') 
+ 				playpath_url = video_index['uri'].split('mp4:')[1].replace('Level3', '')
 		except:
 			pass
 	finalurl = RTMPURL + ' playpath=mp4:' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
@@ -127,21 +128,44 @@ def play_video(video_url = _common.args.url):
 		xbmc.Player().setSubtitles(_common.SUBTITLE)
 
 def convert_subtitles(video_guid):
-	str_output = ''
-	subtitle_data = _connection.getURL(CLOSEDCAPTION % video_guid, connectiontype = 0)
-	subtitle_data = simplejson.loads(subtitle_data)
-	for i, subtitle_line in enumerate(subtitle_data):
-		if subtitle_line is not None:
-			sub = _common.smart_utf8(subtitle_line['metadata']['Text'])
-			start_time = _common.smart_utf8(str(subtitle_line['startTime'])).split('.')
-			start_minutes, start_seconds = divmod(int(start_time[0]), 60)
-			start_hours, start_minutes = divmod(start_minutes, 60)
-			start_time = '%02d:%02d:%02d,%02d' % (start_hours, start_minutes, start_seconds, int(start_time[1][0:2]))
-			end_time = _common.smart_utf8(str(subtitle_line['endTime'])).split('.')
-			end_minutes, end_seconds = divmod(int(end_time[0]), 60)
-			end_hours, end_minutes = divmod(end_minutes, 60)
-			end_time = '%02d:%02d:%02d,%02d' % (end_hours, end_minutes, end_seconds, int(end_time[1][0:2]))
-			str_output += str(i + 1) + '\n' + start_time + ' --> ' + end_time + '\n' + sub + '\n\n'
-	file = open(_common.SUBTITLE, 'w')
-	file.write(str_output)
-	file.close()
+	try:
+		file = None
+		dialog = xbmcgui.DialogProgress()
+        	dialog.create(_common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39026)))
+		dialog.update(0, _common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39027)))
+
+		str_output = ''
+		subtitle_data = _connection.getURL(CLOSEDCAPTION % video_guid, connectiontype = 0)
+		subtitle_data = simplejson.loads(subtitle_data)
+		lines_total = len(subtitle_data)
+
+		dialog.update(0, _common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39028)))
+		for i, subtitle_line in enumerate(subtitle_data):
+	       	        if subtitle_line is not None and 'Text' in subtitle_line['metadata']:
+				
+				if (dialog.iscanceled()):
+					return
+
+				if i % 10 == 0:
+					percent = int( (float(i*100) / lines_total) )
+					dialog.update(percent, _common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(30929)))
+
+				sub = _common.smart_utf8(subtitle_line['metadata']['Text'])
+				start_time = _common.smart_utf8(str(subtitle_line['startTime'])).split('.')
+				start_minutes, start_seconds = divmod(int(start_time[0]), 60)
+				start_hours, start_minutes = divmod(start_minutes, 60)
+				start_time = '%02d:%02d:%02d,%02d' % (start_hours, start_minutes, start_seconds, int(start_time[1][0:2]))
+				end_time = _common.smart_utf8(str(subtitle_line['endTime'])).split('.')
+				end_minutes, end_seconds = divmod(int(end_time[0]), 60)
+				end_hours, end_minutes = divmod(end_minutes, 60)
+				end_time = '%02d:%02d:%02d,%02d' % (end_hours, end_minutes, end_seconds, int(end_time[1][0:2]))
+				str_output += str(i + 1) + '\n' + start_time + ' --> ' + end_time + '\n' + sub + '\n\n'
+		file = open(_common.SUBTITLE, 'w')
+		file.write(str_output)
+		file.close()
+	except Exception, e:
+		print "Exception: " + unicode(e)
+		xbmc.executebuiltin('XBMC.Notification(%s, %s, 5000)' % (NAME, _common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39030))))
+	finally:
+		if file is not None:
+			file.close()
