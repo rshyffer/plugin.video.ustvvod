@@ -1,9 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import _main_aenetwork
-import sys
-
-pluginHandle = int(sys.argv[1])
 
 SITE = 'history'
 NAME = 'History'
