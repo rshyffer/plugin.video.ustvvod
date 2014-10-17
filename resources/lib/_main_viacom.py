@@ -4,13 +4,13 @@ import _addoncompat
 import _common
 import _connection
 import _m3u8
-import os
 import base64
+import datetime
+import os
 import re
 import sys
-import urllib
-import datetime
 import time
+import urllib
 import xbmc
 import xbmcgui
 import xbmcplugin

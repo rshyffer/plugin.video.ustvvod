@@ -74,7 +74,7 @@ def add_videos(episode_tree, SITE):
 			episode_duration = -1
 		url = episode_item.a['href']
 		u = sys.argv[0]
-		u += '?url="'+urllib.quote_plus(url)+'"'
+		u += '?url="' + urllib.quote_plus(url) + '"'
 		u += '&mode="' + SITE + '"'
 		u += '&sitemode="play_video"'
 		infoLabels = {	'title' : episode_name,

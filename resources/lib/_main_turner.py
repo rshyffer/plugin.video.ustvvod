@@ -3,12 +3,12 @@
 import _addoncompat
 import _common
 import _connection
+import re
+import simplejson
 import sys
 import urllib
 import xbmcgui
 import xbmcplugin
-import re
-import simplejson
 from bs4 import BeautifulSoup
 
 pluginHandle = int(sys.argv[1])
