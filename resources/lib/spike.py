@@ -4,14 +4,10 @@ import _addoncompat
 import _common
 import _connection
 import _main_viacom
-import os
 import re
 import sys
 import urllib
-import xbmc
-import xbmcgui
-import xbmcplugin
-from bs4 import BeautifulSoup, SoupStrainer
+from bs4 import BeautifulSoup
 
 pluginHandle = int(sys.argv[1])
 

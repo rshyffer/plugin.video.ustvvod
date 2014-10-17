@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 import _main_abcdisney
 
-BRANDID = '009'
-PARTNERID = '585231'
 SITE = 'disneyxd'
 NAME = 'Disney XD'
 DESCRIPTION = "Disney XD is a basic cable channel and multi-platform brand showcasing a compelling mix of live-action and animated programming for kids aged 6-14, hyper-targeting boys (while still including girls) and their quest for discovery, accomplishment, sports, adventure and humor. Disney XD branded content spans television, online, mobile and VOD platforms. The programming includes series, movies and short-form, as well as sports-themed programming developed with ESPN."
+BRANDID = '009'
+PARTNERID = '585231'
 
 def masterlist():
 	return _main_abcdisney.masterlist(SITE, BRANDID)

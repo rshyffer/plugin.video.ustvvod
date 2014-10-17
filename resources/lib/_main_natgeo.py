@@ -123,7 +123,7 @@ def play_video(SITE):
 		item.setInfo('Video', {	'title' : _common.args.name,
 						'season' : _common.args.season_number,
 						'episode' : _common.args.episode_number,
-						'TVShowTitle' : _common.args.show_title})
+						'TVShowTitle' : _common.args.show_title })
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 
 def list_qualities(SITE):

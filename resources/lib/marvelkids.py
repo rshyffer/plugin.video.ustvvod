@@ -67,7 +67,7 @@ def play_video(video_url = _common.args.url):
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	video_player_key = video_tree.find('param', attrs = {'name' : 'playerKey'})['value']
 	video_player_id = video_tree.find('param', attrs = {'name' : 'publisherID'})['value']
-	renditions = get_episode_info(video_player_key, video_content_id, video_url, video_player_id, CONST)
+	renditions = _main_brightcove.get_episode_info(video_player_key, video_content_id, video_url, video_player_id, CONST)
 	finalurl = renditions['programmedContent']['videoPlayer']['mediaDTO']['FLVFullLengthURL']
 	for item in sorted(renditions['programmedContent']['videoPlayer']['mediaDTO']['renditions'], key = lambda item:item['frameHeight'], reverse = False):
 		stream_size = item['size']

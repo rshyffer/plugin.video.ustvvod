@@ -1,20 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
-import _common
-import _connection
-import _m3u8
 import _main_nbcu
-import re
-import simplejson
-import sys
-import urllib
-import xbmc
-import xbmcgui
-import xbmcplugin
-from bs4 import BeautifulSoup, SoupStrainer
-
-pluginHandle = int(sys.argv[1])
 
 SITE = 'syfy'
 NAME = 'Syfy'

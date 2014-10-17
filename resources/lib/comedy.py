@@ -8,8 +8,7 @@ import re
 import sys
 import urllib
 import simplejson
-from  itertools import izip
-from bs4 import BeautifulSoup, SoupStrainer
+from bs4 import BeautifulSoup
 
 pluginHandle = int(sys.argv[1])
 

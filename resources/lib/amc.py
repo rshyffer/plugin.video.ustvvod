@@ -81,7 +81,7 @@ def play_video(video_url = _common.args.url):
 	renditions = _main_brightcove.get_episode_info(video_player_key, video_content_id, video_url, video_player_id, CONST)
 	hbitrate = -1
 	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
-	for item in  renditions['programmedContent']['videoPlayer']['mediaDTO']['IOSRenditions']:
+	for item in renditions['programmedContent']['videoPlayer']['mediaDTO']['IOSRenditions']:
 		bitrate = int(item['encodingRate'])
 		if bitrate > hbitrate and bitrate <= sbitrate and item['audioOnly'] == False:
 			hbitrate = bitrate

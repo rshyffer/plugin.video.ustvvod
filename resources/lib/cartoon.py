@@ -1,14 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _main_turner
 import sys
-import urllib
-import xbmcgui
-import xbmcplugin
-import re
 from bs4 import BeautifulSoup
 
 pluginHandle = int(sys.argv[1])

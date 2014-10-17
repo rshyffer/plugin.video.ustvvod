@@ -5,7 +5,6 @@ import _common
 import _connection
 import _m3u8
 import base64
-import cookielib
 import os
 import re
 import simplejson

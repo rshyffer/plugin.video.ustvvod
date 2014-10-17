@@ -1,6 +1,5 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _common
 import _main_natgeo
 
 SITE = 'natgeowild'

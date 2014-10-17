@@ -1,18 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _main_nbcu
-import _m3u8
-import simplejson
 import sys
-import re
-import urllib
-import xbmc
-import xbmcgui
-import xbmcplugin
-from bs4 import BeautifulSoup, SoupStrainer
+from bs4 import BeautifulSoup
 
 pluginHandle = int(sys.argv[1])
 
@@ -22,7 +14,6 @@ DESCRIPTION = "With more breakout stars and critically-acclaimed original series
 SHOWS = 'http://www.bravotv.com/shows'
 CLIPS = 'http://feed.theplatform.com/f/PHSl-B/QiuoTr7I1m13?count=true&form=json&byCustomValue={fullEpisode}{false},{show}{%s}'
 FULLEPISODES = 'http://feed.theplatform.com/f/PHSl-B/QiuoTr7I1m13?count=true&form=json&byCustomValue={fullEpisode}{true},{show}{%s}'
-SWFURL = 'http://www.bravotv.com/_tp/pdk/swf/flvPlayer.swf'
 
 def masterlist():
 	master_db = []

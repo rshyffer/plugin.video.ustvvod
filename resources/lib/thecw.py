@@ -14,7 +14,6 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-from bs4 import BeautifulSoup, SoupStrainer
 
 pluginHandle=int(sys.argv[1])
 

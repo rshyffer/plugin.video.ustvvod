@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _main_viacom
@@ -8,7 +7,6 @@ import simplejson
 import sys
 import re
 import urllib
-from bs4 import BeautifulSoup, SoupStrainer
 
 pluginHandle = int(sys.argv[1])
 
