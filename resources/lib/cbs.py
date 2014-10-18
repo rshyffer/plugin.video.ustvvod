@@ -23,9 +23,9 @@ MOVIES = 'http://www.cbs.com/carousels/showsByCategory/6/offset/0/limit/100'
 BASE  = 'http://www.cbs.com'
 SEASONS = 'http://www.cbs.com/carousels/videosBySection/%s/offset/0/limit/1/xs/0/'
 FULLEPISODES = 'http://www.cbs.com/carousels/videosBySection/%s/offset/0/limit/40/xs/0/'
-#'http://www.cbs.com/carousels/videosByWindow/%s/offset/0/limit/40/xs/0/%s/'
 EPISODE = 'http://link.theplatform.com/s/dJ5BDC/%s?format=SMIL&Tracking=true&mbr=true'
 SWFURL = 'http://canstatic.cbs.com/chrome/canplayer.swf'
+LOGIN_URL = 'https://www.cbs.com/account/login/'
 
 def masterlist():
 	master_db = []
@@ -82,7 +82,7 @@ def episodes(episode_url = _common.args.url):
 	for episode_item in episode_menu:
 		url_att = episode_item['streaming_url']
 		type = episode_item['type']
-		if episode_item['status'] == 'AVAILABLE' or _addoncompat.get_setting('cbs_use_login') == 'true':
+		if episode_item['status'] == 'AVAILABLE' or (_addoncompat.get_setting('cbs_use_login') == 'true' and episode_item['status'] == 'PREMIUM'):
 			videourl = episode_item['streaming_url']
 			url = BASE + episode_item['url']
 			episode_duration = int(_common.format_seconds(episode_item['duration']))
@@ -199,7 +199,7 @@ def play_video(video_url = _common.args.url):
 		username = _addoncompat.get_setting('cbs_username')
 		password = _addoncompat.get_setting('cbs_password')
 		login_values = values = {'j_username' : username, 'j_password' : password, '_remember_me' : '1' }
-		login_response = _connection.getURL('https://www.cbs.com/account/login/', login_values, savecookie = True)
+		login_response = _connection.getURL(LOGIN_URL, login_values, savecookie = True)
 		response = simplejson.loads(login_response)
 		if response['success'] == False:
 			xbmc.executebuiltin('XBMC.Notification(%s, %s, 5000)' % (NAME, response['messages']))
