@@ -72,9 +72,12 @@ def videos(SITE):
 	for episode_item in episode_tree['series']['playlists']:
 		show_name = episode_tree['series']['title']
 		episode_item = episode_item['playlist']
-		episode_name = episode_item['headline'].split('|')[-1].strip()
+		if '|' in episode_item['headline']:
+			episode_name = episode_item['headline'].split('|')[-1].strip()
+		elif '- ' in episode_item['headline']:
+			episode_name = episode_item['headline'].split('- ')[-1].strip()
 		try:
-			episode_info = re.compile('s([0-9]).e?([0-9]{0,2}).*').findall(episode_item['title'])
+			episode_info = re.compile('[s|S]([0-9]).[e|E]?([0-9]{0,2}).*').findall(episode_item['title'])
 			try:
 				episode_season, episode_number = episode_info[0]
 			except:
@@ -216,7 +219,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		while player.is_active:
 			player.sleep(250)
 
-def play_video2(BASE, API, video_url = _common.args.url):
+def play_video2(API, video_url = _common.args.url):
 	try:
 		qbitrate = _common.args.quality
 	except:
@@ -230,7 +233,7 @@ def play_video2(BASE, API, video_url = _common.args.url):
 	video_tree = simplejson.loads(video_data)
 	for i, video_item in enumerate(video_tree['playlist']['videos']):
 		t = threading.Thread(target = get_videos, args = (video_queue, closedcaption_queue, segments_queue, i, video_item, qbitrate))
-		t.setDaemon(True)
+		t.daemon = True
 		threads.append(t)
 	[x.start() for x in threads]
 	[x.join() for x in threads]
@@ -354,7 +357,7 @@ def list_qualities(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 			bitrates.append((display, bitrate))
 		return bitrates
 
-def list_qualities2(BASE, API, video_url = _common.args.url):
+def list_qualities2(API, video_url = _common.args.url):
 	video_bitrates = []
 	video_data = _connection.getURL(API + 'playlists/%s/videos.json' % video_url)
 	video_tree = simplejson.loads(video_data)

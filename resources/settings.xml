@@ -47,6 +47,7 @@
 		<setting id="bravo" type="bool" label="Bravo" default="true"/>
 		<setting id="cartoon" type="bool" label="Cartoon Network" default="true"/>
 		<setting id="cbs" type="bool" label="CBS" default="true"/>
+		<setting id="cmt" type="bool" label="CMT" default="true"/>
 		<setting id="comedy" type="bool" label="Comedy Central" default="true"/>
 		<setting id="crackle" type="bool" label="Crackle" default="true"/>
 		<setting id="disney" type="bool" label="Disney" default="true"/>
@@ -55,6 +56,7 @@
 		<setting id="fox" type="bool" label="FOX" default="true"/>
 		<setting id="history" type="bool" label="History" default="true"/>
 		<setting id="lifetime" type="bool" label="Lifetime" default="true"/>
+		<setting id="logotv" type="bool" label="LogoTV" default="true"/>
 		<setting id="marvelkids" type="bool" label="Marvel Kids" default="true"/>
 		<setting id="msnbc" type="bool" label="MSNBC" default="true"/>
 		<setting id="mtv" type="bool" label="MTV" default="true"/>

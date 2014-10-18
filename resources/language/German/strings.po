@@ -340,3 +340,11 @@ msgstr "Konvertieren"
 msgctxt "#39030"
 msgid "Error loading subtitles"
 msgstr "Fehler beim Untertitel laden"
+
+msgctxt "#34000"
+msgid "Anmeldedaten"
+msgstr ""
+
+msgctxt "#34001"
+msgid "Use login"
+msgstr "Benutze Anmeldung"
