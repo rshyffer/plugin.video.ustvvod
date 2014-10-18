@@ -141,9 +141,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		feed_url = video_url
 	if not exception:
 		feed_data = _connection.getURL(feed_url)
-		print feed_data
 		video_tree = BeautifulSoup(feed_data, 'html.parser', parse_only = SoupStrainer('media:group'))
-		print video_tree
 		video_segments = video_tree.find_all('media:content')
 		segments = []
 		for act, video_segment in enumerate(video_segments):
