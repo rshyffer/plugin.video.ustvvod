@@ -21,7 +21,6 @@ SHOWS = 'http://www.cbs.com/carousels/showsByCategory/0/offset/0/limit/100'
 ORIGINALS = 'http://www.cbs.com/carousels/showsByCategory/4/offset/0/limit/100'
 MOVIES = 'http://www.cbs.com/carousels/showsByCategory/6/offset/0/limit/100'
 BASE  = 'http://www.cbs.com'
-SEASONS = 'http://www.cbs.com/carousels/videosBySection/%s/offset/0/limit/1/xs/0/'
 FULLEPISODES = 'http://www.cbs.com/carousels/videosBySection/%s/offset/0/limit/40/xs/0/'
 EPISODE = 'http://link.theplatform.com/s/dJ5BDC/%s?format=SMIL&Tracking=true&mbr=true'
 SWFURL = 'http://canstatic.cbs.com/chrome/canplayer.swf'
@@ -56,13 +55,23 @@ def seasons(season_urls = _common.args.url):
 	section_ids = re.compile('video.section_ids = \[(.*)\];').findall(season_data)[0]
 	if section_ids:
 		for section in section_ids.split(','):
-			season_url = SEASONS % section
+			season_url = FULLEPISODES % section
 			season_data2 = _connection.getURL(season_url)
-			try:
-				season_title = simplejson.loads(season_data2)['result']['title']
-				_common.add_directory(season_title,  SITE, 'episodes', FULLEPISODES % section)
-			except:
-				pass
+			has_episodes = False
+			season_data3 = simplejson.loads(season_data2)['result']
+			if _addoncompat.get_setting('cbs_use_login') == 'false':
+				for item in season_data3['data']:
+					if item['status'] == 'AVAILABLE':
+						has_episodes = True
+						continue
+			else:
+				has_episodes = True
+			if has_episodes:
+				try:
+					season_title = season_data3['title']
+					_common.add_directory(season_title,  SITE, 'episodes', FULLEPISODES % section)
+				except:
+					pass
 	else:
 		show_tree = BeautifulSoup(season_data, 'html.parser')
 		season_menu = show_tree.find_all(attrs = {'name' : 'season'})
