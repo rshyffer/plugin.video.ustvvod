@@ -22,7 +22,8 @@ ORIGINALS = 'http://www.cbs.com/carousels/showsByCategory/4/offset/0/limit/100'
 MOVIES = 'http://www.cbs.com/carousels/showsByCategory/6/offset/0/limit/100'
 BASE  = 'http://www.cbs.com'
 SEASONS = 'http://www.cbs.com/carousels/videosBySection/%s/offset/0/limit/1/xs/0/'
-FULLEPISODES = 'http://www.cbs.com/carousels/videosByWindow/%s/offset/0/limit/40/xs/0/%s/'
+FULLEPISODES = 'http://www.cbs.com/carousels/videosBySection/%s/offset/0/limit/40/xs/0/'
+#'http://www.cbs.com/carousels/videosByWindow/%s/offset/0/limit/40/xs/0/%s/'
 EPISODE = 'http://link.theplatform.com/s/dJ5BDC/%s?format=SMIL&Tracking=true&mbr=true'
 SWFURL = 'http://canstatic.cbs.com/chrome/canplayer.swf'
 
@@ -34,7 +35,15 @@ def masterlist():
 		master_menu = simplejson.loads(master_data)['result']['data']
 		for master_item in master_menu:
 			master_name = master_item['title']
-			season_url = master_item['link']
+			try:
+				season_url = master_item['navigationItemLink'][0]['link']
+			except:
+				if season_url[-1:] == '/':
+					season_url = season_url + 'video'
+				else:
+					season_url = season_url + '/video'
+			if BASE not in season_url:
+				season_url = BASE + season_url
 			master_dict[master_name] = season_url
 	for master_name, season_url in master_dict.iteritems():
 		master_db.append((master_name, SITE, 'seasons', season_url))
@@ -42,10 +51,6 @@ def masterlist():
 
 def seasons(season_urls = _common.args.url):
 	root_url = season_urls
-	if season_urls[-1:] == '/':
-		season_urls = season_urls + 'video'
-	else:
-		season_urls = season_urls + '/video'
 	season_data = _connection.getURL(season_urls)
 	show_id = re.compile('video.settings.show_id = (.*);').findall(season_data)[0]
 	section_ids = re.compile('video.section_ids = \[(.*)\];').findall(season_data)[0]
@@ -55,7 +60,7 @@ def seasons(season_urls = _common.args.url):
 			season_data2 = _connection.getURL(season_url)
 			try:
 				season_title = simplejson.loads(season_data2)['result']['title']
-				_common.add_directory(season_title,  SITE, 'episodes', FULLEPISODES % (section, show_id))
+				_common.add_directory(season_title,  SITE, 'episodes', FULLEPISODES % section)
 			except:
 				pass
 	else:
@@ -75,9 +80,9 @@ def episodes(episode_url = _common.args.url):
 	episode_menu = episode_json['data']
 	title = episode_json['title']
 	for episode_item in episode_menu:
-		url_att = episode_item['url_att']
+		url_att = episode_item['streaming_url']
 		type = episode_item['type']
-		if (episode_item['url_in_window']) or url_att or title != 'Full Episodes' or not episode_item['url_amazon']:
+		if episode_item['status'] == 'AVAILABLE':
 			videourl = episode_item['streaming_url']
 			url = BASE + episode_item['url']
 			episode_duration = int(_common.format_seconds(episode_item['duration']))
@@ -98,17 +103,10 @@ def episodes(episode_url = _common.args.url):
 				episode_thumb = episode_item['thumb']['large']
 			except:
 				episode_thumb = None
-			if url_att:
-				episode_pid = url_att.split('c___')[1]
-				episode_plot = ''
-			elif episode_item['description']:
-				episode_plot = episode_item['description']
-				episode_pid = url
-			else:
-				episode_plot, episode_pid = lookup_meta(url)
-			if episode_pid is not None:
+			episode_plot = episode_item['description']
+			if url is not None:
 				u = sys.argv[0]
-				u += '?url="' + urllib.quote_plus(episode_pid) + '"'
+				u += '?url="' + urllib.quote_plus(url) + '"'
 				u += '&mode="' + SITE + '"'
 				u += '&sitemode="play_video"'
 				infoLabels={	'title' : episode_name,
