@@ -340,3 +340,12 @@ msgstr ""
 msgctxt "#39030"
 msgid "Error loading subtitles"
 msgstr ""
+
+msgctxt "#34000"
+msgid "Logins"
+msgstr ""
+
+msgctxt "#34001"
+msgid "Use login"
+msgstr ""
+

@@ -79,4 +79,12 @@
 		<setting id="vh1" type="bool" label="VH1" default="true"/>
 		<setting type="sep" />
 	</category>
+	<category label="34000">
+		<setting type="sep"/>
+		<setting type="lsep" label="CBS" />
+		<setting id="cbs_use_login" type="bool" label="34001" default="false"/>
+		<setting id="cbs_username" type="text" label="31009" default="" visible="eq(-1,True)"/>
+		<setting id="cbs_password" type="text" label="31010" default="" option="hidden"  visible="eq(-2,True)"/>
+		<setting type="sep" />
+	</category>
 </settings>
