@@ -211,7 +211,7 @@ def play_video(video_url = _common.args.url):
 		login_response = _connection.getURL(LOGIN_URL, login_values, savecookie = True)
 		response = simplejson.loads(login_response)
 		if response['success'] == False:
-			xbmc.executebuiltin('XBMC.Notification(%s, %s, 5000)' % (NAME, response['messages']))
+			_common.show_exception(NAME, response['messages'])
 	try:
 		qbitrate = _common.args.quality
 	except:

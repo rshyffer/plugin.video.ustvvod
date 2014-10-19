@@ -164,7 +164,7 @@ def convert_subtitles(video_guid):
 		file.close()
 	except Exception, e:
 		print "Exception: " + unicode(e)
-		xbmc.executebuiltin('XBMC.Notification(%s, %s, 5000)' % (NAME, _common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39030))))
+		_common.show_exception(NAME, xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39030))
 	finally:
 		if file is not None:
 			file.close()

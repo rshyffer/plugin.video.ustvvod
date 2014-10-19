@@ -139,7 +139,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 				error_text = config_tree.error.string.split('/')[-1].split('_') 
 				_common.show_exception(error_text[1], error_text[2])
 		except:
-			_common.show_exception("", swf_url)
+			_common.show_exception(NAME, swf_url)
 	else:
 		feed_url = video_url
 	if not exception:

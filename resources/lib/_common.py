@@ -836,5 +836,4 @@ def add_video(video_url, displayname, thumb = None, fanart = None, infoLabels = 
 	xbmcplugin.addDirectoryItem(pluginHandle, url = video_url, listitem = item, isFolder = False)
 
 def show_exception(error1, error2):
-	dialog = xbmcgui.Dialog()
-	dialog.ok(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39024), error1, error2)
+	xbmc.executebuiltin('XBMC.Notification(%s, %s, 5000)' % (error1, smart_utf8(error2)))
