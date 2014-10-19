@@ -1,3 +1,29 @@
+version 1.1.1
+
+  * Geoblock handling in CBS and NBCU
+  * make CBS Helix compatible
+  * make CC Helix compatible
+  * make A&E Helix compatible
+  * fix AMC
+  * fix NBCU max bitrate
+  * exclude none working content at A&E
+  * make TVLAND Helix compatible
+  * hide quality selection on MSNBC
+  * fix exception on playing Flash S01E02 on The CW with subtitles
+  * fix show loading with no tvbb lookup
+  * restore tvdb data when turned back on
+  * rewrite the AETV wrapper
+  * added Lifetime channel
+  * added History channel
+  * code cleanup
+  * added CBS login support
+  * fix VH1
+  * fix MTV
+  * added CMT channel
+  * added LogoTV channel
+  * hide amazon only episodes in CBS
+  * fix CBS: hide  season items that are empty and fix episode identifiers for clips
+
 version 1.1.0
 
   * replace polling in viacomm with events
