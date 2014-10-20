@@ -131,17 +131,8 @@ def episodes(episode_url = _common.args.url):
 
 def lookup_meta(url):
 	data = _connection.getURL(url, loadcookie = True)
-	tree = BeautifulSoup(data, 'html.parser')
-	try:
-		episode_plot = tree.find('meta', property = 'og:description')['content']
-	except:
-		episode_plot = tree.find('meta', attrs = {'name' : 'og:description'})['content']
-	try:
-		episode_swf = tree.find('meta', property = 'og:video')['content']
-		episode_pid = re.compile('pid=(.*?)&').findall(episode_swf)[0]
-	except:
-		episode_pid = None
-	return episode_plot, episode_pid
+	episode_pid = re.compile('pid=(.*?)&').findall(data)[0]
+	return episode_pid
 
 def episodesClassic(episode_url = _common.args.url):
 	episode_data = _connection.getURL(episode_url)
@@ -187,7 +178,7 @@ def episodesClassic(episode_url = _common.args.url):
 def list_qualities(video_url = _common.args.url):
 	bitrates = []
 	if 'http://' in video_url:
-		plot, pid = lookup_meta(video_url)
+		pid = lookup_meta(video_url)
 	else:
 		pid = video_url
 	video_url = EPISODE % pid
@@ -218,7 +209,7 @@ def play_video(video_url = _common.args.url):
 		qbitrate = None
 	closedcaption = None
 	if 'http://' in video_url:
-		plot, pid = lookup_meta(video_url)
+		pid = lookup_meta(video_url)
 	else:
 		pid = video_url
 	video_url = EPISODE % pid
