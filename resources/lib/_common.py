@@ -48,6 +48,7 @@ class XBMCPlayer( xbmc.Player ):
 	def __init__( self, *args, **kwargs  ):
 		xbmc.Player.__init__( self )
 		self.is_active = True
+		print "************************************* INT **********************************"
 	
 	def onPlayBackSpeedChanged( self, speed ):
 		print "**************************** Speed Event *****************************" + str(speed)
