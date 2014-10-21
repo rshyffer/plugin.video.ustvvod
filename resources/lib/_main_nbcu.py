@@ -21,14 +21,12 @@ def masterlist(SITE, SHOWS):
 	master_menu = simplejson.loads(master_data)['entries']
 	for master_item in master_menu:
 		master_name = master_item['title']
-		season_url = master_item['plcategory$fullTitle']
-		master_db.append((master_name, SITE, 'seasons', season_url))
+		master_url = master_item['plcategory$fullTitle']
+		master_db.append((master_name, SITE, 'seasons', master_url))
 	return master_db
 
 def seasons(SITE, FULLEPISODES, CLIPS):
-
 	season_urls = _common.args.url
-	print season_urls
 	for season_url in season_urls.split(','):
 		season_data = _connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
 		try:
@@ -51,8 +49,7 @@ def seasons(SITE, FULLEPISODES, CLIPS):
 				_common.add_directory('Clips',  SITE, 'episodes', season_url3)
 	_common.set_view('seasons')
 
-
-def episodes(SITE, quailty = True):
+def episodes(SITE, quality = True):
 	episode_url = _common.args.url
 	episode_data = _connection.getURL(episode_url)
 	episode_menu = simplejson.loads(episode_data)['entries']
@@ -64,7 +61,7 @@ def episodes(SITE, quailty = True):
 			elif (mediacontent['plfile$format'] == 'MPEG4'):
 				mpeg4_mediacontent = mediacontent
 		if default_mediacontent is None:
-			default_mediacontent=mpeg4_mediacontent
+			default_mediacontent = mpeg4_mediacontent
 		url = default_mediacontent['plfile$url']
 		episode_duration = int(episode_item['media$content'][0]['plfile$duration'])
 		episode_plot = episode_item['description']
@@ -98,7 +95,7 @@ def episodes(SITE, quailty = True):
 						'episode' : episode_number,
 						'plot' : episode_plot,
 						'premiered' : episode_airdate }
-		if quailty:
+		if quality:
 			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 		else:
 			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
@@ -108,13 +105,11 @@ def list_qualities():
 	exception = False
 	video_url = _common.args.url
 	bitrates = []
-	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
-	closedcaption = None
 	video_data = _connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	video_rtmp = video_tree.meta
 	if video_rtmp is not None:
-		for video_index in video_url2:
+		for video_index in video_rtmp:
 			bitrate = int(video_index['system-bitrate'])
 			display = int(bitrate)
 			bitrates.append((display, bitrate))
@@ -125,16 +120,16 @@ def list_qualities():
 			video_url2 = video_tree.seq.find_all('video')[0]
 			video_url3 = video_url2['src']
 			video_data2 = _connection.getURL(video_url3)
-			video_url5 = _m3u8.parse(video_data2)
-			for video_index in video_url5.get('playlists'):
+			video_url4 = _m3u8.parse(video_data2)
+			print video_url4
+			for video_index in video_url4.get('playlists'):
 				bitrate = int(video_index.get('stream_info')['bandwidth'])
 				try:
 					codecs =  video_index.get('stream_info')['codecs']
 				except:
 					codecs = ''
 				display = int(bitrate) / 1024
-				if 'mp4a.40.2' not in codecs:
-					bitrates.append((display, bitrate))
+				bitrates.append((display, bitrate))
 		else:
 			exception = True
 	if  not exception:
@@ -200,10 +195,10 @@ def play_video():
 				except:
 					codecs = ''
 				if qbitrate is None:
-					if (bitrate < lbitrate or lbitrate == -1) and 'mp4a.40.2' not in codecs:
+					if (bitrate < lbitrate or lbitrate == -1):
 						lbitrate = bitrate
 						lplaypath_url =  video_index.get('uri')
-					if (bitrate > hbitrate and bitrate <= sbitrate) and 'mp4a.40.2'  not in  codecs:
+					if (bitrate > hbitrate and bitrate <= sbitrate):
 						hbitrate = bitrate
 						playpath_url = video_index.get('uri')
 				elif  bitrate == qbitrate:
