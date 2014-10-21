@@ -37,10 +37,10 @@ def masterlist():
 			try:
 				season_url = master_item['navigationItemLink'][0]['link']
 			except:
-				if season_url[-1:] == '/':
-					season_url = season_url + 'video'
+				if master_item['link'][-1:] == '/':
+					season_url = master_item['link'] + 'video'
 				else:
-					season_url = season_url + '/video'
+					season_url =  master_item['link'] + '/video'
 			if BASE not in season_url:
 				season_url = BASE + season_url
 			master_dict[master_name] = season_url
