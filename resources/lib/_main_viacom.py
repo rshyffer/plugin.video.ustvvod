@@ -23,7 +23,7 @@ pluginHandle = int(sys.argv[1])
 player = _common.XBMCPlayer()
 
 VIDEOURL = 'http://media.mtvnservices.com/'
-VIDEOURLAPI = 'http://media-utils.mtvnservices.com/services/MediaGenerator/%s?device=Xbox'
+VIDEOURLAPI = 'http://media-utils.mtvnservices.com/services/MediaGenerator/%s?device=Android&deviceOsVersion=4.4.4'
 TYPES = [('fullEpisodes' , 'Full Episodes'), ('bonusClips,afterShowsClips,recapsClips,sneakPeeksClips,dailies,showClips' , 'Extras')]
 DEVICE = 'Xbox'
 BITRATERANGE = 10
@@ -94,7 +94,10 @@ def videos(SITE):
 		except:
 			episode_plot = ''
 		episode_thumb = episode_item['image']
-		episode_duration = _common.format_seconds(episode_item['duration']['timecode'])
+		try:
+			episode_duration = _common.format_seconds(episode_item['duration']['timecode'])
+		except:
+			continue
 		u = sys.argv[0]
 		u += '?url="' + urllib.quote_plus(url) + '"'
 		u += '&mode="' + SITE + '"'
@@ -223,7 +226,6 @@ def play_video2(API, video_url = _common.args.url):
 
 def get_videos(video_queue, closedcaption_queue, segments_queue, i, video_item, qbitrate):
 	lock = threading.Lock()
-	
 	try:
 		video_mgid = video_item['video']['mgid']
 	except:

@@ -21,7 +21,7 @@ VIDEOURL = 'http://metaframe.digitalsmiths.tv/v2/WBtv/assets/%s/partner/11?forma
 def masterlist():
 	master_db = []
 	master_data = _connection.getURL(SHOWS)
-	master_tree = BeautifulSoup(master_data, 'html5lib').find('ul', id = 'channelCarousel_ul')
+	master_tree = BeautifulSoup(master_data, 'html.parser').find('ul', id = 'channelCarousel_ul')
 	master_menu = master_tree.find_all('a')
 	for master_item in master_menu:
 		master_name = master_item.img['alt'].strip()
