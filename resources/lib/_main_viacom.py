@@ -7,17 +7,17 @@ import _m3u8
 import base64
 import datetime
 import os
-import Queue
 import re
 import simplejson
 import sys
-import threading
 import time
 import urllib
 import xbmc
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
+from Queue import PriorityQueue
+from threading import Thread, BoundedSemaphore
 
 pluginHandle = int(sys.argv[1])
 player = _common.XBMCPlayer()
@@ -125,13 +125,11 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		qbitrate = _common.args.quality
 	except:
 		qbitrate = None
-	video_url6 = 'stack://'
+	video_url2 = 'stack://'
+	threads = []
 	closedcaption = []
 	exception = False
-	threads = []
-	video_queue = Queue.PriorityQueue()
-	closedcaption_queue = Queue.PriorityQueue()
-	segments_queue = Queue.PriorityQueue()
+	queue = PriorityQueue()
 	if 'feed' not in video_url:
 		swf_url = _connection.getRedirect(video_url, header = {'Referer' : BASE})
 		try:
@@ -153,33 +151,38 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		feed_url = video_url
 	if not exception:
 		feed_data = _connection.getURL(feed_url)
+		print feed_data
 		video_tree = BeautifulSoup(feed_data, 'html.parser', parse_only = SoupStrainer('media:group'))
 		video_segments = video_tree.find_all('media:content')
 		segments = []
-		for act, video_segment in enumerate(video_segments):
-			t = threading.Thread(target = get_videos, args = (video_queue, closedcaption_queue, segments_queue, act, video_segment, qbitrate))
-			t.daemon = True
-			threads.append(t)
-		[x.start() for x in threads]
+		for i, video_segment in enumerate(video_segments):
+			worker = Thread(target = get_videos, args = (queue, i, video_item, qbitrate))
+			worker.setDaemon(True)
+			worker.start()
+			threads.append(worker)
 		[x.join() for x in threads]
-		while video_queue.qsize() > 0:
-			video_url6 += video_queue.get() + ' , '
-		player._segments_array = queue_to_list(segments_queue)
+		while not queue.empty():
+			video_data2 = queue.get()
+			video_url2 += video_data2[1] + ' , '
+			segments.append(video_data2[2])
+			closedcaption.append((video_data2[3], video_data2[2], video_data2[0]))
+		player._segments_array = segments
 		filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
 		xbmc.executebuiltin(filestring)
-		finalurl = video_url6[:-3]
+		finalurl = video_url2[:-3]
 		localhttpserver = True
 		time.sleep(20)
-		if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption_queue.qsize() > 0):
-			convert_subtitles(closedcaption_queue)
+		if (_addoncompat.get_setting('enablesubtitles') == 'true') and closedcaption:
+			convert_subtitles(closedcaption)
 			player._subtitles_Enabled = True
 		item = xbmcgui.ListItem(path = finalurl)
+		queue.task_done()
 		if qbitrate is not None:
 			item.setThumbnailImage(_common.args.thumb)
 			item.setInfo('Video', {	'title' : _common.args.name,
-							'season' : _common.args.season_number,
-							'episode' : _common.args.episode_number,
-							'TVShowTitle' : _common.args.show_title})
+									'season' : _common.args.season_number,
+									'episode' : _common.args.episode_number,
+									'TVShowTitle' : _common.args.show_title })
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 		while player.is_active:
 			player.sleep(250)
@@ -191,29 +194,33 @@ def play_video2(API, video_url = _common.args.url):
 		qbitrate = None
 	video_url2 = 'stack://'
 	threads = []
-	video_queue = Queue.PriorityQueue()
-	closedcaption_queue = Queue.PriorityQueue()
-	segments_queue = Queue.PriorityQueue()
+	segments = []
+	closedcaption = []
+	queue = PriorityQueue()
 	video_data = _connection.getURL(API + 'playlists/%s/videos.json' % video_url)
 	video_tree = simplejson.loads(video_data)
 	for i, video_item in enumerate(video_tree['playlist']['videos']):
-		t = threading.Thread(target = get_videos, args = (video_queue, closedcaption_queue, segments_queue, i, video_item, qbitrate))
-		t.daemon = True
-		threads.append(t)
-	[x.start() for x in threads]
+		worker = Thread(target = get_videos, args = (queue, i, video_item, qbitrate))
+		worker.setDaemon(True)
+		worker.start()
+		threads.append(worker)
 	[x.join() for x in threads]
-	while video_queue.qsize() > 0:
-		video_url2 += video_queue.get() + ' , '
-	player._segments_array = queue_to_list(segments_queue)
+	while not queue.empty():
+		video_data2 = queue.get()
+		video_url2 += video_data2[1] + ' , '
+		segments.append(video_data2[2])
+		closedcaption.append((video_data2[3], video_data2[2], video_data2[0]))
+	player._segments_array = segments
 	filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH, '_proxy.py') + ', 12345)'
 	xbmc.executebuiltin(filestring)
 	finalurl = video_url2[:-3]
 	localhttpserver = True
 	time.sleep(20)
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption_queue.qsize() > 0):
-		convert_subtitles(closedcaption_queue)
+	if (_addoncompat.get_setting('enablesubtitles') == 'true') and closedcaption:
+		convert_subtitles(closedcaption)
 		player._subtitles_Enabled = True
 	item = xbmcgui.ListItem(path = finalurl)
+	queue.task_done()
 	if qbitrate is not None:
 		item.setThumbnailImage(_common.args.thumb)
 		item.setInfo('Video', {	'title' : _common.args.name,
@@ -222,10 +229,9 @@ def play_video2(API, video_url = _common.args.url):
 								'TVShowTitle' : _common.args.show_title })
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	while player.is_active:
-		player.sleep(250)	
+		player.sleep(250)
 
-def get_videos(video_queue, closedcaption_queue, segments_queue, i, video_item, qbitrate):
-	lock = threading.Lock()
+def get_videos(queue, i, video_item, qbitrate):
 	try:
 		video_mgid = video_item['video']['mgid']
 	except:
@@ -234,18 +240,19 @@ def get_videos(video_queue, closedcaption_queue, segments_queue, i, video_item, 
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	try:
 		duration = video_tree.find('rendition')['duration']
-		closedcaption_queue.put((video_tree.find('typographic', format = 'ttml'), duration, i))
-		segments_queue.put(duration)
+		closedcaption = video_tree.find('typographic', format = 'ttml')
 	except:
-		segments_queue.put(0)
+		duration = 0
+		closedcaption = None
 	try:
 		video_menu = video_tree.src.string
 		hbitrate = -1
 		lbitrate = -1
 		m3u8_url = None
-		lock.acquire()
+		semaphore = BoundedSemaphore(1)
+		semaphore.acquire()
 		m3u8_master_data = _connection.getURL(video_menu, savecookie = True)
-		lock.release()
+		semaphore.release()
 		m3u8_master = _m3u8.parse(m3u8_master_data)
 		sbitrate = int(_addoncompat.get_setting('quality')) * 1024
 		for video_index in m3u8_master.get('playlists'):
@@ -261,30 +268,28 @@ def get_videos(video_queue, closedcaption_queue, segments_queue, i, video_item, 
 				m3u8_url = video_index.get('uri')
 		if 	((m3u8_url is None) and (qbitrate is None)):
 			m3u8_url = lm3u8_url
+		semaphore2 = BoundedSemaphore(1)
+		semaphore2.acquire()
 		m3u8_data = _connection.getURL(m3u8_url, loadcookie = True)
 		key_url = re.compile('URI="(.*?)"').findall(m3u8_data)[0]
 		key_data = _connection.getURL(key_url, loadcookie = True)
 		key_file = open(_common.KEYFILE + str(i), 'wb')
 		key_file.write(key_data)
 		key_file.close()
+		semaphore2.release()
 		video_url = re.compile('(http:.*?)\n').findall(m3u8_data)
 		for video_item in video_url:
 			newurl = base64.b64encode(video_item)
 			newurl = urllib.quote_plus(newurl)
 			m3u8_data = m3u8_data.replace(video_item, 'http://127.0.0.1:12345/foxstation/' + newurl)
 		m3u8_data = m3u8_data.replace(key_url, 'http://127.0.0.1:12345/play.key' + str(i))
-		playfile = open(_common.PLAYFILE.replace('.m3u8', '_' + str(i) + '.m3u8'), 'w')
+		file_name = _common.PLAYFILE.replace('.m3u8', '_' + str(i) + '.m3u8')
+		playfile = open(file_name, 'w')
 		playfile.write(m3u8_data)
 		playfile.close()
-		video_queue.put(_common.PLAYFILE.replace('.m3u8', '_' + str(i) + '.m3u8'))
+		queue.put([i, file_name, duration, closedcaption])
 	except:
 		pass
-
-def queue_to_list(q):
-	l = []
-	while q.qsize() > 0:
-		l.append(q.get())
-	return l
 
 def list_qualities(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	bitrates = []
@@ -359,10 +364,6 @@ def convert_subtitles(closedcaption):
 	str_output = ''
 	j = 0
 	count = 0
-	try:
-		closedcaption = queue_to_list(closedcaption)
-	except:
-		pass
 	for closedcaption_url, duration, i in closedcaption:
 		count = int(i) + 1
 		if closedcaption_url is not None:
