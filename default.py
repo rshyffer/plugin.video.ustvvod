@@ -14,7 +14,7 @@ pluginHandle = int(sys.argv[1])
 __plugin__ = 'USTV VoD'
 __authors__ = 'BlueCop'
 __credits__ = 'moneymaker, slices, zero'
-__version__ = '1.0.9'
+__version__ = '1.1.1'
 
 print '\n\n\n start of USTV VoD plugin'
 
