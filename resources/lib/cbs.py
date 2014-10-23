@@ -135,7 +135,7 @@ def episodes(episode_url = _common.args.url):
 
 def lookup_meta(url):
 	data = _connection.getURL(url, loadcookie = True)
-	episode_pid = re.compile('pid=(.*?)&').findall(data)[0]
+	episode_pid = re.compile("pid\s?=\s?'?(.*?)'?[&;]").findall(data)[0]
 	return episode_pid
 
 def episodesClassic(episode_url = _common.args.url):
