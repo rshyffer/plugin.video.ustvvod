@@ -1,3 +1,17 @@
+version 1.1.2
+
+  * standardise exception notifications
+  * fix CBS issues on android
+  * fix for favorites
+  * fix for viacomm subs
+  * fix for CSB shows with no link mapping
+  * code changes for viacomn and for how to connect
+  * fix USA NETWORK and changed code filename to _main_nbcu
+  * added season selection to CBS
+  * optimization for viacomm code
+  * fix for NICK
+  * fix for NCIS
+
 version 1.1.1
 
   * Geoblock handling in CBS and NBCU
