@@ -12,6 +12,7 @@ pluginHandle = int(sys.argv[1])
 
 SITE = 'nicktoons'
 NAME = 'Nick Toons'
+ALIAS = ['NickToons Network', 'Nicktoons']
 DESCRIPTION = "Nicktoons offers 24 hours of animated programming that includes Wolverine and the X-Men, Iron Man: Armored Adventures, Fantastic Four: World's Greatest Heroes, Speed Racer: The Next Generation, Kappa Mikey and the Nickelodeon Animation Festival, as well as a roster of hits that have defined kids' and animation lovers' TV, including Avatar: The Last Airbender, Danny Phantom, SpongeBob SquarePants, The Fairly OddParents and The Adventures of Jimmy Neutron, Boy Genius.  It currently reaches 54 million homes via cable, digital cable and satellite, and can be seen on Cablevision, Charter Communications, Comcast Cable, Cox Communications, DirecTV, DISH Network and Time Warner Cable.  Nicktoons is part of the MTV Networks expanded suite of channels available for digital distribution."
 BASE = 'http://nicktoons.nick.com'
 BASE2 = 'http://media.nick.com/'

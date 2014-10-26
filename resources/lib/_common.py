@@ -9,6 +9,7 @@ import os
 import sys
 import time
 import urllib
+import re
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -322,7 +323,11 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False):
 		else:
 			return checkdata
 	elif tvdb_setting != 1 or forceRefresh:
-		tvdb_data = get_tvdb_series(series_title, manualSearch = forceRefresh, site = get_network(mode).NAME)
+		network = get_network(mode)
+		try:
+			tvdb_data = get_tvdb_series(series_title, manualSearch = forceRefresh, site = network.NAME, network_alias = network.ALIAS)
+		except:
+			tvdb_data = get_tvdb_series(series_title, manualSearch = forceRefresh, site = network.NAME)
 		if tvdb_data:
 			tvdb_id, imdb_id, tvdbbanner, tvdbposter, tvdbfanart, first_aired, date, year, actors, genres, network, plot, runtime, rating, airs_dayofweek, airs_time, status, tvdb_series_title = tvdb_data
 			values = [series_title, mode, submode, url, tvdb_id, imdb_id, tvdbbanner, tvdbposter, tvdbfanart, first_aired, date, year, actors, genres, network, plot, runtime, rating, airs_dayofweek, airs_time, status, True, False, False, tvdb_series_title]
@@ -339,7 +344,8 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False):
 		_database.execute_command(command, empty_values, commit = True)
 		return empty_values
 
-def get_series_id(seriesdata, seriesname, site = '', allowManual = False):
+def get_series_id(seriesdata, seriesname, site = '', allowManual = False, network_alias = []):
+	print "aliais",network_alias
 	shows = BeautifulSoup(seriesdata).find_all('series')
 	for show_item in shows:
 		if  '**' in show_item.seriesname.string:
@@ -348,9 +354,10 @@ def get_series_id(seriesdata, seriesname, site = '', allowManual = False):
 	punctuation = ":'!,. -\"?s"
 	exclude = set(punctuation)
 	tvdb_show_name = shows[0].seriesname.string.lower()
+	tvdb_show_name = tvdb_show_name.replace('usa', '')
 	tvdb_show_name = tvdb_show_name.replace(shows[0].network.string.lower(), '').replace(site.lower(),'').replace('on','').strip()
 	tvdb_show_name = tvdb_show_name.replace('the', '').replace('show','').strip()
-	lookup = seriesname.lower()
+	lookup = seriesname.lower().replace('usa', '').replace(u"\u00AE", '')
 	lookup = lookup.replace('the', '').replace('show','').strip()
 	lookup = lookup.replace(site.lower(), '').replace('on','').strip()
 	tvdb_show_name = ''.join(ch for ch in tvdb_show_name if ch not in exclude)
@@ -382,22 +389,21 @@ def get_series_id(seriesdata, seriesname, site = '', allowManual = False):
 		tvdb_show_name = tvdb_show_name.replace(key, str(numbers[key]))
 	if len(shows) > 1 or tvdb_show_name != lookup:
 		ret = -1
-		variantsExist = False
-		lookup_name = seriesname.replace('%E2%84%A2', '').lower().replace("'", "").replace('?', '').replace('!', '').strip()
-		lookup_name = lookup_name.replace(u"\u0174", '')
+		lookup_name = seriesname.replace('%E2%84%A2', '').lower().replace("'", "").replace('?', '').replace('!', '').replace('&', ' and ').strip()
+		lookup_name = lookup_name.replace(u"\u0174", '').replace(u"\u2122", '')
 		lookup_network = site.replace('The', '').replace(',', '').strip()
 		for i, show_item in enumerate(shows):
-			item_name = show_item.seriesname.string.lower().replace("'", "").replace('!', '').strip()
-			item_name = item_name.replace(u"\u0174", '')
+			count = 0
+			item_name = show_item.seriesname.string.lower().replace("'", "")
+			item_name = item_name.replace(u"\u0174", '').replace('&', ' and ').replace(', the', '')
 			try:
 				item_network = show_item.network.string.replace('The', '').replace(',', '').strip()
 			except:
 				item_network = ''
-			if '(' in show_item.seriesname.string and item_network == lookup_network:
-				variantsExist = True
-			elif item_name.lower().replace(site.lower(), '').strip() == lookup_name.lower().replace(site.lower(), '').strip() and item_network == lookup_network:
+			if re.compile('(The )?' + lookup_name.replace(', the', '').replace(' ', '.? ') +'( ' + site + ')?[!?]?( \(?US\)?)?(\s?\([0-9]{4}\))?$', re.IGNORECASE).match(item_name) and (item_network == lookup_network or item_network in network_alias or '(us)' in item_name):
 				ret = i
-		if allowManual == True and (variantsExist == True or ret == -1):
+				count = count + 1
+		if allowManual == True and (count > 1 or ret == -1):
 			select = xbmcgui.Dialog()
 			for show_item in shows:
 				try:
@@ -415,14 +421,14 @@ def get_series_id(seriesdata, seriesname, site = '', allowManual = False):
 		seriesid = shows[0].seriesid.string
 	return seriesid
 
-def get_tvdb_series(seriesname, manualSearch = False, site = ''):
+def get_tvdb_series(seriesname, manualSearch = False, site = '', network_alias = []):
 	seriesdata = _connection.getURL(TVDBSERIESLOOKUP + urllib.quote_plus(smart_utf8(seriesname)), connectiontype = 0)
 	try:
 		if int(_addoncompat.get_setting('strict_names')) != 2 or manualSearch:
 			interactive = True
 		else:
 			interactive = False
-		tvdb_id = get_series_id(seriesdata, seriesname, site, interactive)
+		tvdb_id = get_series_id(seriesdata, seriesname, site, interactive, network_alias)
 	except:
 		if manualSearch:
 			keyb = xbmc.Keyboard(seriesname, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39004)))

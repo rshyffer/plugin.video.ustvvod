@@ -4,6 +4,7 @@ import _main_abcdisney
 
 SITE = 'disney'
 NAME = 'Disney'
+ALIAS = ['Disney Channel']
 DESCRIPTION = "Disney Channel is a 24-hour kid-driven, family inclusive television network that taps into the world of kids and families through original series and movies. It is currently available on basic cable and satellite in more than 98 million U.S. homes and in nearly 400 million households via 42 Disney Channels and free-to-air broadcast partners around the world."
 BRANDID = '004'
 PARTNERID = '585231'
