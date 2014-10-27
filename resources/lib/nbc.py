@@ -16,12 +16,15 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
+from collections import OrderedDict
 
 pluginHandle = int(sys.argv[1])
+player = _common.XBMCPlayer()
 
 SITE = 'nbc'
 NAME = 'NBC'
 DESCRIPTION = "NBC Entertainment develops and schedules programming for the network's primetime, late-night, and daytime schedules. NBC's quality programs and balanced lineup have earned the network critical acclaim, numerous awards, and ratings success. The network has earned more Emmy Awards than any network in television history. NBC's roster of popular scripted series includes critically acclaimed comedies like Emmy winners The Office, starring Steve Carell, and 30 Rock, starring Alec Baldwin and Tina Fey. Veteran, award-winning dramas on NBC include Law & Order: SVU, Chuck, and Friday Night Lights. Unscripted series for NBC include the hits The Biggest Loser, Celebrity Apprentice, and America's Got Talent. NBC's late-night story is highlighted by The Tonight Show with Jay Leno, Late Night with Jimmy Fallon, Last Call with Carson Daly, and Saturday Night Live. NBC Daytime's Days of Our Lives consistently finishes among daytime's top programs in the valuable women 18-34 category. Saturday mornings the network broadcasts Qubo on NBC, a three-hour block that features fun, entertaining, and educational programming for kids, including the award-winning, 3-D animated series Veggie Tales."
+BASE = "http://nbc.com"
 SHOWS = 'http://www.nbc.com/shows'
 EPISODES = 'http://www.nbc.com/data/node/%s/video_carousel'
 VIDEOPAGE = 'http://videoservices.nbcuni.com/player/clip?clear=true&domainReq=www.nbc.com&geoIP=US&clipId=%s'
@@ -36,7 +39,7 @@ TONIGHT_SHOW_FEED = '%s/content/a/filter-items/?type=video'
 def masterlist():
 	master_db = []
 	master_data = _connection.getURL(SHOWS)
-	master_tree = BeautifulSoup(master_data, 'html5lib')
+	master_tree = BeautifulSoup(master_data, 'html.parser')
 	master_menu = master_tree.footer.find_all('li', class_ = 'views-row')
 	for master_item in master_menu:
 		master_name = _common.smart_utf8(master_item.text.strip())
@@ -45,19 +48,35 @@ def masterlist():
 	return master_db
 
 def seasons(season_url = _common.args.url):
+	base_url = season_url
+	season_dict = OrderedDict({})
 	if 'the-tonight-show' in season_url:
 		add_show_thetonightshow(season_url)
 		return
-	season_url = season_url + '/video'
-	season_data = _connection.getURL(season_url)
-	season_tree  = BeautifulSoup(season_data, 'html5lib')
-	season_menu = season_tree.find_all('div', class_ = 'nbc_mpx_carousel')
-	for season in season_menu:
-		season_title = season.h2.text.strip()
-		season_title = re.sub(' +',' ', season_title)
-		season_id = season['id']
-		season_node = season_id.split('_')[-1]
-		_common.add_directory(season_title, SITE, 'episodes',  EPISODES % season_node)
+	has_episodes = False
+	video_url = season_url + '/video'
+	episode_url = season_url 
+	for season_url in (episode_url, video_url):
+		season_data = _connection.getURL(season_url)
+		season_tree  = BeautifulSoup(season_data, 'html.parser')
+		season_menu = season_tree.find_all('div', class_ = 'nbc_mpx_carousel')
+		for season in season_menu:
+			try:
+				season_title = season.h2.text.strip()
+				season_title = re.sub(' +',' ', season_title)
+				season_id = season['id']
+				season_node = season_id.split('_')[-1]
+				if season_title not in season_dict.keys():
+					season_dict[season_title] =  EPISODES % season_node
+					if 'full episodes' == season_title.lower() or 'Season' in season_title:
+						has_episodes = True
+			except:
+				pass
+	if not has_episodes:
+		_common.add_directory('Full Episodes', SITE, 'episodes',  base_url + '/episodes')
+	for season_title in season_dict:
+		season_url = season_dict[season_title]
+		_common.add_directory(season_title, SITE, 'episodes',  season_url)
 	_common.set_view('seasons')
 
 def episodes(episode_url = _common.args.url):
@@ -68,44 +87,74 @@ def episodes(episode_url = _common.args.url):
 			add_videos_thetonightshow(episode_url, 'episode')
 		return
 	episode_data = _connection.getURL(episode_url)
-	episode_json = simplejson.loads(episode_data)
-	episode_menu = episode_json['entries']
-	for episode_item in episode_menu:
-		pid = episode_item['mainReleasePid']	
-		url = SMIL % pid	
-		try:
-			episode_duration = int(episode_item['duration'].replace(' min','')) * 60
-		except:
-			episode_duration = -1
-		episode_plot = HTMLParser.HTMLParser().unescape(episode_item['description'])
-		epoch = int(episode_item['pubDate']) / 1000
-		episode_airdate = _common.format_date(epoch = epoch)
-		episode_name = HTMLParser.HTMLParser().unescape(episode_item['title'])
-		show_title = episode_item['showShortName']
-		try:
-			season_number = int(episode_item['season'])
-		except:
-			season_number = -1
-		try:
-			episode_number = int(episode_item['episode'])
-		except:
-			episode_number = -1
-		try:
-			episode_thumb = episode_item['images']['big']
-		except:
-			episode_thumb = None
-		u = sys.argv[0]
-		u += '?url="' + urllib.quote_plus(url) + '"'
-		u += '&mode="' + SITE + '"'
-		u += '&sitemode="play_video"'
-		infoLabels={	'title' : episode_name,
-						'durationinseconds' : episode_duration,
-						'season' : season_number,
-						'episode' : episode_number,
-						'plot' : episode_plot,
-						'premiered' : episode_airdate,
-						'TVShowTitle' : show_title}
-		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+	if 'video_carousel' in episode_url:
+		episode_json = simplejson.loads(episode_data)
+		episode_menu = episode_json['entries']
+		for episode_item in episode_menu:
+			pid = episode_item['mainReleasePid']	
+			url = SMIL % pid	
+			try:
+				episode_duration = int(episode_item['duration'].replace(' min','')) * 60
+			except:
+				episode_duration = -1
+			episode_plot = HTMLParser.HTMLParser().unescape(episode_item['description'])
+			epoch = int(episode_item['pubDate']) / 1000
+			episode_airdate = _common.format_date(epoch = epoch)
+			episode_name = HTMLParser.HTMLParser().unescape(episode_item['title'])
+			show_title = episode_item['showShortName']
+			try:
+				season_number = int(episode_item['season'])
+			except:
+				season_number = -1
+			try:
+				episode_number = int(episode_item['episode'])
+			except:
+				episode_number = -1
+			try:
+				episode_thumb = episode_item['images']['big']
+			except:
+				episode_thumb = None
+			u = sys.argv[0]
+			u += '?url="' + urllib.quote_plus(url) + '"'
+			u += '&mode="' + SITE + '"'
+			u += '&sitemode="play_video"'
+			infoLabels={	'title' : episode_name,
+							'durationinseconds' : episode_duration,
+							'season' : season_number,
+							'episode' : episode_number,
+							'plot' : episode_plot,
+							'premiered' : episode_airdate,
+							'TVShowTitle' : show_title}
+			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+	else:
+		episode_tree  = BeautifulSoup(episode_data, 'html.parser')
+		episode_menu = episode_tree.find_all('article')
+		show_title = episode_tree.h2.text
+		for episode in episode_menu:
+			episode_name = episode.find('div', class_ = 'episode-title').text
+			try:
+				episode_duration = int(episode.find('div', class_ = 'available-until').text.split('|')[1].replace('min', '').strip()) * 60
+			except:
+				episode_duration = -1
+			season_number = int(episode.find('div', class_ = 'metadata').text.split('|')[0].replace('Season', '').strip())
+			episode_number =  int(episode.find('div', class_ = 'metadata').text.split('|')[1].replace('Episode', '').strip()[1:])
+			episode_plot = episode.find('div', class_ = 'summary').text
+			episode_thumb = episode.img['src']
+			try:
+				url = BASE + episode.find('a', class_ = 'watch-now-onion-skin')['href']
+				u = sys.argv[0]
+				u += '?url="' + urllib.quote_plus(url) + '"'
+				u += '&mode="' + SITE + '"'
+				u += '&sitemode="play_video"'
+				infoLabels={	'title' : episode_name,
+								'durationinseconds' : episode_duration,
+								'season' : season_number,
+								'episode' : episode_number,
+								'plot' : episode_plot,
+								'TVShowTitle' : show_title}
+				_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+			except:
+				pass
 	_common.set_view('episodes')
 
 def add_show_thetonightshow(url):
@@ -171,6 +220,13 @@ def play_video(video_url = _common.args.url, tonightshow = False):
 		qbitrate = None
 	closedcaption = None
 	video_data = _connection.getURL(video_url)
+	if 'link.theplatform.com' not in video_url:
+		video_tree =  BeautifulSoup(video_data, 'html.parser')
+		player_url = video_tree.find('div', class_ = 'video-player-full')['data-mpx-url']
+		player_data = _connection.getURL(player_url)
+		player_tree =  BeautifulSoup(player_data, 'html.parser')
+		smil_url = player_tree.find('link', type = "application/smil+xml")['href']
+		video_data = _connection.getURL(smil_url + '&manifest=m3u&format=SMIL')
 	smil_tree = BeautifulSoup(video_data, 'html.parser')
 	video_url2 = smil_tree.video['src']	
 	try:
@@ -238,6 +294,7 @@ def play_video(video_url = _common.args.url, tonightshow = False):
 		finalurl = _common.PLAYFILE
 	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
 		convert_subtitles(closedcaption)
+		player._subtitles_Enabled = True
 	item = xbmcgui.ListItem(path = finalurl)
 	if qbitrate is not None:
 		item.setThumbnailImage(_common.args.thumb)
@@ -246,15 +303,8 @@ def play_video(video_url = _common.args.url, tonightshow = False):
 						'episode' : _common.args.episode_number,
 						'TVShowTitle' : _common.args.show_title})
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
-	if ((_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None))  or localhttpserver is True:
-		while not xbmc.Player().isPlaying():
-			xbmc.sleep(100)
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
-		xbmc.Player().setSubtitles(_common.SUBTITLE)
-	if localhttpserver is True:
-		while xbmc.Player().isPlaying():
-			xbmc.sleep(1000)
-		_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
+	while player.is_active:
+			player.sleep(250)
 
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')
