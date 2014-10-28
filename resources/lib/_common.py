@@ -746,7 +746,7 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 	item.setInfo(type = 'Video', infoLabels = infoLabels)
 	xbmcplugin.addDirectoryItem(pluginHandle, url = u, listitem = item, isFolder = True)
 
-def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = None, fanart = None, description = None, aired = '', genre = '', count = 0):
+def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = None, fanart = None, description = None, aired = '', genre = '', count = 0, locked = -1, unlocked = -1):
 	if fanart is None:
 		if args.__dict__.has_key('fanart'):
 			fanart = args.fanart
@@ -764,11 +764,16 @@ def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = No
 	else:
 		showname = ''
 	if description is None:
-		if args.__dict__.has_key('tvdb_id'):
-			description = get_plot_by_tvdbid(args.tvdb_id)
+		if locked == -1 and unlocked == -1:
+			if args.__dict__.has_key('tvdb_id'):
+				description = get_plot_by_tvdbid(args.tvdb_id)
+			else:
+				network = get_network(mode)
+				description = network.DESCRIPTION
 		else:
-			network = get_network(mode)
-			description = network.DESCRIPTION
+			description = smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39013)) + get_network(mode).NAME + '\n\n'
+			description += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39031)) + str(unlocked) + "\n"
+			description += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39032)) + str(locked)
 	infoLabels = {	'title' : name,
 					'tvshowtitle' : showname,
 					'genre' : genre,

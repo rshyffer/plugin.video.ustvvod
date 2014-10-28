@@ -341,6 +341,14 @@ msgctxt "#39030"
 msgid "Error loading subtitles"
 msgstr ""
 
+msgctxt "#39031"
+msgid "Unlocked Episodes: "
+msgstr ""
+
+msgctxt "#39032"
+msgid "Locked Episodes: "
+msgstr ""
+
 msgctxt "#34000"
 msgid "Logins"
 msgstr ""

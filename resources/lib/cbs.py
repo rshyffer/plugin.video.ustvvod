@@ -66,7 +66,10 @@ def seasons(season_urls = _common.args.url):
 					if season_item['premiumCount'] != season_item['total_count'] or _addoncompat.get_setting('cbs_use_login') == 'true':
 						season_title = season_item['title']
 						season_number = season_item['season']
-						_common.add_directory(season_title,  SITE, 'episodes', FULLEPISODESWITHSEASON % (section, season_number))
+						unlocked_episodes = int(season_item['total_count']) - int(season_item['premiumCount'])
+						locked_episodes = season_item['premiumCount']
+						season_url = FULLEPISODESWITHSEASON % (section, season_number)
+						_common.add_directory(season_title,  SITE, 'episodes', season_url, locked = locked_episodes, unlocked = unlocked_episodes )
 			else:
 				season_url = SEASONCLIPS % section
 				season_data2 = _connection.getURL(season_url)
