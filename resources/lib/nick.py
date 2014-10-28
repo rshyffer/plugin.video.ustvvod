@@ -54,7 +54,10 @@ def episodes(episode_url = _common.args.url):
 		episode_name = episode_item['title']
 		url = 'http://legacy.nick.com/videos/clip/%s.html'
 		url = url % episode_item['urlKey']
-		episode_plot = episode_item['description']
+		try:
+			episode_plot = episode_item['description']
+		except:
+			episode_plot = ''
 		image = episode_item['images'][0]['assets'][0]['path']
 		episode_thumb = 'http://nick.com'+image
 		try:

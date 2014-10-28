@@ -130,6 +130,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	closedcaption = []
 	exception = False
 	queue = PriorityQueue()
+	segments = []
 	if 'feed' not in video_url:
 		swf_url = _connection.getRedirect(video_url, header = {'Referer' : BASE})
 		try:
@@ -153,7 +154,6 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		feed_data = _connection.getURL(feed_url)
 		video_tree = BeautifulSoup(feed_data, 'html.parser', parse_only = SoupStrainer('media:group'))
 		video_segments = video_tree.find_all('media:content')
-		segments = []
 		for i, video_item in enumerate(video_segments):
 			worker = Thread(target = get_videos, args = (queue, i, video_item, qbitrate))
 			worker.setDaemon(True)
@@ -175,6 +175,7 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 			convert_subtitles(closedcaption)
 			player._subtitles_Enabled = True
 		item = xbmcgui.ListItem(path = finalurl)
+
 		queue.task_done()
 		if qbitrate is not None:
 			item.setThumbnailImage(_common.args.thumb)
@@ -235,9 +236,10 @@ def get_videos(queue, i, video_item, qbitrate):
 		video_mgid = video_item['video']['mgid']
 	except:
 		try:
-			video_mgid = video_item['url'].split('/')[-1].split('?')[0]
-		except:
 			video_mgid = video_item['url'].split('uri=')[1].split('&')[0]
+			
+		except:
+			video_mgid = video_item['url'].split('/')[-1].split('?')[0]
 	video_data = _connection.getURL(VIDEOURLAPI % video_mgid)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	try:
