@@ -303,11 +303,14 @@ def refresh_db():
 			print "Deleting - " + series_title + " " + mode + " " + submode + " " + url
 			_database.execute_command(command, values, fetchone = True, commit = True)
 
+def get_skelton_series(series_title, mode, submode, url):
+	return [series_title, mode,submode, url, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, True, False, False, series_title]
+
 def get_serie(series_title, mode, submode, url, forceRefresh = False):
 	command = 'select * from shows where lower(series_title) = ? and mode = ? and submode = ?;'
 	values = (series_title.lower(), mode, submode)
 	checkdata = _database.execute_command(command, values, fetchone = True)
-	empty_values = [series_title, mode,submode, url, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, True, False, False, series_title]
+	empty_values = get_skelton_series(series_title, mode, submode, url)
 	try:
 		tvdb_setting = int(_addoncompat.get_setting('strict_names'))
 	except:

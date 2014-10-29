@@ -39,27 +39,26 @@ def masterlist():
 	master_db.append(('--Crackle Movies', SITE, 'movielist', MOVIES))
 	return master_db
 
-def movielist(url = _common.args.url):	
+def movielist(url = _common.args.url):
 	root_dict = {}
 	root_url = url
 	root_data = _connection.getURL(root_url)
 	root_menu = simplejson.loads(root_data)['Entries']
 	for root_item in root_menu:
 		if _addoncompat.get_setting('hide_clip_only') == 'false' or not root_item.get('ClipsOnly', False):
-		    root_name = root_item['Title']
-		    season_url = FULLEPISODES % root_item['ID']
-		    showdata = [x for x in _common.get_show_data(root_name, SITE, 'episodes', season_url)]
-		    # series_title, mode, sitemode, url, tvdb_id, imdb_id, tvdbbanner, tvdbposter, tvdbfanart, first_aired, date, year, actors, genres, network, plot, runtime, rating, airs_dayofweek, airs_time, status, has_full_episodes, favor, hide, tvdb_series_title
-		    showdata[6] = root_item.get('ChannelArtTileWide', showdata[6])
-		    showdata[7] = root_item.get('ChannelArtTileLarge', showdata[7])
-		    showdata[8] = root_item.get('ChannelArtLandscape', showdata[8])
-		    showdata[9] = root_item.get('ReleaseYear', showdata[9])
-		    showdata[11] = root_item.get('ReleaseYear', showdata[11])
-		    showdata[13] = root_item.get('Genre', showdata[13])
-		    showdata[15] = root_item.get('Description', showdata[15])
-		    if root_item.get('ReleaseYear', None):
-		        showdata[15] = u"%s \n(%s, %s)" % (showdata[15], showdata[13], root_item.get('ReleaseYear'))
-		    _common.add_show(root_name, SITE, 'episodes', season_url, showdata=showdata)
+			root_name = root_item['Title']
+			season_url = FULLEPISODES % root_item['ID']
+			showdata = _common.get_skelton_series(root_name, SITE, 'episodes', season_url)
+			showdata[6] = root_item.get('ChannelArtTileWide', showdata[6])
+			showdata[7] = root_item.get('ChannelArtTileLarge', showdata[7])
+			showdata[8] = root_item.get('ChannelArtLandscape', showdata[8])
+			showdata[9] = root_item.get('ReleaseYear', showdata[9])
+			showdata[11] = root_item.get('ReleaseYear', showdata[11])
+			showdata[13] = root_item.get('Genre', showdata[13])
+			showdata[15] = root_item.get('Description', showdata[15])
+			if root_item.get('ReleaseYear', None):
+				showdata[15] = u"%s \n(%s, %s)" % (showdata[15], showdata[13], root_item.get('ReleaseYear'))
+			_common.add_show(root_name, SITE, 'episodes', season_url, showdata = showdata)
 	_common.set_view('root')
 
 def seasons(season_url = _common.args.url):
