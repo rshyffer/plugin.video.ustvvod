@@ -17,7 +17,7 @@ BASE = 'http://www.tvland.com'
 SHOWS = 'http://www.tvland.com/full-episodes'
 CLIPS = 'http://www.tvland.com/video-clips'
 SEASONURL = 'http://www.tvland.com/fragments/search_results/related_episodes_seasons?showId=%s&seasonId=%s&episodeId=%s'
-VIDEOURL = 'http://www.tvland.com/feeds/video_player/mrss?uri='
+VIDEOURL = 'http://www.tvland.com/feeds/mrss/?uri='
 MP4URL = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=0+_pxK=18639/44620/mtvnorigin'
 
 def masterlist():
@@ -142,10 +142,10 @@ def add_clips(episode_tree, season_number = -1):
 
 def play_video(video_url = _common.args.url):
 	video_data = _connection.getURL(video_url)
-	video_url2 = BeautifulSoup(video_data, 'html.parser').find('div', class_ = 'videoShare')['data-unique-id']
-	_main_viacom.play_video(BASE, video_url2, VIDEOURL)	
+	video_url2 = BeautifulSoup(video_data, 'html.parser').find('div', class_ = 'videoShare')['data-unique-id'].split('::')[1]
+	_main_viacom.play_video(BASE, video_url2)
 
 def list_qualities(video_url = _common.args.url):
 	video_data = _connection.getURL(video_url)
-	video_url2 = BeautifulSoup(video_data, 'html.parser').find('div', class_ = 'videoShare')['data-unique-id']
-	return _main_viacom.list_qualities(BASE, video_url2, media_base = VIDEOURL)
+	video_url2 = BeautifulSoup(video_data, 'html.parser').find('div', class_ = 'videoShare')['data-unique-id'].split('::')[1]
+	return _main_viacom.list_qualities(BASE, video_url2)
