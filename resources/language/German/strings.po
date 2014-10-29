@@ -89,6 +89,10 @@ msgctxt "#30018"
 msgid "Quiet"
 msgstr "Beenden"
 
+msgctxt "#30019"
+msgid "Hide Clip-Only Content"
+msgstr "Einträge nur mit Clips verstecken"
+
 msgctxt "#31000"
 msgid "Connection"
 msgstr "Verbindung"

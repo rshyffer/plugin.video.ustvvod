@@ -45,7 +45,7 @@ def movielist(url = _common.args.url):
 	root_data = _connection.getURL(root_url)
 	root_menu = simplejson.loads(root_data)['Entries']
 	for root_item in root_menu:
-		if not root_item.get('ClipsOnly', False):
+		if _addoncompat.get_setting('hide_clip_only') == 'false' or not root_item.get('ClipsOnly', False):
 		    root_name = root_item['Title']
 		    season_url = FULLEPISODES % root_item['ID']
 		    showdata = [x for x in _common.get_show_data(root_name, SITE, 'episodes', season_url)]
