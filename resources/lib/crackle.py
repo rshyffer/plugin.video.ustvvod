@@ -32,10 +32,11 @@ def masterlist():
 	master_data = _connection.getURL(master_url)
 	master_menu = simplejson.loads(master_data)['Entries']
 	for master_item in master_menu:
-		master_name = master_item['Title']
-		season_url = FULLEPISODES % master_item['ID']
-		master_dict[master_name] = season_url
-		master_db.append((master_name, SITE, 'seasons', season_url))
+		if _addoncompat.get_setting('hide_clip_only') == 'false' or not master_item.get('ClipsOnly', False):
+			master_name = master_item['Title']
+			season_url = FULLEPISODES % master_item['ID']
+			master_dict[master_name] = season_url
+			master_db.append((master_name, SITE, 'seasons', season_url))
 	master_db.append(('--Crackle Movies', SITE, 'movielist', MOVIES))
 	return master_db
 

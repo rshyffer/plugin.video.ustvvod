@@ -36,7 +36,7 @@ def masterlist():
 	master_data = _connection.getURL(SHOWS)
 	master_menu = simplejson.loads(master_data)['shows']
 	for master_item in master_menu:
-		if master_item['external_link'] == '':
+		if master_item['external_link'] == '' and (master_item['fullepisodes'] == 'true' or _addoncompat.get_setting('hide_clip_only') == 'false'):
 			master_name = master_item['title']
 			master_db.append((master_name, SITE, 'seasons', master_name))
 	return master_db
