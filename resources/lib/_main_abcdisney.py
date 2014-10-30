@@ -56,7 +56,7 @@ def masterlist(SITE, BRANDID):
 				except:
 					if int(master_item['fullepisodes']['count']['video'][0]['@accesslevel']) == 0:
 						fullepisodes = int(master_item['fullepisodes']['count']['video'][0]['$'])
-			if (fullepisodes + clips) > 0:
+			if fullepisodes > 0 or (clips > 0 and _addoncompat.get_setting('hide_clip_only') == 'false'):
 				master_name = master_item['title'].strip()
 				season_url = master_item['@id']
 				master_db.append((master_name, SITE, 'seasons', season_url))
