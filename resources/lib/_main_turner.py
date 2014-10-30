@@ -25,15 +25,22 @@ def masterlist(NAME, MOVIES, SHOWS, SITE):
 	master_menu = simplejson.loads(master_data)
 	for master_item in master_menu:
 		master_name = _common.smart_utf8(master_item['title'])
-		season_url = master_name + '#' + master_item['ID'] 
-		master_db.append((master_name,  SITE, 'seasons', season_url))
+		if 'ondemandEpisodes' in master_item['excludedSections']:
+			has_full_eps = 'false'
+		else:
+			has_full_eps = 'true'
+		if (_addoncompat.get_setting('hide_clip_only') == 'false' and 'clips' not in master_item['excludedSections']) or has_full_eps == 'true':
+			season_url = master_name + '#' + master_item['ID'] + '#' + has_full_eps
+			master_db.append((master_name,  SITE, 'seasons', season_url))
 	return master_db
 
 def seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS):
 	show_id = _common.args.url
 	master_name = show_id.split('#')[0]
+	has_full_eps = show_id.split('#')[2]
 	show_id = show_id.split('#')[1]
-	_common.add_directory('Full Episodes',  SITE, 'episodes', master_name + '#' + FULLEPISODES % show_id)
+	if has_full_eps == 'true':
+		_common.add_directory('Full Episodes',  SITE, 'episodes', master_name + '#' + FULLEPISODES % show_id)
 	clips_data = _connection.getURL(CLIPSSEASON % show_id)
 	clips_menu = simplejson.loads(clips_data)
 	for season in clips_menu:
@@ -48,6 +55,7 @@ def episodes_json(SITE):
 	episode_data = _connection.getURL(episode_url)
 	episode_menu = simplejson.loads(episode_data)
 	for episode_item in episode_menu:
+		print episode_item
 		url = episode_item['episodeID']
 		try:
 			episode_duration = episode_item['length']
@@ -74,7 +82,7 @@ def episodes_json(SITE):
 		except:
 			season_number = -1
 		try:
-			episode_number =  int(episode_item['identifier'].split(', ')[1].split(' ')[1][1:])
+			episode_number =  int(episode_item['identifier'].split(', ')[1].split(' ')[1].replace(' Episode ', ''))
 		except:
 			try:
 				episode_number =  int(episode_item['identifier'].split(', ')[1].split(' ')[1])
