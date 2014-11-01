@@ -12,9 +12,9 @@ SITE = 'cartoon'
 NAME = "Cartoon Network"
 DESCRIPTION = "Cartoon Network (CartoonNetwork.com), currently seen in more than 97 million U.S. homes and 166 countries around the world, is Turner Broadcasting System, Inc.'s ad-supported cable service now available in HD offering the best in original, acquired and classic entertainment for youth and families.  Nightly from 10 p.m. to 6 a.m. (ET, PT), Cartoon Network shares its channel space with Adult Swim, a late-night destination showcasing original and acquired animated and live-action programming for young adults 18-34 "
 SHOWS = 'http://www.cartoonnetwork.com/video/staged/CN2.mobile.configuration.xml'
-CLIPS = 'http://cnvideosvc2.cartoonnetwork.com/svc/episodeSearch/getAllEpisodes?networkName=CN2?limit=400&offset=0&sortByDate=DESC&filterByEpisodeType=CLI-CLI&filterByCollectionId=%s&filterBySeasonNumber=%s'
-FULLEPISODES = 'http://cnvideosvc2.cartoonnetwork.com/svc/episodeSearch/getAllEpisodes?networkName=CN2?limit=400&offset=0&sortByDate=DESC&filterByEpisodeType=TVE&filterByCollectionId=%s&filterBySeasonNumber=%s'
 EPISODE = 'http://www.cartoonnetwork.com/video-seo-svc/episodeservices/getCvpPlaylist?networkName=CN2&id=%s'
+CLIPS = 'http://www.cartoonnetwork.com/video-seo-svcepisodeSearch/getAllEpisodes?networkName=CN2&filterByPlatform=mobile&filterByEpisodeType=CLI-CLI&offset=0&sortByDate=DESC&filterByCollectionId=%s&filterBySeasonNumber=%s'
+FULLEPISODES = 'http://www.cartoonnetwork.com/video-seo-svcepisodeSearch/getAllEpisodes?networkName=CN2&filterByPlatform=mobile&filterByEpisodeType=TVE&offset=0&sortByDate=DESC&filterByCollectionId=%s&filterBySeasonNumber=%s'
 
 def masterlist():
 	master_db = []
@@ -25,6 +25,7 @@ def masterlist():
 	for master_item in master_menu:
 		master_name = _common.smart_utf8(master_item['name'])
 		if '[AD]' not in master_name:
+			print master_item
 			tvdb_name = _common.get_show_data(master_name, SITE, 'seasons')[-1]
 			season_url = master_item['id'] 
 			season_url = season_url + '#tveepisodes='
