@@ -1,3 +1,19 @@
+version 1.1.3
+
+  * improve auto matching on show names
+  * fix full episodes on some NBC shows
+  * fix for NICK and CC playback
+  * display episode numbers for CBS
+  * improve movie display for Crackle, hide movies containing only clips
+  * add setting for clip-only content
+  * fix for TVland
+  * remove tvdb lookup entirely from Crackle movies
+  * apply 'hide clip only' to ABC/Disney
+  * tidy up shows and seasons for turner stations
+  * clip only filters for FOX and Crackle
+  * TVland hide clips only
+  * fix Cartoon Network
+
 version 1.1.2
 
   * standardise exception notifications
