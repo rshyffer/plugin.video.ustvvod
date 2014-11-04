@@ -16,7 +16,7 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
-from collections import OrderedDict
+from _ordereddict import OrderedDict
 
 pluginHandle = int(sys.argv[1])
 player = _common.XBMCPlayer()
