@@ -104,7 +104,7 @@ def play_video(video_url = _common.args.url):
 	sbitrate = int(_addoncompat.get_setting('quality')) * 1000
 	finalurl = ''
 	video_data = _connection.getURL(video_url + '&manifest=m3u')
-	video_tree = BeautifulSoup(video_data)
+	video_tree = BeautifulSoup(video_data, 'html.parser')
 	if (_addoncompat.get_setting('enablesubtitles') == 'true'):
 		try:
 			closedcaption = video_tree.find('textstream', src = True)['src']

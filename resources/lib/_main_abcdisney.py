@@ -193,10 +193,11 @@ def play_video(SITE, BRANDID, PARTNERID):
 					playpath_url = video_index.get('uri')
 			finalurl = playpath_url
 		elif  video_format == 'MOV':
+			player._localHTTPServer = False
 			playpath_url = None
 			video_url = PLAYLISTMOV % (PARTNERID, PARTNERID) + video_id
 			video_data = _connection.getURL(video_url)
-			video_tree = BeautifulSoup(video_data)
+			video_tree = BeautifulSoup(video_data, 'html.parser')
 			base_url = video_tree('baseurl')[0].string
 			video_url2 = video_tree.findAll('media')
 			for video_index in video_url2:
