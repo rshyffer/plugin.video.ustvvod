@@ -75,7 +75,6 @@ def seasons(season_urls = _common.args.url):
 				season_menu = 0
 			if season_menu > 0:
 				if ',' in season_urls:
-					print season_data
 					_common.add_directory(name + ' ' + type+'s',  SITE, 'episodes', (season_url + '#' + type))
 				else:
 					_common.add_directory(type+'s',  SITE, 'episodes', (season_url + '#' + type))

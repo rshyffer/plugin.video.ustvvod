@@ -55,7 +55,6 @@ def episodes_json(SITE):
 	episode_data = _connection.getURL(episode_url)
 	episode_menu = simplejson.loads(episode_data)
 	for episode_item in episode_menu:
-		print episode_item
 		url = episode_item['episodeID']
 		try:
 			episode_duration = episode_item['length']
@@ -245,7 +244,6 @@ def list_qualities(SITE, EPISODE):
 	video_menu = video_tree.find_all('file')
 	bitrates = []
 	for video_index in video_menu:
-		print video_index
 		try:
 			try:
 				play_mode = video_index['play_mode']

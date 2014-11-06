@@ -348,7 +348,7 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False):
 		return empty_values
 
 def get_series_id(seriesdata, seriesname, site = '', allowManual = False, network_alias = []):
-	print "aliais",network_alias
+	print "alias: ", network_alias
 	shows = BeautifulSoup(seriesdata).find_all('series')
 	for show_item in shows:
 		if  '**' in show_item.seriesname.string:

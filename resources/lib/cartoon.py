@@ -25,7 +25,6 @@ def masterlist():
 	for master_item in master_menu:
 		master_name = _common.smart_utf8(master_item['name'])
 		if '[AD]' not in master_name:
-			print master_item
 			tvdb_name = _common.get_show_data(master_name, SITE, 'seasons')[-1]
 			season_url = master_item['id'] 
 			season_url = season_url + '#tveepisodes='

@@ -393,7 +393,6 @@ def add_video(episode_tree, episode = False):
 				url = episode_item.find('meta', itemprop = 'url')['content']
 				try:
 					episode_thumb = episode_item.find('meta', itemprop = 'image')['content'].split('?')[0]
-					print episode_thumb
 				except:
 					try:
 						episode_thumb = episode_item.find('meta', itemprop = 'thumbnailUrl')['content'].split('?')[0]
@@ -404,12 +403,10 @@ def add_video(episode_tree, episode = False):
 				except:
 					try:
 						episode_airdate = episode_item.find('meta', itemprop = 'datePublished')['content']
-						print episode_airdate
 						try:
 							episode_airdate = _common.format_date(episode_airdate, '%B %d, %Y')
 						except:
 							episode_airdate = _common.format_date(episode_airdate, '%b %d, %Y')
-						print episode_airdate
 					except:
 						episode_airdate = -1
 				try:

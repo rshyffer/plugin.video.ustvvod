@@ -121,7 +121,6 @@ def list_qualities():
 			video_url3 = video_url2['src']
 			video_data2 = _connection.getURL(video_url3)
 			video_url4 = _m3u8.parse(video_data2)
-			print video_url4
 			for video_index in video_url4.get('playlists'):
 				bitrate = int(video_index.get('stream_info')['bandwidth'])
 				try:
