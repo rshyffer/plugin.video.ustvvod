@@ -72,6 +72,7 @@
 		<setting id="pbskids" type="bool" label="PBS Kids" default="true"/>
 		<setting id="spike" type="bool" label="Spike" default="true"/>
 		<setting id="syfy" type="bool" label="SyFy" default="true"/>
+		<setting id="tcm" type="bool" label="TCM" default="true"/>
 		<setting id="tbs" type="bool" label="TBS" default="true"/>
 		<setting id="tnt" type="bool" label="TNT" default="true"/>
 		<setting id="trutv" type="bool" label="TruTV" default="true"/>
