@@ -115,7 +115,7 @@ def list_qualities():
 			bitrates.append((display, bitrate))
 	else:
 		video_data = _connection.getURL(video_url + '&manifest=m3u')
-		video_tree = BeautifulSoup(video_data)
+		video_tree = BeautifulSoup(video_data, 'html.parser')
 		if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
 			video_url2 = video_tree.seq.find_all('video')[0]
 			video_url3 = video_url2['src']

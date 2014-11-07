@@ -116,7 +116,7 @@ def play_video(video_url = _common.args.url):
 				finalurl = base_url +' playpath=' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
 	else:
 		video_data = _connection.getURL(video_url + '&manifest=m3u')
-		video_tree = BeautifulSoup(video_data)
+		video_tree = BeautifulSoup(video_data, 'html.parser')
 		try:
 			closedcaption = video_tree.textstream['src']
 		except:

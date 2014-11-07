@@ -349,7 +349,7 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False):
 
 def get_series_id(seriesdata, seriesname, site = '', allowManual = False, network_alias = []):
 	print "alias: ", network_alias
-	shows = BeautifulSoup(seriesdata).find_all('series')
+	shows = BeautifulSoup(seriesdata, 'html.parser').find_all('series')
 	for show_item in shows:
 		if  '**' in show_item.seriesname.string:
 			show_item.clear()
@@ -451,7 +451,7 @@ def get_tvdb_series(seriesname, manualSearch = False, site = '', network_alias =
 			return False
 	series_xml = TVDBURL + ('/api/%s/series/%s/en.xml' % (TVDBAPIKEY, tvdb_id))
 	series_xml = _connection.getURL(series_xml, connectiontype = 0)
-	series_tree = BeautifulSoup(series_xml).find('series')
+	series_tree = BeautifulSoup(series_xml, 'html.parser').find('series')
 	try:
 		if smart_unicode(series_tree.firstaired.text) is not '':
 			first_aired = smart_unicode(series_tree.firstaired.text)

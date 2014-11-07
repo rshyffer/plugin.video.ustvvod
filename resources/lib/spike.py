@@ -89,11 +89,11 @@ def episodes(episode_url = _common.args.url):
 				episode_items = int(_addoncompat.get_setting('maxpages'))
 			for episode_item in range(episode_items):
 					episode_data2 = _connection.getURL(episode_url2 + '?page=' + str(episode_item + 1))
-					episode_tree2 = BeautifulSoup(episode_data2)
+					episode_tree2 = BeautifulSoup(episode_data2, 'html.parser')
 					add_clips(episode_tree2)
 		else:
 			episode_data2 = _connection.getURL(episode_url2 + '?page=1')
-			episode_tree2 = BeautifulSoup(episode_data2)
+			episode_tree2 = BeautifulSoup(episode_data2, 'html.parser')
 			add_clips(episode_tree2)
 	else:
 		try:
@@ -108,7 +108,7 @@ def episodes(episode_url = _common.args.url):
 			for episode_item2 in episode_items2:
 				if (episode_item2.text != 'Next'):
 					episode_data3 = _connection.getURL(episode_item2['href'])
-					episode_tree3 = BeautifulSoup(episode_data3)
+					episode_tree3 = BeautifulSoup(episode_data3, 'html.parser')
 					try:
 						add_fullepisodes(episode_tree3, int(_common.args.name.split(' ')[1]))
 					except:

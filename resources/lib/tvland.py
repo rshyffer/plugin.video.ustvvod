@@ -68,7 +68,7 @@ def episodes(episode_url = _common.args.url):
 			episode_menu = episode_tree.find_all('a', class_ = 'season')
 			for episode_item in episode_menu:
 				episode_data2 = _connection.getURL(SEASONURL %(show_id, episode_item['id'], episode_id))
-				episode_tree2 = BeautifulSoup(episode_data2)
+				episode_tree2 = BeautifulSoup(episode_data2, 'html.parser')
 				add_fullepisodes(episode_tree2, episode_item.text.split(' ')[1])
 		else:
 			add_fullepisodes(episode_tree)

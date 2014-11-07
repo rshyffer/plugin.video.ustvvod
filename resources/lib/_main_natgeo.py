@@ -58,7 +58,7 @@ def episodes(SITE):
 		more = episode_tree.find('a', class_ = 'load-more')
 		if more:
 			episode_data = _connection.getURL(BASE + more['href'])
-			episode_tree = BeautifulSoup(episode_data)
+			episode_tree = BeautifulSoup(episode_data, 'html.parser')
 			add_videos(episode_tree, SITE)
 		_common.set_view('episodes')
 
@@ -94,7 +94,7 @@ def play_video(SITE):
 	video_data = _connection.getURL(video_url)
 	smil_url =  re.compile("window.video_auth_playlist_url = '(.*)'").findall(video_data)[0]
 	smil_data = _connection.getURL(smil_url + '&manifest=m3u')
-	video_tree2 = BeautifulSoup(smil_data)
+	video_tree2 = BeautifulSoup(smil_data, 'html.parser')
 	video_url3 = video_tree2.video['src']
 	video_data3 = _connection.getURL(video_url3)
 	video_url4 = _m3u8.parse(video_data3)
@@ -132,7 +132,7 @@ def list_qualities(SITE):
 	video_data = _connection.getURL(video_url)
 	smil_url =  re.compile("window.video_auth_playlist_url = '(.*)'").findall(video_data)[0]
 	smil_data = _connection.getURL(smil_url + '&manifest=m3u')
-	video_tree2 = BeautifulSoup(smil_data)
+	video_tree2 = BeautifulSoup(smil_data, 'html.parser')
 	video_url3 = video_tree2.video['src']
 	video_data3 = _connection.getURL(video_url3)
 	video_url4 = _m3u8.parse(video_data3)

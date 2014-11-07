@@ -180,7 +180,7 @@ def add_videos_thetonightshow(url, type_, page = 1, added_episodes = []):
 			pid = video['videos'][0]['mpxPublicId']
 			episode_url = SMIL % pid
 			try:
-				episode_plot = BeautifulSoup(video['description']['value']).p.string
+				episode_plot = BeautifulSoup(video['description']['value'], 'html.parser').p.string
 			except:
 				episode_plot = ''
 			try:

@@ -31,7 +31,7 @@ def masterlist():
 
 def seasons(season_url = _common.args.url):
 	season_data = _connection.getURL(season_url)
-	season_tree = BeautifulSoup(season_data)
+	season_tree = BeautifulSoup(season_data, 'html.parser')
 	season_menu = season_tree.find_all('div', class_ = 'tab-wrap')
 	for season_item in season_menu:
 		season_name = season_item.h2.text
@@ -40,7 +40,7 @@ def seasons(season_url = _common.args.url):
 
 def episodes(episode_url = _common.args.url):
 	episode_data = _connection.getURL(episode_url)
-	episode_tree = BeautifulSoup(episode_data)
+	episode_tree = BeautifulSoup(episode_data, 'html.parser')
 	episode_carousel = episode_tree.find_all('div', class_ = 'tab-wrap')
 	for episode in episode_carousel:
 		if _common.args.name == episode.h2.text:

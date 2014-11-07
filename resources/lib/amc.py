@@ -23,7 +23,7 @@ CONST = '353d86e482b6e9ad425cfd0fbac5d21174cb0d55'
 def masterlist():
 	master_db = []
 	master_data = _connection.getURL(SHOWS)
-	master_menu = BeautifulSoup(master_data).find('select', id = 'rb-video-browser-show').find_all('option', title = True)
+	master_menu = BeautifulSoup(master_data, 'html.parser').find('select', id = 'rb-video-browser-show').find_all('option', title = True)
 	for master_item in master_menu:
 		master_name = master_item.text
 		season_url = master_item['value']
@@ -32,7 +32,7 @@ def masterlist():
 
 def seasons():
 	season_data = _connection.getURL(SHOWS)
-	season_tree = BeautifulSoup(season_data)
+	season_tree = BeautifulSoup(season_data, 'html.parser')
 	season_videotypes = season_tree.find('select', id = 'rb-video-browser-content_type').find_all('option')
 	season_shows = season_tree.find('select', id = 'rb-video-browser-show').find_all('option')
 	for season_item in season_shows:
@@ -56,7 +56,7 @@ def episodes():
 						'module_id_base' : 'rb-video-browser' }
 	episode_data = _connection.getURL(VIDEOURL, episode_values)
 	episode_tree = simplejson.loads(episode_data)['html']['date']
-	episode_menu = BeautifulSoup(episode_tree).find_all('li')
+	episode_menu = BeautifulSoup(episode_tree, 'html.parser').find_all('li')
 	for episode_item in episode_menu:
 		episode_name = episode_item.a.img['title']
 		episode_plot = episode_item.a.img['alt'].replace('/n',' ')

@@ -35,7 +35,7 @@ def masterlist():
 def seasons(season_url = _common.args.url):
 	season_data = _connection.getURL(FULLEPISODES % season_url)
 	try:
-		season_menu = int(BeautifulSoup(season_data).find('div', class_ = 'total-videos').text.split(' ')[0])
+		season_menu = int(BeautifulSoup(season_data, 'html.parser').find('div', class_ = 'total-videos').text.split(' ')[0])
 	except:
 		season_menu = 0
 	if season_menu > 0:
@@ -43,7 +43,7 @@ def seasons(season_url = _common.args.url):
 		_common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
 	season_data2 = _connection.getURL(CLIPS % season_url)
 	try:
-		season_menu2 = int(BeautifulSoup(season_data2).find('div', class_ = 'total-videos').text.split(' ')[0])
+		season_menu2 = int(BeautifulSoup(season_data2, 'html.parser').find('div', class_ = 'total-videos').text.split(' ')[0])
 	except:
 		season_menu2 = 0
 	if season_menu2 > 0:
