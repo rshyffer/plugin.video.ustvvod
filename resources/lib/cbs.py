@@ -11,6 +11,7 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
+from _ordereddict import OrderedDict
 
 pluginHandle = int(sys.argv[1])
 
@@ -36,9 +37,9 @@ def masterlist():
 		master_menu = simplejson.loads(master_data)['result']['data']
 		for master_item in master_menu:
 			master_name = master_item['title']
-			try:
+			if master_item['navigationItemLink'] and 'video' not in master_item['navigationItemLink'][0]['link']:
 				season_url = master_item['navigationItemLink'][0]['link']
-			except:
+			else:
 				if master_item['link'][-1:] == '/':
 					season_url = master_item['link'] + 'video'
 				else:
@@ -54,40 +55,25 @@ def seasons(season_urls = _common.args.url):
 	root_url = season_urls
 	season_data = _connection.getURL(season_urls)
 	show_id = re.compile('video.settings.show_id = (.*);').findall(season_data)[0]
-	section_ids = re.compile('video.section_ids = \[(.*)\];').findall(season_data)[0]
-	seasons = re.compile('video.seasons = \{(.*?) \};', re.DOTALL).findall(season_data)[0]
-	filter_sections = re.compile('sections: \[(.*)\],').findall(season_data)[0]
+	section_metadata = re.compile('video.section_metadata = (\{.*\});').findall(season_data)[0]
 	filter = re.compile('filter: (\[.*\]),').findall(season_data)[0]
 	filter_menu = simplejson.loads(filter)
-	if section_ids:
-		for section in section_ids.split(','):
-			if section in filter_sections and filter_menu:
-				for season_item in reversed(filter_menu):
-					if season_item['premiumCount'] != season_item['total_count'] or _addoncompat.get_setting('cbs_use_login') == 'true':
-						season_title = season_item['title']
-						season_number = season_item['season']
-						unlocked_episodes = int(season_item['total_count']) - int(season_item['premiumCount'])
-						locked_episodes = season_item['premiumCount']
-						season_url = FULLEPISODESWITHSEASON % (section, season_number)
-						_common.add_directory(season_title,  SITE, 'episodes', season_url, locked = locked_episodes, unlocked = unlocked_episodes )
-			else:
-				season_url = SEASONCLIPS % section
-				season_data2 = _connection.getURL(season_url)
-				season_data3 = simplejson.loads(season_data2)['result']
-				try:
-					season_title = season_data3['title']
-					_common.add_directory(season_title,  SITE, 'episodes', FULLEPISODES % section)
-				except:
-					pass
-	else:
-		show_tree = BeautifulSoup(season_data, 'html.parser')
-		season_menu = show_tree.find_all(attrs = {'name' : 'season'})
-		for season_item in season_menu:
-			season_url = root_url + 'season/%s/videos/episodes' % season_item['value']
-			_common.add_directory('Season ' + season_item['value'], SITE, 'episodesClassic', season_url)
-		for season_item in season_menu:
-			season_url = root_url + 'season/%s/videos/clips' % season_item['value']
-			_common.add_directory('Clips Season ' + season_item['value'], SITE, 'episodesClassic', season_url)
+	section_menu = simplejson.loads(section_metadata, object_pairs_hook = OrderedDict)
+	for section_data in section_menu.itervalues():
+		section_id = section_data['sectionId']
+		section_title = section_data['title']
+		if section_data['display_seasons'] and filter_menu:
+			
+			for season_item in reversed(filter_menu):
+				if season_item['premiumCount'] != season_item['total_count'] or _addoncompat.get_setting('cbs_use_login') == 'true':
+					season_title = season_item['title']
+					season_number = season_item['season']
+					unlocked_episodes = int(season_item['total_count']) - int(season_item['premiumCount'])
+					locked_episodes = season_item['premiumCount']
+					season_url = FULLEPISODESWITHSEASON % (section_id, season_number)
+					_common.add_directory(section_title + ' ' + season_title,  SITE, 'episodes', season_url, locked = locked_episodes, unlocked = unlocked_episodes )
+		else:
+			_common.add_directory(section_title,  SITE, 'episodes', FULLEPISODES % section_id)
 	_common.set_view('seasons')
 
 def episodes(episode_url = _common.args.url):
@@ -96,10 +82,12 @@ def episodes(episode_url = _common.args.url):
 	episode_menu = episode_json['data']
 	title = episode_json['title']
 	for episode_item in episode_menu:
-		url_att = episode_item['streaming_url']
-		type = episode_item['type']
 		if episode_item['status'] == 'AVAILABLE' or (_addoncompat.get_setting('cbs_use_login') == 'true' and episode_item['status'] == 'PREMIUM'):
 			videourl = episode_item['streaming_url']
+			if '_hd_' in videourl:
+				HD = True
+			else:
+				HD = False
 			url = BASE + episode_item['url']
 			episode_duration = int(_common.format_seconds(episode_item['duration']))
 			episode_airdate = _common.format_date(episode_item['airdate'], '%m/%d/%y')
@@ -131,7 +119,7 @@ def episodes(episode_url = _common.args.url):
 								'episode' : episode_number,
 								'plot' : episode_plot,
 								'premiered' : episode_airdate }
-				_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+				_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities', HD = HD)
 			else:
 				pass
 	_common.set_view('episodes')
