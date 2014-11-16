@@ -28,15 +28,6 @@
 		<setting id="tor_as_service" type="bool" label="31016" default="false" visible="eq(-2,True)+eq(-14,3)" />
 		<setting type="sep" />
 	</category>
-	<category label="32000">
-		<setting type="sep" />
-		<setting id="viewenable" type ="bool" label="32001" default="true" />
-		<setting id="rootview" type="enum" lvalues="32002|32003|32004|32005|32006|32007|32008" label="32009" default="3" />
-		<setting id="tvshowsview" type="enum" lvalues="32002|32003|32004|32005|32006|32007|32008" label="32010" default="3" />
-		<setting id="seasonsview" type="enum" lvalues="32002|32003|32004|32005|32006|32007|32008" label="32011" default="3" />
-		<setting id="episodesview" type="enum" lvalues="32002|32003|32004|32005|32006|32007|32008" label="32012" default="3" />
-		<setting type="sep" />
-	</category>
 	<category label="33000">
 		<setting type="sep" />
 		<setting id="abc" type="bool" label="ABC" default="true"/>
@@ -89,6 +80,15 @@
 		<setting id="cbs_use_login" type="bool" label="34001" default="false"/>
 		<setting id="cbs_username" type="text" label="31009" default="" visible="eq(-1,True)"/>
 		<setting id="cbs_password" type="text" label="31010" default="" option="hidden"  visible="eq(-2,True)"/>
+		<setting type="sep" />
+	</category>
+	<category label="32000">
+		<setting type="sep" />
+		<setting id="viewenable" type ="bool" label="32001" default="true" />
+		<setting id="rootview" type="enum" lvalues="32002|32003|32004|32005|32006|32007|32008" label="32009" default="3" />
+		<setting id="tvshowsview" type="enum" lvalues="32002|32003|32004|32005|32006|32007|32008" label="32010" default="3" />
+		<setting id="seasonsview" type="enum" lvalues="32002|32003|32004|32005|32006|32007|32008" label="32011" default="3" />
+		<setting id="episodesview" type="enum" lvalues="32002|32003|32004|32005|32006|32007|32008" label="32012" default="3" />
 		<setting type="sep" />
 	</category>
 </settings>
