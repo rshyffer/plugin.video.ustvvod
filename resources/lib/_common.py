@@ -778,7 +778,7 @@ def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = No
 			description += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39031)) + str(unlocked) + "\n"
 			description += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39032)) + str(locked)
 			if locked > 0:
-				description += "\n\n" + network.LOCKEDMESSAGE
+				description += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39033)) % network.ACCOUNTNAME + '\n' + network.ACCOUNTINFOURL
 	infoLabels = {	'title' : name,
 					'tvshowtitle' : showname,
 					'genre' : genre,

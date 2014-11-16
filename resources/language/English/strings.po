@@ -353,6 +353,10 @@ msgctxt "#39032"
 msgid "Locked Episodes: "
 msgstr ""
 
+msgctxt "#39033"
+msgid "\n\n%s account required for locked content."
+msgstr ""
+
 msgctxt "#34000"
 msgid "Logins"
 msgstr ""
