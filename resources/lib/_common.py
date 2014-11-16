@@ -767,16 +767,18 @@ def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = No
 	else:
 		showname = ''
 	if description is None:
+		network = get_network(mode)
 		if locked == -1 and unlocked == -1:
 			if args.__dict__.has_key('tvdb_id'):
 				description = get_plot_by_tvdbid(args.tvdb_id)
 			else:
-				network = get_network(mode)
 				description = network.DESCRIPTION
 		else:
 			description = smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39013)) + get_network(mode).NAME + '\n\n'
 			description += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39031)) + str(unlocked) + "\n"
 			description += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39032)) + str(locked)
+			if locked > 0:
+				description += "\n\n" + network.LOCKEDMESSAGE
 	infoLabels = {	'title' : name,
 					'tvshowtitle' : showname,
 					'genre' : genre,
