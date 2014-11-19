@@ -345,6 +345,18 @@ msgctxt "#39030"
 msgid "Error loading subtitles"
 msgstr "Fehler beim Untertitel laden"
 
+msgctxt "#39031"
+msgid "Unlocked Episodes: "
+msgstr "Nicht gesperrte Episoden: "
+
+msgctxt "#39032"
+msgid "Locked Episodes: "
+msgstr "Gesperrte Episoden: "
+
+msgctxt "#39033"
+msgid "\n\n%s account required for locked content."
+msgstr "\n\n%s Konto benötigt für gesperrten Inhalt."
+
 msgctxt "#34000"
 msgid "Anmeldedaten"
 msgstr ""
