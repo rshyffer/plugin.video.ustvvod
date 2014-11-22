@@ -39,8 +39,8 @@ TONIGHT_SHOW_FEED = '%s/content/a/filter-items/?type=video'
 def masterlist():
 	master_db = []
 	master_data = _connection.getURL(SHOWS)
-	master_tree = BeautifulSoup(master_data, 'html.parser')
-	master_menu = master_tree.footer.find_all('li', class_ = 'views-row')
+	master_tree = BeautifulSoup(master_data, 'html.parser', parse_only = SoupStrainer('footer'))
+	master_menu = master_tree.find_all('li', class_ = 'views-row')
 	for master_item in master_menu:
 		master_name = _common.smart_utf8(master_item.text.strip())
 		season_url = master_item.a['href']
