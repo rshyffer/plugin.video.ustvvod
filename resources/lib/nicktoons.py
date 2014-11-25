@@ -69,6 +69,10 @@ def add_videos(episode_tree):
 		show_name = _common.args.name
 		episode_link = episode_item.h4.a
 		episode_name = episode_link.text
+		try:
+			episode_name = episode_name.split(':')[-1].strip()
+		except:
+			pass
 		url = BASE + episode_link['href']
 		episode_thumb = episode_item.find('img')['src'].split('?')[0]
 		episode_plot = episode_item.find('p', class_ = 'description').text

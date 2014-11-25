@@ -17,6 +17,8 @@ BASE = 'http://nick.com'
 FULLEPISODES = 'http://www.nick.com/apps/api/v2/content-collection?apiKey=gve7v8ti&rows=40&series=%s&start=0&types=episodes'
 SHOWS = 'http://www.nick.com/apps/api/v2/editorial-content-categories/stars?apiKey=gve7v8ti'
 CLIPS = 'http://www.nick.com/apps/api/v2/content-collection?apiKey=gve7v8ti&killDBSequenceNumber=&rows=40&series=%s&start=0&types=video'
+FEED = 'http://udat.mtvnservices.com/service1/dispatch.htm?feed=nick_arc_player_prime&plugin.stage=live&mgid=%s'
+EPISODE_URL ='http://legacy.nick.com/videos/clip/%s.html'
 
 def masterlist():
 	master_db = []
@@ -46,20 +48,26 @@ def seasons(season_url = _common.args.url):
 def episodes(episode_url = _common.args.url):
 	episode_data = _connection.getURL(episode_url, header = {'X-Forwarded-For' : '12.13.14.15'})
 	episode_menu = simplejson.loads(episode_data)['results']
+	
 	for episode_item in episode_menu:
 		try:
 			show_name = episode_item['seriesTitle']
 		except:
 			show_name = ''
-		episode_name = episode_item['title']
-		url = 'http://legacy.nick.com/videos/clip/%s.html'
-		url = url % episode_item['urlKey']
+		try:
+			episode_name = episode_item['title'].split(':')[1].replace('"', '')
+		except:
+			episode_name = episode_item['title']
+		url = EPISODE_URL % episode_item['urlKey']
 		try:
 			episode_plot = episode_item['description']
 		except:
 			episode_plot = ''
-		image = episode_item['images'][0]['assets'][0]['path']
-		episode_thumb = 'http://nick.com'+image
+		try:
+			image = episode_item['images'][0]['assets'][0]['path']
+			episode_thumb = BASE + image
+		except:
+			episode_thumb = None
 		try:
 			episode_duration = _common.format_seconds(episode_item['duration'])
 		except:
@@ -78,7 +86,8 @@ def episodes(episode_url = _common.args.url):
 def play_video(video_url = _common.args.url):
 	video_data = _connection.getURL(video_url, header = {'X-Forwarded-For' : '12.13.14.15'})
 	video_url2 = re.compile('<meta content="http://media.mtvnservices.com/fb/(.+?).swf" property="og:video"/>').findall(video_data)[0]
-	_main_viacom.play_video(BASE, video_url2)
+	feed_url = FEED % video_url2
+	_main_viacom.play_video(BASE, feed_url)
 
 def list_qualities(video_url = _common.args.url):
 	video_data = _connection.getURL(video_url, header = {'X-Forwarded-For' : '12.13.14.15'})

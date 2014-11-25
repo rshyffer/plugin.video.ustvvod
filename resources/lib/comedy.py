@@ -30,7 +30,7 @@ def masterlist():
 	root_url = SHOWS
 	root_data = _connection.getURL(root_url)
 	root_tree = BeautifulSoup(root_data, 'html.parser')
-	root_menu = root_tree.find('div', class_ = 'full_episodes').find_all('a', href = re.compile('^http+'))
+	root_menu = root_tree.find('div', class_ = 'full_episodes').find_all('a', href = re.compile('^http+'), class_ = False)
 	for root_item in root_menu:
 		root_name = root_item.string
 		if root_name is not None and root_name.lower() not in root_doubles and root_name.split(' with ')[0].lower() not in root_doubles:
@@ -95,27 +95,25 @@ def seasons(show_url = _common.args.url):
 	    the HTML page. A consequence of this is that some shows can have mixed results: full
 	    episides pages does not have a manifest, but clips does. This can lead to duplication of
 	    container items. Many shows seem to contain a feed for full episodes, but this feed is empty """
-	if 'South Park' in _common.args.name:
-		add_items_from_southpark(show_url)
+
+	triforceManifestFeed = _get_manifest(show_url)
+	if triforceManifestFeed:
+		add_items_from_manifestfile(triforceManifestFeed, show_url)
 	else:
-		triforceManifestFeed = _get_manifest(show_url)
-		if triforceManifestFeed:
-			add_items_from_manifestfile(triforceManifestFeed, show_url)
-		else:
-			full_episodes_url = get_full_episodes_url(show_url)
-			clips_url = get_clips_url(show_url)
-			if full_episodes_url:
-				triforceManifestFeed = _get_manifest(full_episodes_url)
-				if triforceManifestFeed:
-					add_items_from_manifestfile(triforceManifestFeed, full_episodes_url)
-				else:
-					_common.add_directory('Full Episodes',  SITE, 'episodes', full_episodes_url)
-			if clips_url:
-				triforceManifestFeed = _get_manifest(clips_url)
-				if triforceManifestFeed:
-					add_items_from_manifestfile(triforceManifestFeed, clips_url)
-				else:
-					_common.add_directory('Full Episodes',  SITE, 'episodes', clips_url)
+		full_episodes_url = get_full_episodes_url(show_url)
+		clips_url = get_clips_url(show_url)
+		if full_episodes_url:
+			triforceManifestFeed = _get_manifest(full_episodes_url)
+			if triforceManifestFeed:
+				add_items_from_manifestfile(triforceManifestFeed, full_episodes_url)
+			else:
+				_common.add_directory('Full Episodes',  SITE, 'episodes', full_episodes_url)
+		if clips_url:
+			triforceManifestFeed = _get_manifest(clips_url)
+			if triforceManifestFeed:
+				add_items_from_manifestfile(triforceManifestFeed, clips_url)
+			else:
+				_common.add_directory('Full Episodes',  SITE, 'episodes', clips_url)
 	_common.set_view('seasons')
 
 def episodes(episode_url = _common.args.url):
@@ -253,9 +251,17 @@ def add_items_from_manifestfile(triforceManifestFeed, season_url):
 			thiszone = triforceManifestFeed['manifest']['zones'][zone]
 			feed_data = _connection.getURL(thiszone['feed'])
 			feed = simplejson.loads(feed_data)
-			if _keyinfeed(['videos','episodes','playlist','playlists'], feed['result'].keys()) :
+			try:
+				promoType = feed['result']['promo']['promoType']
+			except:
+				promoType = None
+			if _keyinfeed(['videos','episodes','playlist','playlists','episodeVideos'], feed['result'].keys()) and promoType != 'all_full_episodes':# and not _keyinfeed(['promo'], feed['result'].keys()):
+
 				if 'episodes' in feed['result']:
 					if len(feed['result']['episodes']) == 0:
+						continue
+				if 'episodeVideos' in feed['result']:
+					if len(feed['result']['episodeVideos']) == 0:
 						continue
 				elif 'videos' in feed['result']:
 					if len(feed['result']['videos']) == 0:
@@ -286,7 +292,24 @@ def add_items_from_manifestfile(triforceManifestFeed, season_url):
 			if 'Colbert' in feed['title'] and 'dailyshow' in season_url:
 				continue
 			# add #ManifestFeed at the end of the URL, so we can detect that this is a feed, not a full page
-			_common.add_directory(feed['title'],  SITE, 'episodes', feed['url'] + "#ManifestFeed")
+			title = feed['title']
+			feed_url =  feed['url'] 
+			if 'ENT_' not in title:
+				display_name = title
+			else:
+				feed_data2 = _connection.getURL(feed_url)
+				feed_menu2 = simplejson.loads(feed_data2)
+				try:
+					display_name = feed_menu2['result']['promo']['headerText'].replace('More', 'Full')
+				except:
+					try:
+						display_name = feed_menu2['result']['playlist']['title']
+					except:
+						try:
+							display_name = feed_menu2['result']['promo']['promoType'].replace('_', ' ').title()
+						except:
+							display_name = feed_menu2['result']['episodeVideos'][0]['distPolicy']['canonicalURL'].split('/')[3].title().replace('-', ' ')
+			_common.add_directory(display_name,  SITE, 'episodes', feed['url'] + "#ManifestFeed")
 
 def add_video_from_manifestfile(manifest_feed):
 	""" Add videos based on a manifest feed """
@@ -299,6 +322,8 @@ def add_video_from_manifestfile(manifest_feed):
 			items = items['videos']
 		elif 'playlist' in items:
 			items = items['playlist']['videos']
+		elif 'episodeVideos' in items:
+			items = items['episodeVideos']
 		elif 'playlists' in items:
 			t_items = []
 			k = 0
@@ -319,6 +344,10 @@ def add_video_from_manifestfile(manifest_feed):
 			episode_airdate = _common.format_date(epoch , '', '%d.%m.%Y', epoch)
 			episode_plot = item['shortDescription']
 			episode_thumb = item['images'][0]['url']
+			try:
+				episode_duration = item['duration']
+			except:
+				episode_duration = -1
 			url = item['url']
 			if not url:
 				url = item['canonicalURL']
@@ -336,7 +365,9 @@ def add_video_from_manifestfile(manifest_feed):
 							'season' : season_number,
 							'episode' : episode_number,
 							'plot' : episode_plot,
-							'premiered' : episode_airdate }
+							'premiered' : episode_airdate,
+							'durationinseconds' : episode_duration
+							}
 			show = {'u': u, 'episode_name': episode_name, 'episode_thumb': episode_thumb, 'infoLabels': infoLabels, 'epoch': epoch}
 			shows.append(show)
 		if len(shows):
@@ -478,12 +509,9 @@ def play_video(video_url = _common.args.url):
 		video_url2 = mgid
 	except:
 		video_url2 = re.compile('swfobject\.embedSWF\("(.*?)"').findall(video_data)[0]
-	if 'southpark' not in video_url2:
-		_main_viacom.play_video(BASE, video_url2)
-	else:
-		sp_id = video_url2.split(':')
-		sp_id2 = sp_id[-1]
-		_main_viacom.play_video(BASE, sp_id2, SOUTHPARKFEED)
+	show = video_url2.split(':')[-2].replace('.com', '')
+	feed_url = 'http://' + show + '.cc.com/feeds/mrss?uri=' + video_url2
+	_main_viacom.play_video(BASE, feed_url)
 
 def list_qualities(video_url = _common.args.url):
 	video_data = _connection.getURL(video_url)

@@ -83,11 +83,9 @@ def add_videos(episode_tree):
 
 def play_video(video_url = _common.args.url):
 	video_data = _connection.getURL(video_url, header = {'X-Forwarded-For' : '12.13.14.15'})
-	try:
-		video_url2 = re.compile('<meta content="http://media.mtvnservices.com/fb/(.+?).swf" property="og:video"/>').findall(video_data)[0]
-	except:
-		video_url2 = re.compile("NICK.unlock.uri = '(.+?)';").findall(video_data)[0]
-	_main_viacom.play_video(BASE, video_url2, media_base = BASE2)	
+	mgid = BeautifulSoup(video_data, 'html.parser').find('div', attrs = {'data-uri' : True})['data-uri']
+	video_url2 = mgid
+	_main_viacom.play_video(BASE, video_url2)	
 
 def list_qualities(video_url = _common.args.url):
 	video_data = _connection.getURL(video_url, header = {'X-Forwarded-For' : '12.13.14.15'})

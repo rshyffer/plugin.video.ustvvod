@@ -201,7 +201,7 @@ def prepare_tor_proxy(cookie_handler):
 	opener = urllib2.build_opener(socks_handler, cookie_handler)
 	return opener	
 
-def getURL(url, values = None, header = {}, amf = False, savecookie = False, loadcookie = False, connectiontype = _addoncompat.get_setting('connectiontype')):
+def getURL(url, values = None, header = {}, amf = False, savecookie = False, loadcookie = False, connectiontype = _addoncompat.get_setting('connectiontype'), cookiefile = None):
 	try:
 		old_opener = urllib2._opener
 		cj = cookielib.LWPCookieJar(COOKIE)
@@ -261,7 +261,10 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 def getRedirect(url, values = None , header = {}, connectiontype = _addoncompat.get_setting('connectiontype')):
 	try:
 		old_opener = urllib2._opener
+	#	if cookiefile is not None:
 		cj = cookielib.LWPCookieJar(COOKIE)
+	#	else:
+	#		cj = cookielib.LWPCookieJar(COOKIE + str(cookiefile))
 		cookie_handler = urllib2.HTTPCookieProcessor(cj)
 		if int(connectiontype) == 1:
 			urllib2.install_opener(prepare_dns_proxy(cookie_handler))

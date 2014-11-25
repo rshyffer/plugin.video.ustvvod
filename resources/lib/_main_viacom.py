@@ -77,7 +77,10 @@ def videos(SITE):
 		elif '- ' in episode_item['headline']:
 			episode_name = episode_item['headline'].split('- ')[-1].strip()
 		else:
-			episode_name = episode_item['headline']
+			try:
+				episode_name = episode_item['headline'].split(':')[1].strip()
+			except:
+				episode_name = episode_item['headline']
 		try:
 			episode_info = re.compile('[s|S]([0-9]).[e|E]?([0-9]{0,2}).*').findall(episode_item['title'])
 			try:
@@ -118,9 +121,9 @@ def videos(SITE):
 			pass
 	_common.set_view('episodes')
 
-def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
-	if media_base not in video_url:
-		video_url = media_base + video_url
+def play_video(BASE, video_uri = _common.args.url, media_base = VIDEOURL):
+	#if media_base not in video_url:
+	video_url = media_base + video_uri
 	try:
 		qbitrate = _common.args.quality
 	except:
@@ -131,29 +134,34 @@ def play_video(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 	exception = False
 	queue = PriorityQueue()
 	segments = []
-	if 'feed' not in video_url:
+	if 'feed' in video_uri:
+		feed_url = video_uri
+	else:
 		swf_url = _connection.getRedirect(video_url, header = {'Referer' : BASE})
-		try:
-			params = dict(item.split("=") for item in swf_url.split('?')[1].split("&"))
-			uri = urllib.unquote_plus(params['uri'])
-			config_url = urllib.unquote_plus(params['CONFIG_URL'].replace('Other', DEVICE))
-			config_data = _connection.getURL(config_url, header = {'Referer' : video_url, 'X-Forwarded-For' : '12.13.14.15'})
-			config_tree = BeautifulSoup(config_data, 'html.parser')
-			if not config_tree.error:
-				feed_url = config_tree.feed.string
-				feed_url = feed_url.replace('{uri}', uri).replace('&amp;', '&').replace('{device}', DEVICE).replace('{ref}', 'None').strip()
-			else:
+		params = dict(item.split("=") for item in swf_url.split('?')[1].split("&"))
+		uri = urllib.unquote_plus(params['uri'])
+		config_url = urllib.unquote_plus(params['CONFIG_URL'].replace('Other', DEVICE))
+		config_data = _connection.getURL(config_url, header = {'Referer' : video_url, 'X-Forwarded-For' : '12.13.14.15'})
+		config_tree = BeautifulSoup(config_data, 'html.parser')
+		if not config_tree.error:
+			feed_url = config_tree.feed.string
+			uri = urllib.quote_plus(uri)
+			feed_url = feed_url.replace('{uri}', uri).replace('&amp;', '&').replace('{device}', DEVICE).replace('{ref}', 'None').replace('{type}', 'network').strip()
+		else:
 				exception = True
 				error_text = config_tree.error.string.split('/')[-1].split('_') 
-				_common.show_exception(error_text[1], error_text[2])
-		except:
-			_common.show_exception("Viacomm", swf_url)
-	else:
-		feed_url = video_url
+				if error_text[1] == 'loc':
+					params = dict(item.split("=") for item in config_url.split('?')[-1].split('&'))
+					_common.show_exception('Geo', params['geo'])
+
 	if not exception:
-		feed_data = _connection.getURL(feed_url)
+		feed_data = _connection.getURL(feed_url,  header = {'X-Forwarded-For' : '12.13.14.15'})
 		video_tree = BeautifulSoup(feed_data, 'html.parser', parse_only = SoupStrainer('media:group'))
 		video_segments = video_tree.find_all('media:content')
+		if not video_segments:
+			video_tree = BeautifulSoup(feed_data, 'html.parser')
+			_common.show_exception(video_tree.find('meta', property = "og:site_name")['content'], video_tree.find('meta', property = "og:url")['content'])
+			exception = True
 		for i, video_item in enumerate(video_segments):
 			worker = Thread(target = get_videos, args = (queue, i, video_item, qbitrate))
 			worker.setDaemon(True)
@@ -239,7 +247,10 @@ def get_videos(queue, i, video_item, qbitrate):
 			video_mgid = video_item['url'].split('uri=')[1].split('&')[0]
 			
 		except:
-			video_mgid = video_item['url'].split('/')[-1].split('?')[0]
+			try:
+				video_mgid = video_item['url'].split('mgid=')[1].split('&')[0]
+			except:
+				video_mgid = video_item['url'].split('/')[-1].split('?')[0]
 	video_data = _connection.getURL(VIDEOURLAPI % video_mgid)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	try:
@@ -255,7 +266,10 @@ def get_videos(queue, i, video_item, qbitrate):
 		m3u8_url = None
 		semaphore = BoundedSemaphore(1)
 		semaphore.acquire()
-		m3u8_master_data = _connection.getURL(video_menu, savecookie = True)
+		#if i == 0:
+		m3u8_master_data = _connection.getURL(video_menu, savecookie = True, cookiefile = i)
+		#else:
+		#	m3u8_master_data = _connection.getURL(video_menu, savecookie = False)
 		semaphore.release()
 		m3u8_master = _m3u8.parse(m3u8_master_data)
 		sbitrate = int(_addoncompat.get_setting('quality')) * 1024
@@ -274,9 +288,9 @@ def get_videos(queue, i, video_item, qbitrate):
 			m3u8_url = lm3u8_url
 		semaphore2 = BoundedSemaphore(1)
 		semaphore2.acquire()
-		m3u8_data = _connection.getURL(m3u8_url, loadcookie = True)
+		m3u8_data = _connection.getURL(m3u8_url, loadcookie = True, cookiefile = i)
 		key_url = re.compile('URI="(.*?)"').findall(m3u8_data)[0]
-		key_data = _connection.getURL(key_url, loadcookie = True)
+		key_data = _connection.getURL(key_url, loadcookie = True, cookiefile = i)
 		key_file = open(_common.KEYFILE + str(i), 'wb')
 		key_file.write(key_data)
 		key_file.close()
@@ -309,7 +323,7 @@ def list_qualities(BASE, video_url = _common.args.url, media_base = VIDEOURL):
 		config_tree = BeautifulSoup(config_data, 'html.parser')
 		if not config_tree.error:
 			feed_url = config_tree.feed.string
-			feed_url = feed_url.replace('{uri}', uri).replace('&amp;', '&').replace('{device}', DEVICE).replace('{ref}', 'None').strip()
+			feed_url = feed_url.replace('{uri}', uri).replace('&amp;', '&').replace('{device}', DEVICE).replace('{ref}', 'None').replace('{type}', 'normal').strip()
 		else:
 			exception = True
 			error_text = config_tree.error.string.split('/')[-1].split('_') 
