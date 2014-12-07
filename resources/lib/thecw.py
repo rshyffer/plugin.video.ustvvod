@@ -105,6 +105,8 @@ def episodes(episode_url = _common.args.url):
 
 def play_video(video_url = _common.args.url):
 	hbitrate=-1
+	lbitrate=-1
+	playpath_url = None
 	if _addoncompat.get_setting('enablesubtitles') == 'true':
 		convert_subtitles(video_url)
 	sbitrate = int(_addoncompat.get_setting('quality'))
@@ -114,11 +116,16 @@ def play_video(video_url = _common.args.url):
 		try:
 			video_index = video_tree['videos'][video_key]
 			bitrate = int(video_index['bitrate'])
+			if bitrate < lbitrate or lbitrate == -1:
+				lbitrate = bitrate
+				lplaypath_url = video_index['uri'].split('mp4:')[1].replace('Level3', '')
 			if bitrate > hbitrate and bitrate <= sbitrate:
 				hbitrate = bitrate
  				playpath_url = video_index['uri'].split('mp4:')[1].replace('Level3', '')
 		except:
 			pass
+	if playpath_url is None:
+		playpath_url = lplaypath_url
 	finalurl = RTMPURL + ' playpath=mp4:' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
 	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
 	if _addoncompat.get_setting('enablesubtitles') == 'true':
