@@ -76,14 +76,18 @@ def episodes(episode_url = _common.args.url):
 							'durationinseconds' : episode_duration,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate }
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, HD = HD)
+			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, HD = HD, quality_mode = 'select_quailty')
 	_common.set_view('episodes')
 
 def play_video(guid = _common.args.url):
+	try:
+		qbitrate = _common.args.quality
+	except:
+		qbitrate = None
 	video_url =  VIDEO % guid
 	hbitrate = -1
 	lbitrate = -1
-	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+	sbitrate = int(_addoncompat.get_setting('quality')) 
 	closedcaption = None
 	video_url2 = None
 	finalurl = ''
@@ -101,27 +105,107 @@ def play_video(guid = _common.args.url):
 		for video in video_item['videos']['flash'].itervalues():
 			try:
 				bitrate = video['bitrate']
-				if bitrate < lbitrate or lbitrate == -1:
-					lbitrate = bitrate
-					luri = video['url']
-				if bitrate > hbitrate and bitrate <= sbitrate:
-					hbitrate = bitrate
-					uri = video['url']
-				print video
+				
+				if qbitrate is  None:
+					if bitrate < lbitrate or lbitrate == -1:
+						lbitrate = bitrate
+						luri = video['url']
+					if bitrate > hbitrate and bitrate <= sbitrate:
+						hbitrate = bitrate
+						uri = video['url']
+				else:
+					if bitrate == qbitrate:
+						uri = video['url']
 			except:
 				pass
-			print uri,luri
-			if uri is None:
-				uri = luri
-			video_data2 = _connection.getURL(uri + '?format=json')
-			video_url3 = simplejson.loads(video_data2)['url']
-			if '.mp4' in video_url3:
-				base_url, playpath_url = video_url3.split('mp4:')
-				playpath_url = ' playpath=mp4:' + playpath_url  
-			elif 'flv' in video_url3:
-				base_url, playpath_url = video_url3.split('flv:')
-				playpath_url = ' playpath=' + playpath_url.replace('.flv','')
-			finalurl = base_url + playpath_url + '?player= swfurl=' + SWFURL % guid + ' swfvfy=true'
+		if uri is None:
+			uri = luri
+		video_data2 = _connection.getURL(uri + '?format=json')
+		video_url3 = simplejson.loads(video_data2)['url']
+		if '.mp4' in video_url3:
+			base_url, playpath_url = video_url3.split('mp4:')
+			playpath_url = ' playpath=mp4:' + playpath_url  
+		elif 'flv' in video_url3:
+			base_url, playpath_url = video_url3.split('flv:')
+			playpath_url = ' playpath=' + playpath_url.replace('.flv','')
+		finalurl = base_url + playpath_url + '?player= swfurl=' + SWFURL % guid + ' swfvfy=true'
+	
+	else:
+		ipad_url = video_item['videos']['iphone']['url']
+		video_data2 = _connection.getURL(ipad_url + '?format=json')
+		video_url3 = simplejson.loads(video_data2)['url']
+		video_data3 = _connection.getURL(video_url3)
+		video_url4 = _m3u8.parse(video_data3)
+		uri = None
+		for video_index in video_url4.get('playlists'):
+			try:
+				codecs =  video_index.get('stream_info')['codecs']
+			except:
+				codecs = ''
+			if  codecs != 'mp4a.40.5':
+				
+				if qbitrate is None:
+					bitrate = int(video_index.get('stream_info')['bandwidth']) /1024
+					if bitrate < lbitrate or lbitrate == -1:
+						lbitrate = bitrate
+						luri = video_index.get('uri')
+					if bitrate > hbitrate and bitrate <= sbitrate:
+						hbitrate = bitrate
+						uri = video_index.get('uri')
+				else:
+					bitrate = int(video_index.get('stream_info')['bandwidth']) 
+					if bitrate == qbitrate:
+						uri = video_index.get('uri')
+		if uri is None:
+			uri = luri
+		finalurl = video_url3.rsplit('/', 1)[0] + '/' + uri
+	item = xbmcgui.ListItem(path = finalurl)
+	if qbitrate is not None:
+			item.setThumbnailImage(_common.args.thumb)
+			item.setInfo('Video', {	'title' : _common.args.name,
+							'season' : _common.args.season_number,
+							'episode' : _common.args.episode_number})
+	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
+	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
+		while not xbmc.Player().isPlaying():
+			xbmc.sleep(100)
+		xbmc.Player().setSubtitles(_common.SUBTITLESMI)
+
+
+def select_quailty(guid = _common.args.url):
+	video_url =  VIDEO % guid
+	#hbitrate = -1
+	#lbitrate = -1
+	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+	closedcaption = None
+	video_url2 = None
+	#finalurl = ''
+	video_data = _connection.getURL(video_url)
+	video_menu = simplejson.loads(video_data)['items']
+	video_item = video_menu[0] 
+	#try:
+	#	closedcaption = video_item['captions']['sami']['url']
+	#except:
+	#	pass
+#	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
+#		convert_subtitles(closedcaption.replace(' ', '+'))
+	bitrates = []
+	if _addoncompat.get_setting('preffered_stream_type') == 'RTMP':
+		for video in video_item['videos']['flash'].itervalues():
+			try:
+				bitrate = video['bitrate']
+				# if bitrate < lbitrate or lbitrate == -1:
+					# lbitrate = bitrate
+					# luri = video['url']
+				# if bitrate > hbitrate and bitrate <= sbitrate:
+					# hbitrate = bitrate
+					# uri = video['url']
+				# print video
+				bitrates.append((bitrate,bitrate))
+			except:
+				pass
+			#print uri,luri
+			
 		
 	else:
 		ipad_url = video_item['videos']['iphone']['url']
@@ -137,21 +221,8 @@ def play_video(guid = _common.args.url):
 				codecs = ''
 			if  codecs != 'mp4a.40.5':
 				bitrate = int(video_index.get('stream_info')['bandwidth'])
-				if bitrate < lbitrate or lbitrate == -1:
-					lbitrate = bitrate
-					luri = video_index.get('uri')
-				if bitrate > hbitrate and bitrate <= sbitrate:
-					hbitrate = bitrate
-					uri = video_index.get('uri')
-		if uri is None:
-			uri = luri
-		finalurl = video_url3.rsplit('/', 1)[0] + '/' + uri
-
-	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
-		while not xbmc.Player().isPlaying():
-			xbmc.sleep(100)
-		xbmc.Player().setSubtitles(_common.SUBTITLESMI)
+				bitrates.append((int(bitrate) / 1024 , bitrate))
+	return bitrates
 
 def clean_subs(data):
 	sami = re.compile(r'sami')
