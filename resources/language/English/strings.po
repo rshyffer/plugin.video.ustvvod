@@ -93,6 +93,10 @@ msgctxt "#30019"
 msgid "Hide Clip-Only Content"
 msgstr ""
 
+msgctxt "#30020"
+msgid "Preferred Stream Type"
+msgstr ""
+
 msgctxt "#31000"
 msgid "Connection"
 msgstr ""

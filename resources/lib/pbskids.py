@@ -61,6 +61,13 @@ def episodes(episode_url = _common.args.url):
 					episode_thumb = episode_item['images']['kids-mezzannine-4x3']['url']
 				except:
 					episode_thumb = episode_item['images']['mezzanine']['url']
+			HD = False
+			for video in episode_item['videos']['flash'].itervalues():
+				try:
+					if video['bitrate'] > 2000:
+						HD = True
+				except:
+					pass
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'
 			u += '&mode="' + SITE + '"'
@@ -69,7 +76,7 @@ def episodes(episode_url = _common.args.url):
 							'durationinseconds' : episode_duration,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate }
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
+			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, HD = HD)
 	_common.set_view('episodes')
 
 def play_video(guid = _common.args.url):
@@ -89,8 +96,35 @@ def play_video(guid = _common.args.url):
 		pass
 	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
 		convert_subtitles(closedcaption.replace(' ', '+'))
-	try:
-		ipad_url = video_item['videos']['ipad']['url']
+	
+	if _addoncompat.get_setting('preffered_stream_type') == 'RTMP':
+		for video in video_item['videos']['flash'].itervalues():
+			try:
+				bitrate = video['bitrate']
+				if bitrate < lbitrate or lbitrate == -1:
+					lbitrate = bitrate
+					luri = video['url']
+				if bitrate > hbitrate and bitrate <= sbitrate:
+					hbitrate = bitrate
+					uri = video['url']
+				print video
+			except:
+				pass
+			print uri,luri
+			if uri is None:
+				uri = luri
+			video_data2 = _connection.getURL(uri + '?format=json')
+			video_url3 = simplejson.loads(video_data2)['url']
+			if '.mp4' in video_url3:
+				base_url, playpath_url = video_url3.split('mp4:')
+				playpath_url = ' playpath=mp4:' + playpath_url  
+			elif 'flv' in video_url3:
+				base_url, playpath_url = video_url3.split('flv:')
+				playpath_url = ' playpath=' + playpath_url.replace('.flv','')
+			finalurl = base_url + playpath_url + '?player= swfurl=' + SWFURL % guid + ' swfvfy=true'
+		
+	else:
+		ipad_url = video_item['videos']['iphone']['url']
 		video_data2 = _connection.getURL(ipad_url + '?format=json')
 		video_url3 = simplejson.loads(video_data2)['url']
 		video_data3 = _connection.getURL(video_url3)
@@ -112,17 +146,7 @@ def play_video(guid = _common.args.url):
 		if uri is None:
 			uri = luri
 		finalurl = video_url3.rsplit('/', 1)[0] + '/' + uri
-	except:
-		flash_url = video_item['videos']['flash']['url']
-		video_data2 = _connection.getURL(flash_url + '?format=json')
-		video_url3 = simplejson.loads(video_data2)['url']
-		if '.mp4' in video_url3:
-			base_url, playpath_url = video_url3.split('mp4:')
-			playpath_url = ' playpath=mp4:' + playpath_url  
-		elif 'flv' in video_url3:
-			base_url, playpath_url = video_url3.split('flv:')
-			playpath_url = ' playpath=' + playpath_url.replace('.flv','')
-		finalurl = base_url + playpath_url + '?player= swfurl=' + SWFURL % guid + ' swfvfy=true'
+
 	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
 	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
 		while not xbmc.Player().isPlaying():

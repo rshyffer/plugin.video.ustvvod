@@ -7,6 +7,7 @@
 		<setting id="maxpages" type="number" label="39023" default="10" />
 		<setting id="add_episode_identifier" type="bool" label="39025" default="false" />
 		<setting id="hide_clip_only" type="bool" label="30019" default="false" />
+		<setting id="preffered_stream_type" type="labelenum" label="30020" default="HLS" values="RTMP|HLS" />
 		<setting type="sep" />
 	</category>
 	<category label="31000">
