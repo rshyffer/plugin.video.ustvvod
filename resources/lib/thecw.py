@@ -4,18 +4,22 @@ import _addoncompat
 import _common
 import _connection
 import _database
+import _m3u8
 import glob
 import os
 import shutil
 import simplejson
+import re
 import sys
 import urllib
+import time
 import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
 
 pluginHandle=int(sys.argv[1])
+player = _common.XBMCPlayer()
 
 SITE = 'thecw'
 NAME = 'The CW'
@@ -109,6 +113,7 @@ def play_video(video_url = _common.args.url):
 	playpath_url = None
 	if _addoncompat.get_setting('enablesubtitles') == 'true':
 		convert_subtitles(video_url)
+		player._subtitles_Enabled = True
 	sbitrate = int(_addoncompat.get_setting('quality'))
 	video_data = _connection.getURL(VIDEOURL % video_url)
 	video_tree = simplejson.loads(video_data)
@@ -123,15 +128,52 @@ def play_video(video_url = _common.args.url):
 				hbitrate = bitrate
  				playpath_url = video_index['uri'].split('mp4:')[1].replace('Level3', '')
 		except:
-			pass
+			playpath_m3u8 = video_index['uri']
+	if _addoncompat.get_setting('preffered_stream_type') == 'HLS':
+		playpath_url = None
+		lplaypath_url = None
+		m3u8_data = _connection.getURL(playpath_m3u8)
+		m3u8 = _m3u8.parse(m3u8_data)
+		uri = None
+		for video_index in m3u8.get('playlists'):
+			if int(video_index.get('stream_info')['bandwidth']) > 64000:
+				bitrate = int(video_index.get('stream_info')['bandwidth']) /1024
+				if bitrate < lbitrate or lbitrate == -1:
+					lbitrate = bitrate
+					lplaypath_url = video_index.get('uri')
+				if bitrate > hbitrate and bitrate <= sbitrate:
+					hbitrate = bitrate
+					playpath_url = video_index.get('uri')
 	if playpath_url is None:
 		playpath_url = lplaypath_url
-	finalurl = RTMPURL + ' playpath=mp4:' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
+	if _addoncompat.get_setting('preffered_stream_type') == 'RTMP':
+		finalurl = RTMPURL + ' playpath=mp4:' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
+		player._localHTTPServer = False
+	else:
+		play_data = _connection.getURL(playpath_url)
+		key_url = re.compile('URI="(.*?)"').findall(play_data)[0]
+		key_data = _connection.getURL(key_url)		
+		key_file = open(_common.KEYFILE, 'wb')
+		key_file.write(key_data)
+		key_file.close()
+		relative_urls = re.compile('(.*ts)\n').findall(play_data)
+		name = playpath_url.split('/')[-1]
+		for i, video_item in enumerate(relative_urls):
+			newurl =  playpath_url.replace(name, video_item)
+			play_data = play_data.replace(video_item,  newurl)
+		localhttpserver = True
+		filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
+		xbmc.executebuiltin(filestring)
+		time.sleep(20)
+		play_data = play_data.replace(key_url, 'http://127.0.0.1:12345/play.key')
+		playfile = open(_common.PLAYFILE, 'w')
+		playfile.write(play_data)
+		playfile.close()
+		finalurl = _common.PLAYFILE
 	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
-	if _addoncompat.get_setting('enablesubtitles') == 'true':
-		while not xbmc.Player().isPlaying():
-			xbmc.sleep(100)
-		xbmc.Player().setSubtitles(_common.SUBTITLE)
+	while player.is_active:
+		player.sleep(250)
+
 
 def convert_subtitles(video_guid):
 	try:
@@ -145,7 +187,7 @@ def convert_subtitles(video_guid):
 		lines_total = len(subtitle_data)
 		dialog.update(0, _common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39028)))
 		for i, subtitle_line in enumerate(subtitle_data):
-   	        if subtitle_line is not None and 'Text' in subtitle_line['metadata']:
+			if subtitle_line is not None and 'Text' in subtitle_line['metadata']:
 				if (dialog.iscanceled()):
 					return
 				if i % 10 == 0:
