@@ -40,7 +40,10 @@ def episodes():
 		except:
 			episode_duration = -1
 		episode_year = episode_item['releaseYear']
-		episode_plot = episode_item['description']
+		try:
+			episode_plot = episode_item['description']
+		except:
+			episode_plot = ""
 		episode_name = episode_item['name']
 		try:
 			episode_genre = episode_item['tvGenres']
