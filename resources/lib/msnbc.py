@@ -58,7 +58,7 @@ def play_video(video_url = _common.args.url):
 	closedcaption = None
 	video_data = _connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
-	finalurl = video_tree.seq.video['src']
+	finalurl = video_tree.video['src']
 	try:
 		closedcaption = video_tree.find('textstream', type = 'text/vtt')['src']
 	except:
