@@ -1,6 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import _common
+import _connection
 import _main_turner
+import HTMLParser
+import urllib
+import sys
+from bs4 import BeautifulSoup, SoupStrainer
 
 SITE = 'tnt'
 NAME = "TNT"
@@ -11,15 +17,62 @@ CLIPSSEASON = 'http://www.tntdrama.com/mobile/ipad/feeds/getFranchiseCollections
 CLIPS = 'http://www.tntdrama.com/mobile/ipad/feeds/franchiseEpisode.jsp?franchiseID=%s&type=0&collectionId=%s'
 FULLEPISODES = 'http://www.tntdrama.com/mobile/ipad/feeds/franchiseEpisode.jsp?franchiseID=%s&type=1'
 EPISODE = 'http://www.tntdrama.com/video/content/services/cvpXML.do?id=%s'
+WEBSHOWS = 'http://www.tntdrama.com/shows/index.html'
+WEBEPISODE = 'http://www.tntdrama.com/service/cvpXml?titleId=%s'
+
 
 def masterlist():
-	return _main_turner.masterlist(NAME, MOVIES, SHOWS, SITE)
+	return _main_turner.masterlist(NAME, MOVIES, SHOWS, SITE, WEBSHOWS)
 
 def seasons():
-	_main_turner.seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS)
+	_main_turner.seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS, WEBSHOWS)
 
 def episodes():
 	_main_turner.episodes_json(SITE)
+	
+def episodes_web():
+	master_name = _common.args.url
+	webdata = _connection.getURL(WEBSHOWS)
+	web_tree =  BeautifulSoup(webdata, 'html.parser', parse_only = SoupStrainer('div', id = 'page-shows'))
+	show = web_tree.find('h2', text = master_name).parent.parent
+	for item in show.findAll('div', class_ = 'item'):
+		print item.find('span')
+		if item.find('span', contenttypename = "FullEpisode") is not None:
+			url = WEBEPISODE % item.span['titleid']
+			print item.find(itemprop = 'duration').string.replace(' minutes', '')
+			print int(item.find(itemprop = 'duration').string.replace(' minutes', '')) * 60
+			try:
+				episode_duration = item.find(itemprop = 'duration').string.replace(' minutes', '').strip()# * 60
+			except:
+				episode_duration = -1
+			try:
+				episode_plot = HTMLParser.HTMLParser().unescape(item.find(itemprop = 'description').string)
+			except:
+				episode_plot = ''
+			episode_name = item.img['alt']
+			try:
+				season_number = int(item.find(itemprop = 'seasonNumber').string)
+			except:
+				season_number = -1
+			try:
+				episode_number =  int(item.find(itemprop = 'episodeNumber').string)
+			except:
+				episode_number = -1
+			try:
+				episode_thumb = item.find(itemprop = 'thumbnail')['data-standard']
+			except:
+				episode_thumb = None
+			u = sys.argv[0]
+			u += '?url="' + urllib.quote_plus(url) + '"'
+			u += '&mode="' + SITE + '"'
+			u += '&sitemode="play_video"'
+			infoLabels={	'title' : episode_name,
+							'durationinseconds' : episode_duration,
+							'season' : season_number,
+							'episode' : episode_number,
+							'plot' : episode_plot}
+			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+	_common.set_view('episodes')
 
 def play_video():
 	_main_turner.play_video(SITE, EPISODE)

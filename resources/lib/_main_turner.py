@@ -9,7 +9,7 @@ import sys
 import urllib
 import xbmcgui
 import xbmcplugin
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, SoupStrainer
 
 pluginHandle = int(sys.argv[1])
 
@@ -17,7 +17,7 @@ AUTHURL = 'http://www.tbs.com/processors/cvp/token.jsp'
 SWFURL = 'http://z.cdn.turner.com/xslo/cvp/plugins/akamai/streaming/osmf1.6/2.10/AkamaiAdvancedStreamingPlugin.swf'
 BASE = 'http://ht.cdn.turner.com/tbs/big/'
 
-def masterlist(NAME, MOVIES, SHOWS, SITE):
+def masterlist(NAME, MOVIES, SHOWS, SITE, WEBSHOWS = None ):
 	master_db = []
 	master_dict = {}
 	master_db.append(('--' + NAME + ' Movies',  SITE, 'episodes', 'Movie#' + MOVIES))
@@ -25,7 +25,7 @@ def masterlist(NAME, MOVIES, SHOWS, SITE):
 	master_menu = simplejson.loads(master_data)
 	for master_item in master_menu:
 		master_name = _common.smart_utf8(master_item['title'])
-		if 'ondemandEpisodes' in master_item['excludedSections']:
+		if 'ondemandEpisodes' in master_item['excludedSections'] and WEBSHOWS is None:
 			has_full_eps = 'false'
 		else:
 			has_full_eps = 'true'
@@ -34,13 +34,23 @@ def masterlist(NAME, MOVIES, SHOWS, SITE):
 			master_db.append((master_name,  SITE, 'seasons', season_url))
 	return master_db
 
-def seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS):
+def seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS, WEBSHOWS = None):
 	show_id = _common.args.url
+	print show_id
 	master_name = show_id.split('#')[0]
 	has_full_eps = show_id.split('#')[2]
 	show_id = show_id.split('#')[1]
 	if has_full_eps == 'true':
 		_common.add_directory('Full Episodes',  SITE, 'episodes', master_name + '#' + FULLEPISODES % show_id)
+	elif WEBSHOWS is not None:
+		#Check html data
+		webdata = _connection.getURL(WEBSHOWS)
+		web_tree =  BeautifulSoup(webdata, 'html.parser', parse_only = SoupStrainer('div', id = 'page-shows'))
+		#print web_tree
+		show = web_tree.find('h2', text = master_name)
+		episodes = show.findNext('p', attrs = {'data-id' : 'num-full-eps-avail'})['data-value']
+		if int(episodes) > 0:
+			_common.add_directory('Full Episodes',  SITE, 'episodes_web', master_name)
 	clips_data = _connection.getURL(CLIPSSEASON % show_id)
 	clips_menu = simplejson.loads(clips_data)
 	for season in clips_menu:
@@ -175,7 +185,10 @@ def play_video(SITE, EPISODE):
 		qbitrate = None
 	stack_url = ''
 	for video_id in _common.args.url.split(','):
-		video_url = EPISODE % video_id
+		if 'http' not in video_id:
+			video_url = EPISODE % video_id
+		else:
+			video_url = video_id
 		hbitrate = -1
 		sbitrate = int(_addoncompat.get_setting('quality'))
 		closedcaption = None
