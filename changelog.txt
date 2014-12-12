@@ -1,3 +1,16 @@
+version 1.1.6
+
+  * fix for NBC (Android)
+  * common changes for viacomm
+  * add sort options for episodes
+  * add quality selection for PBSkids
+  * CW - low bitrate protection
+  * common changes for translations
+  * add HLS stream type for CW
+  * fix for movies with no description on TCM
+  * fix for MSNBC
+  * common changes for TNT shows
+
 version 1.1.5
 
   * fix for CBS
