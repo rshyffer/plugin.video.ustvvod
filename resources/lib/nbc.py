@@ -39,10 +39,9 @@ TONIGHT_SHOW_FEED = '%s/content/a/filter-items/?type=video'
 def masterlist():
 	master_db = []
 	master_data = _connection.getURL(SHOWS)
-	master_menu =  re.compile('<li class="views-row .*?">.*?<div>\s*<div><a href="(.*?)">.*?<div class="field .*?">\n(.*?)</div>.*?</li>' , re.DOTALL).findall(master_data)
-	print master_menu
+	master_menu =  re.compile('<li class="views-row .*?">.*?<div>\s*<div><a href="(.*?)">.*?<div class="field .*?">\n\s*(.*?)</div>.*?</li>' , re.DOTALL).findall(master_data)
 	for season_url, master_name in master_menu:
-		master_name = _common.smart_unicode(master_name)
+		master_name = _common.smart_unicode(master_name).strip()
 		master_name =  HTMLParser.HTMLParser().unescape(master_name)
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
