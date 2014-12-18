@@ -42,7 +42,7 @@ def masterlist():
 	master_menu =  re.compile('<li class="views-row .*?">.*?<div>\s*<div><a href="(.*?)">.*?<div class="field .*?">\n\s*(.*?)</div>.*?</li>' , re.DOTALL).findall(master_data)
 	for season_url, master_name in master_menu:
 		master_name = _common.smart_unicode(master_name).strip()
-		master_name =  HTMLParser.HTMLParser().unescape(master_name)
+		master_name = HTMLParser.HTMLParser().unescape(master_name)
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
@@ -57,13 +57,13 @@ def seasons(season_url = _common.args.url):
 	episode_url = season_url 
 	for season_url in (episode_url, video_url):
 		season_data = _connection.getURL(season_url)
-		season_tree  = BeautifulSoup(season_data, 'html.parser')
-		season_menu = season_tree.find_all('div', class_ = 'nbc_mpx_carousel')
-		for season in season_menu:
+		season_menu = re.compile('<div class="nbc_mpx_carousel.*? id="(.*?)">\s*<h2.*?>(.*?)</h2>', re.DOTALL).findall(season_data)
+		for season_id, season_title in season_menu:
 			try:
-				season_title = season.h2.text.strip()
+				tag = re.compile(r'<.*?>')
+				season_title = tag.sub('', season_title)
 				season_title = re.sub(' +',' ', season_title)
-				season_id = season['id']
+				season_title = season_title.strip()
 				season_node = season_id.split('_')[-1]
 				if season_title not in season_dict.keys():
 					season_dict[season_title] =  EPISODES % season_node
@@ -90,57 +90,30 @@ def episodes(episode_url = _common.args.url):
 		episode_json = simplejson.loads(episode_data)
 		episode_menu = episode_json['entries']
 		for episode_item in episode_menu:
-			pid = episode_item['mainReleasePid']	
-			url = SMIL % pid	
-			try:
-				episode_duration = int(episode_item['duration'].replace(' min','')) * 60
-			except:
-				episode_duration = -1
-			episode_plot = HTMLParser.HTMLParser().unescape(episode_item['description'])
-			epoch = int(episode_item['pubDate']) / 1000
-			episode_airdate = _common.format_date(epoch = epoch)
-			episode_name = HTMLParser.HTMLParser().unescape(episode_item['title'])
-			show_title = episode_item['showShortName']
-			try:
-				season_number = int(episode_item['season'])
-			except:
-				season_number = -1
-			try:
-				episode_number = int(episode_item['episode'])
-			except:
-				episode_number = -1
-			try:
-				episode_thumb = episode_item['images']['big']
-			except:
-				episode_thumb = None
-			u = sys.argv[0]
-			u += '?url="' + urllib.quote_plus(url) + '"'
-			u += '&mode="' + SITE + '"'
-			u += '&sitemode="play_video"'
-			infoLabels={	'title' : episode_name,
-							'durationinseconds' : episode_duration,
-							'season' : season_number,
-							'episode' : episode_number,
-							'plot' : episode_plot,
-							'premiered' : episode_airdate,
-							'TVShowTitle' : show_title}
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	else:
-		episode_tree  = BeautifulSoup(episode_data, 'html.parser')
-		episode_menu = episode_tree.find_all('article')
-		show_title = episode_tree.h2.text
-		for episode in episode_menu:
-			episode_name = episode.find('div', class_ = 'episode-title').text
-			try:
-				episode_duration = int(episode.find('div', class_ = 'available-until').text.split('|')[1].replace('min', '').strip()) * 60
-			except:
-				episode_duration = -1
-			season_number = int(episode.find('div', class_ = 'metadata').text.split('|')[0].replace('Season', '').strip())
-			episode_number =  int(episode.find('div', class_ = 'metadata').text.split('|')[1].replace('Episode', '').strip()[1:])
-			episode_plot = episode.find('div', class_ = 'summary').text
-			episode_thumb = episode.img['src']
-			try:
-				url = BASE + episode.find('a', class_ = 'watch-now-onion-skin')['href']
+			if episode_item['restricted'] != 'auth':
+				pid = episode_item['mainReleasePid']	
+				url = SMIL % pid	
+				try:
+					episode_duration = int(episode_item['duration'].replace(' min','')) * 60
+				except:
+					episode_duration = -1
+				episode_plot = HTMLParser.HTMLParser().unescape(episode_item['description'])
+				epoch = int(episode_item['pubDate']) / 1000
+				episode_airdate = _common.format_date(epoch = epoch)
+				episode_name = HTMLParser.HTMLParser().unescape(episode_item['title'])
+				show_title = episode_item['showShortName']
+				try:
+					season_number = int(episode_item['season'])
+				except:
+					season_number = -1
+				try:
+					episode_number = int(episode_item['episode'])
+				except:
+					episode_number = -1
+				try:
+					episode_thumb = episode_item['images']['big']
+				except:
+					episode_thumb = None
 				u = sys.argv[0]
 				u += '?url="' + urllib.quote_plus(url) + '"'
 				u += '&mode="' + SITE + '"'
@@ -150,7 +123,34 @@ def episodes(episode_url = _common.args.url):
 								'season' : season_number,
 								'episode' : episode_number,
 								'plot' : episode_plot,
+								'premiered' : episode_airdate,
 								'TVShowTitle' : show_title}
+				_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+	else:
+		show_title = re.compile('<h2 class="show-title"><a href=".*?">(.*?)</a></h2>').findall(episode_data)[0]
+		episode_menu = re.compile('src="(.*?)".*?<a href="([^"]*?)" class="watch-now-onion-skin">.*?(\d+) min.*?Season (\d+).*?Episode \d+(\d{2}).*?Air date (\d{2}/\d{2}/\d{2}).*?<div class="episode-title dotdotdot"><a href=".*?">(.*?)</a></div>.*?<p>(.*?)</p>', re.DOTALL).findall(episode_data)
+		for episode_thumb, episode_url, episode_duration,season_number, episode_number, episode_airdate, episode_name, episode_plot in episode_menu:
+			episode_name = HTMLParser.HTMLParser().unescape(episode_name)
+			try:
+				episode_duration = int(episode_duration) * 60
+			except:
+				episode_duration = -1
+			season_number = int(season_number)
+			episode_number =  int(episode_number)
+			episode_airdate = _common.format_date(episode_airdate,'%m/%d/%y')
+			try:
+				url = BASE + episode_url
+				u = sys.argv[0]
+				u += '?url="' + urllib.quote_plus(url) + '"'
+				u += '&mode="' + SITE + '"'
+				u += '&sitemode="play_video"'
+				infoLabels={	'title' : episode_name,
+								'durationinseconds' : episode_duration,
+								'season' : season_number,
+								'episode' : episode_number,
+								'plot' : episode_plot,
+								'TVShowTitle' : show_title,
+								'premiered' : episode_airdate}
 				_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 			except:
 				pass
@@ -357,8 +357,16 @@ def get_rtmp():
 	return str(rtmpurl)
 
 def list_qualities(video_url = _common.args.url):
-	bitrates = []
 	video_data = _connection.getURL(video_url)
+	if 'link.theplatform.com' not in video_url:
+		video_tree =  BeautifulSoup(video_data, 'html.parser')
+		player_url = video_tree.find('div', class_ = 'video-player-full')['data-mpx-url']
+		player_data = _connection.getURL(player_url)
+		player_tree =  BeautifulSoup(player_data, 'html.parser')
+		smil_url = player_tree.find('link', type = "application/smil+xml")['href']
+		video_data = _connection.getURL(smil_url + '&manifest=m3u&format=SMIL')
+	bitrates = []
+	
 	smil_tree = BeautifulSoup(video_data, 'html.parser')
 	video_url2 = smil_tree.video['src']
 	clip_id = smil_tree.video.find('param', attrs = {'name' : 'clipId'})
