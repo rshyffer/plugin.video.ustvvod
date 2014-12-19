@@ -25,28 +25,25 @@ def masterlist(NAME, MOVIES, SHOWS, SITE, WEBSHOWS = None ):
 	master_menu = simplejson.loads(master_data)
 	for master_item in master_menu:
 		master_name = _common.smart_utf8(master_item['title'])
-		if 'ondemandEpisodes' in master_item['excludedSections'] and WEBSHOWS is None:
+		if 'ondemandEpisodes' in master_item['excludedSections']:
 			has_full_eps = 'false'
 		else:
 			has_full_eps = 'true'
-		if (_addoncompat.get_setting('hide_clip_only') == 'false' and 'clips' not in master_item['excludedSections']) or has_full_eps == 'true':
+		if (_addoncompat.get_setting('hide_clip_only') == 'false' and 'clips' not in master_item['excludedSections']) or has_full_eps == 'true' or WEBSHOWS is not None:
 			season_url = master_name + '#' + master_item['ID'] + '#' + has_full_eps
 			master_db.append((master_name,  SITE, 'seasons', season_url))
 	return master_db
 
 def seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS, WEBSHOWS = None):
 	show_id = _common.args.url
-	print show_id
 	master_name = show_id.split('#')[0]
 	has_full_eps = show_id.split('#')[2]
 	show_id = show_id.split('#')[1]
 	if has_full_eps == 'true':
 		_common.add_directory('Full Episodes',  SITE, 'episodes', master_name + '#' + FULLEPISODES % show_id)
 	elif WEBSHOWS is not None:
-		#Check html data
 		webdata = _connection.getURL(WEBSHOWS)
 		web_tree =  BeautifulSoup(webdata, 'html.parser', parse_only = SoupStrainer('div', id = 'page-shows'))
-		#print web_tree
 		show = web_tree.find('h2', text = master_name)
 		episodes = show.findNext('p', attrs = {'data-id' : 'num-full-eps-avail'})['data-value']
 		if int(episodes) > 0:
