@@ -5,6 +5,7 @@ import _common
 import _connection
 import _database
 import _m3u8
+import base64
 import glob
 import os
 import shutil
@@ -158,8 +159,26 @@ def play_video(video_url = _common.args.url):
 		key_file.close()
 		relative_urls = re.compile('(.*ts)\n').findall(play_data)
 		name = playpath_url.split('/')[-1]
+		proxy_config =  {"connectiontype" : _addoncompat.get_setting('connectiontype'), 
+						"dns_proxy" : [_addoncompat.get_setting('dns_proxy'), _addoncompat.get_setting('dns_proxy_2'), _addoncompat.get_setting('dns_proxy_3')],
+						"proxy" : {
+									"us_proxy" : _addoncompat.get_setting('us_proxy'),
+									"us_proxy_port" : _addoncompat.get_setting('us_proxy_port'),
+									"us_proxy_user" : _addoncompat.get_setting('us_proxy_user'),
+									"us_proxy_pass" : _addoncompat.get_setting('us_proxy_pass')
+									}
+						}
+		proxy_config = simplejson.dumps(proxy_config)
+		proxy_config = urllib.quote_plus(proxy_config)
 		for i, video_item in enumerate(relative_urls):
-			newurl =  playpath_url.replace(name, video_item)
+			absolueurl =  playpath_url.replace(name, video_item)
+			if int(_addoncompat.get_setting('connectiontype')) > 0:
+				newurl = base64.b64encode(absolueurl)
+				newurl = urllib.quote_plus(newurl)
+				newurl = newurl + '/' + proxy_config
+				newurl = 'http://127.0.0.1:12345/proxy/' + newurl
+			else:
+				newurl = absolueurl
 			play_data = play_data.replace(video_item,  newurl)
 		localhttpserver = True
 		filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'

@@ -4,15 +4,23 @@ import _addoncompat
 import cookielib
 import BaseHTTPServer
 import os
+import os.path
 import sys
 import xbmc
 import re
 import base64
+import httplib
 import socket
 import traceback
 import time
 import urllib
 import urllib2
+import simplejson
+
+sys.path.append(
+    os.path.abspath(xbmc.translatePath(_addoncompat.get_path())))
+
+from dns.resolver import Resolver
 
 PLUGINPATH = xbmc.translatePath(_addoncompat.get_path())
 RESOURCESPATH = os.path.join(PLUGINPATH,'resources')
@@ -24,6 +32,21 @@ COOKIE = os.path.join(CACHEPATH,'cookie.txt')
 HOST_NAME = 'localhost'
 PORT_NUMBER = int(sys.argv[1])
 
+class MyHTTPConnection(httplib.HTTPConnection):
+	_dnsproxy = []
+	def connect(self):
+		resolver = Resolver()
+		resolver.nameservers = self._dnsproxy
+		answer = resolver.query(self.host, 'A')
+		self.host = answer.rrset.items[0].address
+		self.sock = socket.create_connection((self.host, self.port))
+
+class MyHTTPHandler(urllib2.HTTPHandler):
+	_dnsproxy = []
+	def http_open(self, req):
+		MyHTTPConnection._dnsproxy = self._dnsproxy 
+		return self.do_open(MyHTTPConnection, req)
+		
 class StoppableHTTPServer(BaseHTTPServer.HTTPServer):
 	def serve_forever(self):
 		self.stop = False
@@ -63,10 +86,32 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			realpath = urllib.unquote_plus(request_path[11:])
 			fURL = base64.b64decode(realpath)
 			self.serveFile(fURL, sendData)
+		elif 'proxy' in self.path:
+			realpath = urllib.unquote_plus(request_path[6:])
+			proxyconfig = realpath.split('/')[1]
+			proxy_object = simplejson.loads(proxyconfig)
+			if int(proxy_object['connectiontype']) == 1:
+				proxies = proxy_object['dns_proxy']
+				MyHTTPHandler._dnsproxy = proxies
+				handler = MyHTTPHandler
+			elif int(proxy_object['connectiontype']) == 2:
+				proxy = proxy_object['proxy']
+				us_proxy = 'http://' + proxy['us_proxy'] + ':' + proxy['us_proxy_port']
+				proxy_handler = urllib2.ProxyHandler({'http' : us_proxy})
+				handler = proxy_handler
+			realpath = realpath.split('/')[0]
+			fURL = base64.b64decode(realpath)
+			
+			self.serveFile(fURL, sendData, handler)
 
-	def serveFile(self, fURL, sendData):
+	def serveFile(self, fURL, sendData, httphandler = None):
+		
 		cj = cookielib.LWPCookieJar(COOKIE) 
-		opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+		if httphandler is None:
+			opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+		else:
+			opener = urllib2.build_opener(httphandler, urllib2.HTTPCookieProcessor(cj))
+		
 		request = urllib2.Request(url = fURL)
 		opener.addheaders = []
 		d = {}
