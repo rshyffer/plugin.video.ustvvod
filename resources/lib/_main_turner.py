@@ -3,10 +3,15 @@
 import _addoncompat
 import _common
 import _connection
+import _m3u8
+import base64
+import os
 import re
 import simplejson
 import sys
+import time
 import urllib
+import xbmc
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
@@ -16,6 +21,7 @@ pluginHandle = int(sys.argv[1])
 AUTHURL = 'http://www.tbs.com/processors/cvp/token.jsp'
 SWFURL = 'http://z.cdn.turner.com/xslo/cvp/plugins/akamai/streaming/osmf1.6/2.10/AkamaiAdvancedStreamingPlugin.swf'
 BASE = 'http://ht.cdn.turner.com/tbs/big/'
+HLSBASE = 'http://androidhls-secure.cdn.turner.com/%s/big/'
 
 def masterlist(NAME, MOVIES, SHOWS, SITE, WEBSHOWS = None ):
 	master_db = []
@@ -194,42 +200,63 @@ def play_video(SITE, EPISODE):
 		hbitrate = -1
 		lbitrate = -1
 		file_url = None
-		if qbitrate is  None:
-			video_menu = video_tree.find_all('file')
-			for video_index in video_menu:
-				try:
+		if _addoncompat.get_setting('preffered_stream_type') == 'RTMP':
+			if qbitrate is  None:
+				video_menu = video_tree.find_all('file')
+				for video_index in video_menu:
 					try:
-						play_mode = video_index['play_mode']
+						try:
+							play_mode = video_index['play_mode']
+						except:
+							play_mode = ''
+						if play_mode != 'window':
+							bitrate = int(video_index['bitrate'])
+							if bitrate < lbitrate or lbitrate == -1:
+								lbitrate = bitrate,sbitrate
+								lfile_url = video_index.string
+							if bitrate > hbitrate and bitrate <= sbitrate:
+								hbitrate = bitrate
+								file_url = video_index.string
 					except:
-						play_mode = ''
-					if play_mode != 'window':
-						bitrate = int(video_index['bitrate'])
-						if bitrate < lbitrate or lbitrate == -1:
-							lbitrate = bitrate,sbitrate
-							lfile_url = video_index.string
-						if bitrate > hbitrate and bitrate <= sbitrate:
-							hbitrate = bitrate
-							file_url = video_index.string
-				except:
-					pass
-			if file_url is None:
-				file_url = lfile_url 
+						pass
+				if file_url is None:
+					file_url = lfile_url 
+			else:
+				file_url = video_tree.find('file', attrs = {'bitrate' : qbitrate}).string
+			if 'mp4:'  in file_url:
+				filename = file_url[1:len(file_url)-4]
+				serverDetails = video_tree.find('akamai')
+				server = serverDetails.find('src').string.split('://')[1]
+				tokentype = serverDetails.find('authtokentype').string
+				window = serverDetails.find('window').string
+				aifp = serverDetails.find('aifp').string
+				auth=getAUTH(aifp,window,tokentype,video_id,filename.replace('mp4:',''), SITE) 
+				rtmp = 'rtmpe://' + server + '?' + auth + ' playpath=' + filename + ' swfurl=' + SWFURL + ' swfvfy=true'
+				segurl = rtmp
+			elif 'http' not in file_url:
+				segurl = BASE + file_url
+			else:
+				segurl = file_url
 		else:
-			file_url = video_tree.find('file', attrs = {'bitrate' : qbitrate}).string
-		if 'mp4:'  in file_url:
-			filename = file_url[1:len(file_url)-4]
-			serverDetails = video_tree.find('akamai')
-			server = serverDetails.find('src').string.split('://')[1]
-			tokentype = serverDetails.find('authtokentype').string
-			window = serverDetails.find('window').string
-			aifp = serverDetails.find('aifp').string
-			auth=getAUTH(aifp,window,tokentype,video_id,filename.replace('mp4:',''), SITE)      
-			rtmp = 'rtmpe://' + server + '?' + auth + ' playpath=' + filename + ' swfurl=' + SWFURL + ' swfvfy=true'
-			segurl = rtmp
-		elif 'http' not in file_url:
-			segurl = BASE + file_url
-		else:
-			segurl = file_url
+			video = video_tree.find('file', bitrate = 'androidtablet').string
+			video_url = HLSBASE % SITE + video[1:]
+			m3u8_data = _connection.getURL(video_url)
+			m3u8 = _m3u8.parse(m3u8_data)
+			uri = None
+			for video_index in m3u8.get('playlists'):
+				if int(video_index.get('stream_info')['bandwidth']) > 64000:
+					bitrate = int(video_index.get('stream_info')['bandwidth']) /1024
+					if bitrate < lbitrate or lbitrate == -1:
+						lbitrate = bitrate
+						lplaypath_url = video_index.get('uri')
+					if bitrate > hbitrate and bitrate <= sbitrate:
+						hbitrate = bitrate
+						playpath_url = video_index.get('uri')
+			if playpath_url is None:
+				playpath_url = lplaypath_url
+			master = video_url.split('/')[-1]
+			segurl = video_url.replace(master, playpath_url)
+			
 		stack_url += segurl.replace(',', ',,') + ' , '
 	if ', ' in stack_url:
 		stack_url = 'stack://' + stack_url
