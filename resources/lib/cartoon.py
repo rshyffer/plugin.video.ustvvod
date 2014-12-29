@@ -15,6 +15,7 @@ SHOWS = 'http://www.cartoonnetwork.com/video/staged/CN2.mobile.configuration.xml
 EPISODE = 'http://www.cartoonnetwork.com/video-seo-svc/episodeservices/getCvpPlaylist?networkName=CN2&id=%s'
 CLIPS = 'http://www.cartoonnetwork.com/video-seo-svcepisodeSearch/getAllEpisodes?networkName=CN2&filterByPlatform=mobile&filterByEpisodeType=CLI-CLI&offset=0&sortByDate=DESC&filterByCollectionId=%s&filterBySeasonNumber=%s'
 FULLEPISODES = 'http://www.cartoonnetwork.com/video-seo-svcepisodeSearch/getAllEpisodes?networkName=CN2&filterByPlatform=mobile&filterByEpisodeType=TVE&offset=0&sortByDate=DESC&filterByCollectionId=%s&filterBySeasonNumber=%s'
+HLSPATH = 'toon'
 
 def masterlist():
 	master_db = []
@@ -65,7 +66,7 @@ def episodes():
 	_main_turner.episodes(SITE)
 
 def play_video(video_id = _common.args.url):
-	_main_turner.play_video(SITE, EPISODE)
+	_main_turner.play_video(SITE, EPISODE, HLSPATH)
 
 def list_qualities():
 	return _main_turner.list_qualities(SITE, EPISODE)

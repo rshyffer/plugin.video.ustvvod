@@ -17,6 +17,7 @@ import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
 pluginHandle = int(sys.argv[1])
+player = _common.XBMCPlayer()
 
 AUTHURL = 'http://www.tbs.com/processors/cvp/token.jsp'
 SWFURL = 'http://z.cdn.turner.com/xslo/cvp/plugins/akamai/streaming/osmf1.6/2.10/AkamaiAdvancedStreamingPlugin.swf'
@@ -181,13 +182,14 @@ def episodes(SITE):
 			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 	_common.set_view('episodes')
 
-def play_video(SITE, EPISODE):
+def play_video(SITE, EPISODE, HLSPATH = None):
+	localhttpserver = False
 	try:
 		qbitrate = _common.args.quality
 	except:
 		qbitrate = None
 	stack_url = ''
-	for video_id in _common.args.url.split(','):
+	for v, video_id in enumerate(_common.args.url.split(',')):
 		if 'http' not in video_id:
 			video_url = EPISODE % video_id
 		else:
@@ -200,7 +202,11 @@ def play_video(SITE, EPISODE):
 		hbitrate = -1
 		lbitrate = -1
 		file_url = None
-		if _addoncompat.get_setting('preffered_stream_type') == 'RTMP':
+		if video_tree.find('file', text = re.compile('mp4:')) is not None:
+			hasRTMP = True
+		else:
+			hasRTMP = False
+		if (_addoncompat.get_setting('preffered_stream_type') == 'RTMP' and int(_addoncompat.get_setting('connectiontype')) == 0) or not hasRTMP:
 			if qbitrate is  None:
 				video_menu = video_tree.find_all('file')
 				for video_index in video_menu:
@@ -239,7 +245,7 @@ def play_video(SITE, EPISODE):
 				segurl = file_url
 		else:
 			video = video_tree.find('file', bitrate = 'androidtablet').string
-			video_url = HLSBASE % SITE + video[1:]
+			video_url = HLSBASE % HLSPATH + video[1:]
 			m3u8_data = _connection.getURL(video_url)
 			m3u8 = _m3u8.parse(m3u8_data)
 			uri = None
@@ -256,11 +262,39 @@ def play_video(SITE, EPISODE):
 				playpath_url = lplaypath_url
 			master = video_url.split('/')[-1]
 			segurl = video_url.replace(master, playpath_url)
-			
+			if int(_addoncompat.get_setting('connectiontype')) > 0:
+				localhttpserver = True
+				play_data = _connection.getURL(segurl)
+				relative_urls = re.compile('(.*ts)\n').findall(play_data)
+				relative_k_urls = re.compile('"(.*key)"').findall(play_data)
+				proxy_config = _common.proxyConfig()
+				for i, video_item in enumerate(relative_urls):
+					absolueurl =  video_url.replace(master, video_item)
+					newurl = base64.b64encode(absolueurl)
+					newurl = urllib.quote_plus(newurl)
+					newurl = newurl + '/' + proxy_config
+					newurl = 'http://127.0.0.1:12345/proxy/' + newurl
+					play_data = play_data.replace(video_item,  newurl)
+				for i, video_item in enumerate(relative_k_urls):
+					absolueurl =  video_url.replace(master, video_item)
+					key_data = _connection.getURL(absolueurl)		
+					key_file = open(_common.KEYFILE + str(v) + '-' + str(i), 'wb')
+					key_file.write(key_data)
+					key_file.close()
+					play_data = play_data.replace(video_item,  'http://127.0.0.1:12345/play.key' + str(v) + '-' + str(i))
+				file_name = _common.PLAYFILE.replace('.m3u8', '_' + str(v) + '.m3u8')
+				playfile = open(file_name, 'w')
+				playfile.write(play_data)
+				playfile.close()
+				segurl = 'http://127.0.0.1:12345/' + file_name.split('\\')[-1]
 		stack_url += segurl.replace(',', ',,') + ' , '
 	if ', ' in stack_url:
 		stack_url = 'stack://' + stack_url
 	finalurl = stack_url[:-3]
+	if localhttpserver:
+		filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
+		xbmc.executebuiltin(filestring)
+		time.sleep(20)
 	item = xbmcgui.ListItem(path = finalurl)
 	if qbitrate is not None:
 		item.setThumbnailImage(_common.args.thumb)
@@ -269,7 +303,9 @@ def play_video(SITE, EPISODE):
 						'episode' : _common.args.episode_number,
 						'TVShowTitle' : _common.args.show_title})
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
-
+	if localhttpserver:
+			while player.is_active:
+				player.sleep(250)
 def list_qualities(SITE, EPISODE):
 	try:
 		video_id = _common.args.url.split(',')[0]

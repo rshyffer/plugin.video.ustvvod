@@ -11,6 +11,7 @@ CLIPSSEASON = 'http://www.tbs.com/mobile/ipad/feeds/getFranchiseCollections.jsp?
 CLIPS = 'http://www.tbs.com/mobile/ipad/feeds/franchiseEpisode.jsp?franchiseID=%s&type=0&collectionId=%s'
 FULLEPISODES = 'http://www.tbs.com/mobile/ipad/feeds/franchiseEpisode.jsp?franchiseID=%s&type=1'
 EPISODE = 'http://www.tbs.com/video/content/services/cvpXML.do?id=%s'
+HLSPATH = 'tbs'
 
 def masterlist():
 	return _main_turner.masterlist(NAME, MOVIES, SHOWS, SITE)
@@ -22,7 +23,7 @@ def episodes():
 	_main_turner.episodes_json(SITE)
 
 def play_video():
-	_main_turner.play_video(SITE, EPISODE)
+	_main_turner.play_video(SITE, EPISODE, HLSPATH)
 
 def list_qualities():
 	return _main_turner.list_qualities(SITE, EPISODE)

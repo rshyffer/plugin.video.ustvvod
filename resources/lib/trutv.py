@@ -18,6 +18,7 @@ SHOWS = 'http://feed.theplatform.com/f/ilYX/9A4duhdMkbgp?form=json&count=true'
 CLIPS = 'http://feed.theplatform.com/f/ilYX/hjRdcrJ7AAi5?form=json&count=true'
 FULLEPISODES = 'http://www.trutv.com/tveverywhere/services/getCollectionByContentId.json?sortBy=originalPremiereDate&id=%s'
 EPISODE = 'http://www.trutv.com/tveverywhere/services/cvpXML.do?titleId=%s'
+HLSPATH ='tru'
 
 def masterlist():
 	master_db = []
@@ -132,7 +133,7 @@ def play_video(video_url = _common.args.url):
 		item = xbmcgui.ListItem(path = finalurl)
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	else:
-		_main_turner.play_video(SITE, EPISODE)
+		_main_turner.play_video(SITE, EPISODE, HLSPATH)
 
 def list_qualities():
 	return _main_turner.list_qualities(SITE, EPISODE)

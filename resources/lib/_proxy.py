@@ -27,6 +27,7 @@ RESOURCESPATH = os.path.join(PLUGINPATH,'resources')
 CACHEPATH = os.path.join(RESOURCESPATH,'cache')
 VIDEOPATH = os.path.join(CACHEPATH,'videos')
 KEYFILE = os.path.join(CACHEPATH,'play.key')
+PLAYFILE = os.path.join(CACHEPATH,'play.m3u8')
 COOKIE = os.path.join(CACHEPATH,'cookie.txt')
 
 HOST_NAME = 'localhost'
@@ -76,6 +77,16 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			try:
 				self._writeheaders()
 				file = open(KEYFILE.replace('play.key', request_path), 'r')
+				data = file.read()
+				self.wfile.write(data)
+				file.close()
+			except IOError:
+				self.send_error(404, 'File Not Found: %s' % self.path)
+			return
+		elif 'm3u8' in self.path:
+			try:
+				self._writeheaders()
+				file = open(PLAYFILE.replace('play.m3u8', request_path), 'r')
 				data = file.read()
 				self.wfile.write(data)
 				file.close()

@@ -19,6 +19,7 @@ CLIPSSEASON = ''
 CLIPS = ''
 FULLEPISODES = ''
 EPISODE = 'http://www.tcm.com/tveverywhere/services/videoXML.do?id=%s'
+HLSPATH = 'tcm'
 
 def masterlist():
 	master_db = []
@@ -81,7 +82,7 @@ def episodes():
 
 
 def play_video():
-	_main_turner.play_video(SITE, EPISODE)
+	_main_turner.play_video(SITE, EPISODE, HLSPATH)
 
 def list_qualities():
 	return _main_turner.list_qualities(SITE, EPISODE)

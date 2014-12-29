@@ -19,7 +19,7 @@ FULLEPISODES = 'http://www.tntdrama.com/mobile/ipad/feeds/franchiseEpisode.jsp?f
 EPISODE = 'http://www.tntdrama.com/video/content/services/cvpXML.do?id=%s'
 WEBSHOWS = 'http://www.tntdrama.com/shows/index.html'
 WEBEPISODE = 'http://www.tntdrama.com/service/cvpXml?titleId=%s'
-
+HLSPATH = 'tnt'
 
 def masterlist():
 	return _main_turner.masterlist(NAME, MOVIES, SHOWS, SITE, WEBSHOWS)
@@ -75,7 +75,7 @@ def episodes_web():
 	_common.set_view('episodes')
 
 def play_video():
-	_main_turner.play_video(SITE, EPISODE)
+	_main_turner.play_video(SITE, EPISODE, HLSPATH)
 
 def list_qualities():
 	return _main_turner.list_qualities(SITE, EPISODE)

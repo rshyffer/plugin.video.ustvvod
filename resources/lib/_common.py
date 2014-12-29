@@ -10,6 +10,7 @@ import sys
 import time
 import urllib
 import re
+import simplejson
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -854,3 +855,17 @@ def add_video(video_url, displayname, thumb = None, fanart = None, infoLabels = 
 
 def show_exception(error1, error2):
 	xbmc.executebuiltin('XBMC.Notification(%s, %s, 5000)' % (error1, smart_utf8(error2)))
+	
+def proxyConfig():
+	proxy_config =  {"connectiontype" : _addoncompat.get_setting('connectiontype'), 
+				"dns_proxy" : [_addoncompat.get_setting('dns_proxy'), _addoncompat.get_setting('dns_proxy_2'), _addoncompat.get_setting('dns_proxy_3')],
+				"proxy" : {
+							"us_proxy" : _addoncompat.get_setting('us_proxy'),
+							"us_proxy_port" : _addoncompat.get_setting('us_proxy_port'),
+							"us_proxy_user" : _addoncompat.get_setting('us_proxy_user'),
+							"us_proxy_pass" : _addoncompat.get_setting('us_proxy_pass')
+							}
+				}
+	proxy_config = simplejson.dumps(proxy_config)
+	proxy_config = urllib.quote_plus(proxy_config)
+	return proxy_config

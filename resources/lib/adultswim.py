@@ -20,6 +20,7 @@ SEASONSEPISODESEXTRA = 'http://www.adultswim.com/videos/api/v0/videos?limit=1&of
 CLIPS = 'http://www.adultswim.com/videos/api/v0/videos?limit=50&offset=0&sortByDate=DESC&filterByEpisodeType=CLI&filterByCollectionId=%s&filterByAuthType=true&networkName=AS'
 FULLEPISODES = 'http://www.adultswim.com/videos/api/v0/videos?limit=50&offset=0&sortByDate=DESC&filterByEpisodeType=EPI&filterByCollectionId=%s&filterByAuthType=true&networkName=AS'
 EPISODE = 'http://www.adultswim.com/videos/api/v0/assets?id=%s&networkName=AS'
+HLSPATH = 'adultswim'
 
 def masterlist():
 	master_db = []
@@ -73,7 +74,7 @@ def episodes():
 	_main_turner.episodes(SITE)
 
 def play_video():
-	_main_turner.play_video(SITE, EPISODE)
+	_main_turner.play_video(SITE, EPISODE, HLSPATH)
 
 def list_qualities():
 	return _main_turner.list_qualities(SITE, EPISODE)
