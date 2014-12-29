@@ -18,7 +18,7 @@ SHOWS = 'http://feed.theplatform.com/f/ilYX/9A4duhdMkbgp?form=json&count=true'
 CLIPS = 'http://feed.theplatform.com/f/ilYX/hjRdcrJ7AAi5?form=json&count=true'
 FULLEPISODES = 'http://www.trutv.com/tveverywhere/services/getCollectionByContentId.json?sortBy=originalPremiereDate&id=%s'
 EPISODE = 'http://www.trutv.com/tveverywhere/services/cvpXML.do?titleId=%s'
-HLSPATH ='tru'
+HLSPATH ='trutv'
 
 def masterlist():
 	master_db = []
@@ -100,7 +100,7 @@ def episodes(episode_url = _common.args.url):
 			url = str(episode_item['id'])
 			episode_duration = _common.format_seconds(episode_item['duration'])
 			episode_plot = episode_item['description']
-			episode_airdate = _common.format_date(episode_item['publishDate'].replace(' EDT', ''), '%a %b %d %H:%M:%S %Y')
+			episode_airdate = _common.format_date(episode_item['publishDate'].replace(' EDT', '').replace(' EST', ''), '%a %b %d %H:%M:%S %Y')
 			episode_name = episode_item['title']
 			try:
 				season_number = int(episode_item['seasonNumber'])
