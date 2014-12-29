@@ -101,6 +101,8 @@ def episodes_json(SITE):
 				episode_number =  int(episode_item['identifier'].split(', ')[1].split(' ')[1])
 			except:
 				episode_number = -1
+		if episode_number > 100:
+			episode_number = int(re.compile('episode-(\d*)').findall(_connection.getRedirect(episode_item['shareURL']))[0])
 		try:
 			episode_thumb = episode_item['640x360_jpg']
 		except:
