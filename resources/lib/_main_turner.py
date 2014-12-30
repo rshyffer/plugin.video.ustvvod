@@ -137,7 +137,15 @@ def episodes(SITE):
 		if episode_season_number == season_number or 'filterBySeasonNumber'  not in episode_url:
 			segments = episode_item.find_all('segment')
 			if len(segments) == 0:
-				url = episode_item['id']
+				print episode_item
+				try:
+					type = episode_item['episodeType']
+				except:
+					type = episode_item['episodetype']
+				if type == 'EPI':
+					continue
+				else:
+					url = episode_item['id']
 			else:
 				url = ''
 				for segment in segments:
