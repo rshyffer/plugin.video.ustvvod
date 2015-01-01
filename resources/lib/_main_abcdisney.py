@@ -166,10 +166,6 @@ def episodes(SITE):
 def list_qualities(SITE, BRANDID, PARTNERID):
 	video_id, video_type = _common.args.url.split('#')
 	bitrates = []
-	#hbitrate = -1
-	#lbitrate = -1
-	#sbitrate = int(_addoncompat.get_setting('quality'))
-	#localhttpserver = False
 	video_auth = get_authorization(BRANDID, video_id, video_type)
 	if video_auth is False:
 		video_url = VIDEOLIST % BRANDID + '001/-1/-1/-1/' + video_id + '/-1/-1'
@@ -177,7 +173,6 @@ def list_qualities(SITE, BRANDID, PARTNERID):
 		try:
 			video_data2 = simplejson.loads(video_data)['videos']['video']
 			video_format = video_data2['assets']['asset'][0]['@format']
-			#video_closedcaption = video_data2['closedcaption']['@enabled']
 		except:
 			try:
 				video_data2 = simplejson.loads(video_data)['videos']['video']
@@ -194,13 +189,7 @@ def list_qualities(SITE, BRANDID, PARTNERID):
 			for video_index in video_url2.get('playlists'):
 				bitrate = int(video_index.get('stream_info')['bandwidth'])
 				bitrate.append((bitrate / 1000, bitrate))
-				#if bitrate > hbitrate and bitrate <= (sbitrate * 1000):
-				#	hbitrate = bitrate
-				#	playpath_url = video_index.get('uri')
-			#finalurl = playpath_url
 		elif  video_format == 'MOV':
-			#player._localHTTPServer = False
-			#playpath_url = None
 			video_url = PLAYLISTMOV % (PARTNERID, PARTNERID) + video_id
 			video_data = _connection.getURL(video_url)
 			video_tree = BeautifulSoup(video_data, 'html.parser')
@@ -223,32 +212,6 @@ def list_qualities(SITE, BRANDID, PARTNERID):
 		for video_keys in BITRATETABLE.iterkeys():
 			bitrate = int(video_keys)
 			bitrates.append((bitrate, bitrate))
-		#video_url4 = video_url4.replace('https','http').replace('json','m3u8')
-		#video_data4 = re.sub(r"\#EXT-X-DISCONTINUITY\n","", _connection.getURL(video_url4))
-		#key_url = re.compile('URI="(.*?)"').findall(video_data4)[0]
-		#key_data = _connection.getURL(key_url)		
-		#key_file = open(_common.KEYFILE, 'wb')
-		#key_file.write(key_data)
-		#key_file.close()
-		# localhttpserver = True
-		# filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
-		# xbmc.executebuiltin(filestring)
-		# time.sleep(20)
-		# video_data4 = video_data4.replace(key_url, 'http://127.0.0.1:12345/play.key')
-		# playfile = open(_common.PLAYFILE, 'w')
-		# playfile.write(video_data4)
-		# playfile.close()
-		# finalurl = _common.PLAYFILE
-	# if (video_closedcaption == 'true') and (_addoncompat.get_setting('enablesubtitles') == 'true'):
-		# try:
-			# closedcaption = CLOSEDCAPTIONHOST + video_data2['closedcaption']['src']['$'].split('.com')[1]
-			# convert_subtitles(closedcaption)
-			# player._subtitles_Enabled = True
-		# except:
-			# video_closedcaption = 'false'
-	# xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
-	# while player.is_active:
-		# player.sleep(250)
 	return bitrates	
 		
 def play_video(SITE, BRANDID, PARTNERID):
