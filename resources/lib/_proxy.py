@@ -31,6 +31,7 @@ PLAYFILE = os.path.join(CACHEPATH,'play.m3u8')
 COOKIE = os.path.join(CACHEPATH,'cookie.txt')
 
 HOST_NAME = 'localhost'
+TIMEOUT = 50
 PORT_NUMBER = int(sys.argv[1])
 
 class MyHTTPConnection(httplib.HTTPConnection):
@@ -136,7 +137,7 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		if os.path.isfile(COOKIE):
 			cj.load(ignore_discard = True)
 			cj.add_cookie_header(request)
-		response = opener.open(request)
+		response = opener.open(request, timeout = TIMEOUT)
 		self.send_response(200)
 		headers = response.info()
 		for key in headers:
