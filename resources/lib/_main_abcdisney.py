@@ -156,10 +156,102 @@ def episodes(SITE):
 						'durationinseconds' : episode_duration,
 						'episode' : episode_number,
 						'season' : season_number }
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
+			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels,  quality_mode  = 'list_qualities')
 	_common.set_view('episodes')
-
+	
+def list_qualities(SITE, BRANDID, PARTNERID):
+	video_id, video_type = _common.args.url.split('#')
+	bitrates = []
+	#hbitrate = -1
+	#lbitrate = -1
+	#sbitrate = int(_addoncompat.get_setting('quality'))
+	#localhttpserver = False
+	video_auth = get_authorization(BRANDID, video_id, video_type)
+	if video_auth is False:
+		video_url = VIDEOLIST % BRANDID + '001/-1/-1/-1/' + video_id + '/-1/-1'
+		video_data = _connection.getURL(video_url)
+		try:
+			video_data2 = simplejson.loads(video_data)['videos']['video']
+			video_format = video_data2['assets']['asset'][0]['@format']
+			#video_closedcaption = video_data2['closedcaption']['@enabled']
+		except:
+			try:
+				video_data2 = simplejson.loads(video_data)['videos']['video']
+				video_format = video_data2['assets']['asset']['@format']
+				#video_closedcaption = video_data2['closedcaption']['@enabled']
+			except:
+				video_format = 'MOV'
+				#video_closedcaption = 'false'
+		video_id = video_id.replace('VDKA','')
+		if video_format == 'MP4':
+			video_url = PLAYLISTMP4 % (PARTNERID, PARTNERID) + video_id
+			video_data = _connection.getURL(video_url)
+			video_url2 = _m3u8.parse(video_data)
+			for video_index in video_url2.get('playlists'):
+				bitrate = int(video_index.get('stream_info')['bandwidth'])
+				bitrate.append((bitrate / 1000, bitrate))
+				#if bitrate > hbitrate and bitrate <= (sbitrate * 1000):
+				#	hbitrate = bitrate
+				#	playpath_url = video_index.get('uri')
+			#finalurl = playpath_url
+		elif  video_format == 'MOV':
+			#player._localHTTPServer = False
+			#playpath_url = None
+			video_url = PLAYLISTMOV % (PARTNERID, PARTNERID) + video_id
+			video_data = _connection.getURL(video_url)
+			video_tree = BeautifulSoup(video_data, 'html.parser')
+			base_url = video_tree('baseurl')[0].string
+			video_url2 = video_tree.findAll('media')
+			for video_index in video_url2:
+				bitrate = int(video_index['bitrate'])
+				bitrates.append((bitrate, bitrate))
+	else:
+		video_url = VIDEOLIST % BRANDID + '002/-1/-1/-1/' + video_id + '/-1/-1'
+		video_data = _connection.getURL(video_url)
+		video_data2 = simplejson.loads(video_data)['videos']['video']
+		video_closedcaption = video_data2['closedcaption']['@enabled']
+		try:
+			video_url2 = video_data2['assets']['asset']['$'] + video_auth
+		except:
+			video_url2 = video_data2['assets']['asset'][1]['$'] + video_auth
+		video_data3 = _connection.getURL(video_url2.replace('m3u8','json'))
+		video_url3 = simplejson.loads(video_data3)
+		for video_keys in BITRATETABLE.iterkeys():
+			bitrate = int(video_keys)
+			bitrates.append((bitrate, bitrate))
+		#video_url4 = video_url4.replace('https','http').replace('json','m3u8')
+		#video_data4 = re.sub(r"\#EXT-X-DISCONTINUITY\n","", _connection.getURL(video_url4))
+		#key_url = re.compile('URI="(.*?)"').findall(video_data4)[0]
+		#key_data = _connection.getURL(key_url)		
+		#key_file = open(_common.KEYFILE, 'wb')
+		#key_file.write(key_data)
+		#key_file.close()
+		# localhttpserver = True
+		# filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
+		# xbmc.executebuiltin(filestring)
+		# time.sleep(20)
+		# video_data4 = video_data4.replace(key_url, 'http://127.0.0.1:12345/play.key')
+		# playfile = open(_common.PLAYFILE, 'w')
+		# playfile.write(video_data4)
+		# playfile.close()
+		# finalurl = _common.PLAYFILE
+	# if (video_closedcaption == 'true') and (_addoncompat.get_setting('enablesubtitles') == 'true'):
+		# try:
+			# closedcaption = CLOSEDCAPTIONHOST + video_data2['closedcaption']['src']['$'].split('.com')[1]
+			# convert_subtitles(closedcaption)
+			# player._subtitles_Enabled = True
+		# except:
+			# video_closedcaption = 'false'
+	# xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
+	# while player.is_active:
+		# player.sleep(250)
+	return bitrates	
+		
 def play_video(SITE, BRANDID, PARTNERID):
+	try:
+		qbitrate = _common.args.quality
+	except:
+		qbitrate = None
 	video_id, video_type = _common.args.url.split('#')
 	hbitrate = -1
 	lbitrate = -1
@@ -188,9 +280,13 @@ def play_video(SITE, BRANDID, PARTNERID):
 			video_url2 = _m3u8.parse(video_data)
 			for video_index in video_url2.get('playlists'):
 				bitrate = int(video_index.get('stream_info')['bandwidth'])
-				if bitrate > hbitrate and bitrate <= (sbitrate * 1000):
-					hbitrate = bitrate
-					playpath_url = video_index.get('uri')
+				if qbitrate is not None:
+					if bitrate > hbitrate and bitrate <= (sbitrate * 1000):
+						hbitrate = bitrate
+						playpath_url = video_index.get('uri')
+				else:
+					if bitrate == qbitrate:
+						playpath_url = video_index.get('uri')
 			finalurl = playpath_url
 		elif  video_format == 'MOV':
 			player._localHTTPServer = False
@@ -200,14 +296,17 @@ def play_video(SITE, BRANDID, PARTNERID):
 			video_tree = BeautifulSoup(video_data, 'html.parser')
 			base_url = video_tree('baseurl')[0].string
 			video_url2 = video_tree.findAll('media')
-			for video_index in video_url2:
-				bitrate = int(video_index['bitrate'])
-				if bitrate < lbitrate or lbitrate == -1:
-					lbitrate = bitrate
-					lplaypath_url = video_index['url']	
-				if bitrate > hbitrate and bitrate <= sbitrate:
-					hbitrate = bitrate
-					playpath_url = video_index['url']
+			if qbitrate is None:
+				for video_index in video_url2:
+					bitrate = int(video_index['bitrate'])
+					if bitrate < lbitrate or lbitrate == -1:
+						lbitrate = bitrate
+						lplaypath_url = video_index['url']	
+					if bitrate > hbitrate and bitrate <= sbitrate:
+						hbitrate = bitrate
+						playpath_url = video_index['url']
+			else:
+				playpath_url = video_tree.find('media', bitrate = qbitrate)['url']
 			if playpath_url is None:
 				playpath_url = lplaypath_url
 			finalurl = base_url + ' playpath=' + playpath_url + ' swfUrl=' + SWFURL + ' swfVfy=true'
@@ -224,9 +323,13 @@ def play_video(SITE, BRANDID, PARTNERID):
 		video_url3 = simplejson.loads(video_data3)
 		for video_keys in BITRATETABLE.iterkeys():
 			bitrate = int(video_keys)
-			if bitrate > hbitrate and bitrate <= sbitrate:
-				hbitrate = bitrate
-				video_url4 = video_url3['url'].replace('__ray__', BITRATETABLE[video_keys])
+			if qbitrate is None:
+				if bitrate > hbitrate and bitrate <= sbitrate:
+					hbitrate = bitrate
+					video_url4 = video_url3['url'].replace('__ray__', BITRATETABLE[video_keys])
+			else:
+				if qbitrate == bitrate:
+					video_url4 = video_url3['url'].replace('__ray__', BITRATETABLE[video_keys])
 		video_url4 = video_url4.replace('https','http').replace('json','m3u8')
 		video_data4 = re.sub(r"\#EXT-X-DISCONTINUITY\n","", _connection.getURL(video_url4))
 		key_url = re.compile('URI="(.*?)"').findall(video_data4)[0]

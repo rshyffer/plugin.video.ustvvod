@@ -20,3 +20,6 @@ def episodes():
 
 def play_video():
 	_main_abcdisney.play_video(SITE, BRANDID, PARTNERID)
+
+def list_qualities():
+	return _main_abcdisney.list_qualities(SITE, BRANDID, PARTNERID)
