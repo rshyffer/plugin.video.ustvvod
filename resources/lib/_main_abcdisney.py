@@ -133,6 +133,10 @@ def episodes(SITE):
 			except:
 				episode_number = -1
 			try:
+				episode_number = re.compile('Episode (\d+)').findall(episode_name)[0]
+			except:
+				pass
+			try:
 				for episode_picture in episode_item['thumbnails']['thumbnail']:
 					try:
 						picture_height = int(episode_picture['@width'])
