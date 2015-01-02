@@ -139,7 +139,10 @@ def root_list(network_name):
 		if (dialog.iscanceled()):
 			return False
 	for show in showdata:
-		add_show(show[0], show[1], show[2], show[3])
+		try:
+			add_show(show[0], show[1], show[2], show[3], siteplot = show[4])
+		except:
+			add_show(show[0], show[1], show[2], show[3])
 	set_view('root')
 
 def get_network(module_name):
@@ -282,7 +285,10 @@ def refresh_db():
 			dialog.update(percent, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39017)) + network.NAME, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39018)))
 			showdata = network.masterlist()
 			for show in showdata:
-				series_title, mode, submode, url = show
+				try:
+					series_title, mode, submode, url = show
+				except:
+					series_title, mode, submode, url, siteplot = show
 				all_shows.append((smart_unicode(series_title.lower().strip()), smart_unicode(mode), smart_unicode(submode)))
 			total_shows = len(showdata)
 			current_show = 0
@@ -625,7 +631,7 @@ def load_showlist(favored = 0):
 	for show in shows:
 		add_show( masterList = True, showdata = show)	
 
-def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, hide = 0, masterList = False, showdata = None):
+def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, hide = 0, masterList = False, showdata = None, siteplot = None):
 	infoLabels = {}
 	tvdbfanart = None
 	tvdbbanner = None
@@ -683,6 +689,8 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 		pass
 	if status is not None:
 		prefixplot += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39015)) + status + '\n'
+	if plot is None and siteplot is not None:
+		plot = siteplot
 	if prefixplot is not None:
 		prefixplot += '\n'
 	if plot is not None:

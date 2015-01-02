@@ -159,17 +159,7 @@ def play_video(video_url = _common.args.url):
 		key_file.close()
 		relative_urls = re.compile('(.*ts)\n').findall(play_data)
 		name = playpath_url.split('/')[-1]
-		proxy_config =  {"connectiontype" : _addoncompat.get_setting('connectiontype'), 
-						"dns_proxy" : [_addoncompat.get_setting('dns_proxy'), _addoncompat.get_setting('dns_proxy_2'), _addoncompat.get_setting('dns_proxy_3')],
-						"proxy" : {
-									"us_proxy" : _addoncompat.get_setting('us_proxy'),
-									"us_proxy_port" : _addoncompat.get_setting('us_proxy_port'),
-									"us_proxy_user" : _addoncompat.get_setting('us_proxy_user'),
-									"us_proxy_pass" : _addoncompat.get_setting('us_proxy_pass')
-									}
-						}
-		proxy_config = simplejson.dumps(proxy_config)
-		proxy_config = urllib.quote_plus(proxy_config)
+		proxy_config = _common.proxyConfig()
 		for i, video_item in enumerate(relative_urls):
 			absolueurl =  playpath_url.replace(name, video_item)
 			if int(_addoncompat.get_setting('connectiontype')) > 0:

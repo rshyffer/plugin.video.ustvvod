@@ -41,6 +41,10 @@ def masterlist(SITE, BRANDID):
 	for master_item in master_menu:
 		fullepisodes = 0
 		clips = 0
+		try:
+			plot = master_item['description']
+		except:
+			plot = None
 		if (int(master_item['clips']['count']['@total']) + int(master_item['fullepisodes']['count']['@total'])) > 0:
 			if int(master_item['clips']['count']['@total']) > 0:
 				try:
@@ -59,7 +63,7 @@ def masterlist(SITE, BRANDID):
 			if fullepisodes > 0 or (clips > 0 and _addoncompat.get_setting('hide_clip_only') == 'false'):
 				master_name = master_item['title'].strip()
 				season_url = master_item['@id']
-				master_db.append((master_name, SITE, 'seasons', season_url))
+				master_db.append((master_name, SITE, 'seasons', season_url, plot))
 	return master_db
 
 def seasons(SITE, BRANDID):
