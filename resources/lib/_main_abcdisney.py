@@ -320,7 +320,14 @@ def play_video(SITE, BRANDID, PARTNERID):
 			player._subtitles_Enabled = True
 		except:
 			video_closedcaption = 'false'
-	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
+	item = xbmcgui.ListItem(path = finalurl)
+	if qbitrate is not None:
+		item.setThumbnailImage(_common.args.thumb)
+		item.setInfo('Video', {	'title' : _common.args.name,
+						'season' : _common.args.season_number,
+						'episode' : _common.args.episode_number,
+						'TVShowTitle' : _common.args.show_title})
+	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	while player.is_active:
 		player.sleep(250)
 

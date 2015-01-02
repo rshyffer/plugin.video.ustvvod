@@ -96,10 +96,14 @@ def episodes(episode_url = _common.args.url):
 							'plot' : episode_plot,
 							'premiered' : episode_airdate,
 							'tvshowtitle': show_name }
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
+			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels,  quality_mode  = 'list_qualities')
 	_common.set_view('episodes')
 
 def play_video(video_url = _common.args.url):
+	try:
+		qbitrate = _common.args.quality
+	except:
+		qbitrate = None
 	hbitrate = -1
 	sbitrate = int(_addoncompat.get_setting('quality')) * 1000
 	finalurl = ''
@@ -117,9 +121,13 @@ def play_video(video_url = _common.args.url):
 	video_url3 = _m3u8.parse(video_data2)
 	for video_index in video_url3.get('playlists'):
 		bitrate = int(video_index.get('stream_info')['bandwidth'])
-		if bitrate > hbitrate and bitrate <= sbitrate:
-			hbitrate = bitrate
-			video_url4 = video_index.get('uri')
+		if qbitrate is None:
+			if bitrate > hbitrate and bitrate <= sbitrate:
+				hbitrate = bitrate
+				video_url4 = video_index.get('uri')
+		else:
+			if qbitrate == bitrate:
+				video_url4 = video_index.get('uri')
 	video_data4 = _connection.getURL(video_url4, loadcookie = True)
 	key_url = re.compile('URI="(.*?)"').findall(video_data4)[0]
 	key_data = _connection.getURL(key_url, loadcookie = True)
@@ -140,7 +148,14 @@ def play_video(video_url = _common.args.url):
 	playfile.write(video_data4)
 	playfile.close()
 	finalurl = _common.PLAYFILE
-	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
+	item = xbmcgui.ListItem(path = finalurl)
+	if qbitrate is not None:
+		item.setThumbnailImage(_common.args.thumb)
+		item.setInfo('Video', {	'title' : _common.args.name,
+						'season' : _common.args.season_number,
+						'episode' : _common.args.episode_number,
+						'TVShowTitle' : _common.args.show_title})
+	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	if ((_addoncompat.get_setting('enablesubtitles') == 'true') and (video_closedcaption != 'false')) or localhttpserver is True:
 		while not xbmc.Player().isPlaying():
 			xbmc.sleep(100)
@@ -150,6 +165,19 @@ def play_video(video_url = _common.args.url):
 		while xbmc.Player().isPlaying():
 			xbmc.sleep(1000)
 		_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
+
+def list_qualities(video_url = _common.args.url):
+	bitrates = []
+	video_data = _connection.getURL(video_url + '&manifest=m3u')
+	video_tree = BeautifulSoup(video_data, 'html.parser')
+	video_url2 = video_tree.find('video', src = True)['src']
+	video_data2 = _connection.getURL(video_url2, savecookie = True)
+	video_url3 = _m3u8.parse(video_data2)
+	for video_index in video_url3.get('playlists'):
+		bitrate = int(video_index.get('stream_info')['bandwidth'])
+		if bitrate  > 100000:
+			bitrates.append((bitrate, bitrate))
+	return bitrates
 
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')
