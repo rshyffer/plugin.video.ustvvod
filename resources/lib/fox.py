@@ -105,6 +105,7 @@ def play_video(video_url = _common.args.url):
 	except:
 		qbitrate = None
 	hbitrate = -1
+	lbitrate = -1
 	sbitrate = int(_addoncompat.get_setting('quality')) * 1000
 	finalurl = ''
 	video_data = _connection.getURL(video_url + '&manifest=m3u')
@@ -119,12 +120,18 @@ def play_video(video_url = _common.args.url):
 	video_url2 = video_tree.find('video', src = True)['src']
 	video_data2 = _connection.getURL(video_url2, savecookie = True)
 	video_url3 = _m3u8.parse(video_data2)
+	video_url4 = None
 	for video_index in video_url3.get('playlists'):
 		bitrate = int(video_index.get('stream_info')['bandwidth'])
 		if qbitrate is None:
-			if bitrate > hbitrate and bitrate <= sbitrate:
+			if (bitrate < lbitrate or lbitrate == -1) and bitrate > 100000:
+				lbitrate = bitrate
+				lvideo_url4 = video_index.get('uri')
+			if bitrate > hbitrate and bitrate <= sbitrate and bitrate > 100000:
 				hbitrate = bitrate
 				video_url4 = video_index.get('uri')
+			if video_url4 is None:
+				video_url4 = lvideo_url4
 		else:
 			if qbitrate == bitrate:
 				video_url4 = video_index.get('uri')
@@ -176,7 +183,7 @@ def list_qualities(video_url = _common.args.url):
 	for video_index in video_url3.get('playlists'):
 		bitrate = int(video_index.get('stream_info')['bandwidth'])
 		if bitrate  > 100000:
-			bitrates.append((bitrate, bitrate))
+			bitrates.append((bitrate / 1000, bitrate))
 	return bitrates
 
 def clean_subs(data):
