@@ -67,7 +67,7 @@ def modes():
 		if network:
 			getattr(network, _common.args.sitemode)()
 			if 'episodes' in  _common.args.sitemode and _addoncompat.get_setting('add_episode_identifier') == 'false':
-				xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_DATE)
+				xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_DATEADDED)
 				xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_EPISODE)
 				xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_UNSORTED)
 			if not _common.args.sitemode.startswith('play'):
