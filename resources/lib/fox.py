@@ -17,6 +17,7 @@ import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
 pluginHandle=int(sys.argv[1])
+player = _common.XBMCPlayer()
 
 SITE = 'fox'
 NAME = 'FOX'
@@ -115,6 +116,7 @@ def play_video(video_url = _common.args.url):
 			closedcaption = video_tree.find('textstream', src = True)['src']
 			convert_subtitles(closedcaption)
 			video_closedcaption = 'true'
+			player._subtitles_Enabled = True
 		except:
 			video_closedcaption = 'false'
 	video_url2 = video_tree.find('video', src = True)['src']
@@ -163,15 +165,8 @@ def play_video(video_url = _common.args.url):
 						'episode' : _common.args.episode_number,
 						'TVShowTitle' : _common.args.show_title})
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
-	if ((_addoncompat.get_setting('enablesubtitles') == 'true') and (video_closedcaption != 'false')) or localhttpserver is True:
-		while not xbmc.Player().isPlaying():
-			xbmc.sleep(100)
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (video_closedcaption != 'false'):
-		xbmc.Player().setSubtitles(_common.SUBTITLE)
-	if localhttpserver is True:
-		while xbmc.Player().isPlaying():
-			xbmc.sleep(1000)
-		_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
+	while player.is_active:
+		player.sleep(250)
 
 def list_qualities(video_url = _common.args.url):
 	bitrates = []
