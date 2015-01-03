@@ -748,7 +748,7 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 		contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39010)), 'XBMC.RunPlugin(%s)' % hide_u))
 	delete_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=delete_show'
 	contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39011)), 'XBMC.RunPlugin(%s)' % delete_u))
-	if masterList:
+	if masterList and _addoncompat.get_setting('network_in_master') == 'true': 
 		displayname = name + ' on ' + network_name
 	else:
 		displayname = name
