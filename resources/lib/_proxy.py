@@ -1,21 +1,20 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
 import _addoncompat
-import cookielib
-import BaseHTTPServer
-import os
-import os.path
-import sys
-import xbmc
-import re
 import base64
+import BaseHTTPServer
+import cookielib
 import httplib
+import os.path
+import re
+import simplejson
 import socket
+import sys
 import traceback
 import time
 import urllib
 import urllib2
-import simplejson
+import xbmc
 
 sys.path.append(
     os.path.abspath(xbmc.translatePath(_addoncompat.get_path())))

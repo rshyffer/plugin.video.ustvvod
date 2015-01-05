@@ -97,6 +97,10 @@ msgctxt "#30020"
 msgid "Preferred Stream Type"
 msgstr "Bevorzugter Streamtyp"
 
+msgctxt "#30021"
+msgid "Show Network Names In Favorites"
+msgstr "Zeige Sendernamen in Favoriten"
+
 msgctxt "#31000"
 msgid "Connection"
 msgstr "Verbindung"
