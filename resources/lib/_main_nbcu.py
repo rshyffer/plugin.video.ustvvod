@@ -15,6 +15,9 @@ from bs4 import BeautifulSoup, SoupStrainer
 
 pluginHandle = int(sys.argv[1])
 
+
+CATERGORIES = ['Series', 'Featured', 'Shows']
+
 def masterlist(SITE, SHOWS):
 	master_db = []
 	master_data = _connection.getURL(SHOWS)
@@ -22,7 +25,8 @@ def masterlist(SITE, SHOWS):
 	for master_item in master_menu:
 		master_name = master_item['title']
 		master_url = master_item['plcategory$fullTitle']
-		master_db.append((master_name, SITE, 'seasons', master_url))
+		if len(master_url.split('/')) == 2 and master_url.split('/')[0] in CATERGORIES:
+			master_db.append((master_name, SITE, 'seasons', master_url))
 	return master_db
 
 def seasons(SITE, FULLEPISODES, CLIPS):

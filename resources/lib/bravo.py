@@ -20,11 +20,13 @@ def masterlist():
 	master_doubles = []
 	master_dict = {}
 	master_data = _connection.getURL(SHOWS)
-	master_menu = BeautifulSoup(master_data, 'html.parser').find_all('div', class_ = 'title')
+	master_menu = BeautifulSoup(master_data, 'html.parser').find_all('article', class_ = 'all-shows')
 	for master_item in master_menu:
-		master_name = master_item.text.strip()
+		print master_item
+		master_name = master_item.a['title']
+		print master_name
 		if master_name not in master_doubles:
-			tvdb_name = _common.get_show_data(master_name,SITE, 'seasons')[-1]
+			tvdb_name = _common.get_show_data(master_name, SITE, 'seasons')[-1]
 			if tvdb_name not in master_dict.keys():
 				master_dict[tvdb_name] = master_name
 			else:
