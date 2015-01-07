@@ -39,7 +39,7 @@ def masterlist():
 		master_menu = simplejson.loads(master_data)['result']['data']
 		for master_item in master_menu:
 			master_name = master_item['title']
-			if master_item['navigationItemLink'] and 'video' not in master_item['navigationItemLink'][0]['link']:
+			if master_item['navigationItemLink'] and 'video' not in master_item['navigationItemLink'][0]['link'] and master_item['navigationItemLink'][0]['title'] == 'Watch':
 				season_url = master_item['navigationItemLink'][0]['link']
 			else:
 				if master_item['link'][-1:] == '/':
