@@ -1,3 +1,26 @@
+version 1.1.7
+
+  * fix for NBC on Android
+  * fix for web only TNT Shows
+  * HLS support for TheCW
+  * HLS support for Turner Stations
+  * DNS/Proxy support for Turner Stations
+  * fix for TNT/TBS episode numbers
+  * fix for truTV
+  * fix for adultswim tve episodes
+  * add quality selection for ABC/Disney
+  * fix for bad episode numbers on ABC
+  * add timeout to Proxy
+  * tidy up ABC channels
+  * fix date sort
+  * fix quality selection on FOX and ABC
+  * low bitrate protection for FOX
+  * allowed shows list to pass show plot from site
+  * made favorites display behavior configurable
+  * fix german translation + proxy makeup
+  * fix for bravo and  missing USA shows
+  * fix for The Late Late Show
+
 version 1.1.6
 
   * fix for NBC (Android)
