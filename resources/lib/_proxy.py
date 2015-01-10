@@ -22,12 +22,12 @@ sys.path.append(
 from dns.resolver import Resolver
 
 PLUGINPATH = xbmc.translatePath(_addoncompat.get_path())
-RESOURCESPATH = os.path.join(PLUGINPATH,'resources')
-CACHEPATH = os.path.join(RESOURCESPATH,'cache')
-VIDEOPATH = os.path.join(CACHEPATH,'videos')
-KEYFILE = os.path.join(CACHEPATH,'play.key')
-PLAYFILE = os.path.join(CACHEPATH,'play.m3u8')
-COOKIE = os.path.join(CACHEPATH,'cookie.txt')
+RESOURCESPATH = os.path.join(PLUGINPATH, 'resources')
+CACHEPATH = os.path.join(RESOURCESPATH, 'cache')
+VIDEOPATH = os.path.join(CACHEPATH, 'videos')
+KEYFILE = os.path.join(CACHEPATH, 'play.key')
+PLAYFILE = os.path.join(CACHEPATH, 'play.m3u8')
+COOKIE = os.path.join(CACHEPATH, 'cookie.txt')
 
 HOST_NAME = 'localhost'
 TIMEOUT = 50
@@ -98,8 +98,9 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			fURL = base64.b64decode(realpath)
 			self.serveFile(fURL, sendData)
 		elif 'proxy' in self.path:
-			realpath = urllib.unquote_plus(request_path[6:])
-			proxyconfig = realpath.split('/')[1]
+			print urllib.unquote_plus(request_path) 
+			realpath = urllib.unquote_plus(request_path)[6:]
+			proxyconfig = realpath.split('/')[-1]
 			proxy_object = simplejson.loads(proxyconfig)
 			if int(proxy_object['connectiontype']) == 1:
 				proxies = proxy_object['dns_proxy']
@@ -110,7 +111,7 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				us_proxy = 'http://' + proxy['us_proxy'] + ':' + proxy['us_proxy_port']
 				proxy_handler = urllib2.ProxyHandler({'http' : us_proxy})
 				handler = proxy_handler
-			realpath = realpath.split('/')[0]
+			realpath = realpath.replace('/' + proxyconfig, '')
 			fURL = base64.b64decode(realpath)
 			
 			self.serveFile(fURL, sendData, handler)

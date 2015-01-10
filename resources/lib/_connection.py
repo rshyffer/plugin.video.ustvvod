@@ -228,6 +228,10 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 				data = values
 			req = urllib2.Request(bytes(url), data)
 		header.update({'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0'})
+		if connectiontype == 2:
+			header.update({'X-Forwarded-For' : _addoncompat.get_setting('us_proxy')})
+		elif int(connectiontype) == 1:
+			header.update({'X-Forwarded-For' : _addoncompat.get_setting('dns_proxy')})
 		for key, value in header.iteritems():
 			req.add_header(key, value)
 		if loadcookie is True:
@@ -261,10 +265,10 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 def getRedirect(url, values = None , header = {}, connectiontype = _addoncompat.get_setting('connectiontype')):
 	try:
 		old_opener = urllib2._opener
-	#	if cookiefile is not None:
-		cj = cookielib.LWPCookieJar(COOKIE)
-	#	else:
-	#		cj = cookielib.LWPCookieJar(COOKIE + str(cookiefile))
+		if cookiefile is not None:
+			cj = cookielib.LWPCookieJar(COOKIE)
+		else:
+			cj = cookielib.LWPCookieJar(COOKIE + str(cookiefile))
 		cookie_handler = urllib2.HTTPCookieProcessor(cj)
 		if int(connectiontype) == 1:
 			urllib2.install_opener(prepare_dns_proxy(cookie_handler))
@@ -283,8 +287,10 @@ def getRedirect(url, values = None , header = {}, connectiontype = _addoncompat.
 			data = urllib.urlencode(values)
 			req = urllib2.Request(bytes(url), data)
 		header.update({'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0'})
-		if connectiontype == 2:
+		if int(connectiontype) == 2:
 			header.update({'X-Forwarded-For' : _addoncompat.get_setting('us_proxy')})
+		elif int(connectiontype) == 1:
+			header.update({'X-Forwarded-For' : _addoncompat.get_setting('dns_proxy')})
 		for key, value in header.iteritems():
 			req.add_header(key, value)
 		response = urllib2.urlopen(req, timeout = TIMEOUT)

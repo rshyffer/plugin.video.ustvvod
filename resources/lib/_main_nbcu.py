@@ -4,9 +4,12 @@ import _addoncompat
 import _common
 import _connection
 import _m3u8
+import base64
+import os
 import re
 import simplejson
 import sys
+import time
 import urllib
 import xbmc
 import xbmcgui
@@ -14,6 +17,7 @@ import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
 pluginHandle = int(sys.argv[1])
+player = _common.XBMCPlayer()
 
 
 CATERGORIES = ['Series', 'Featured', 'Shows']
@@ -29,7 +33,7 @@ def masterlist(SITE, SHOWS):
 			master_db.append((master_name, SITE, 'seasons', master_url))
 	return master_db
 
-def seasons(SITE, FULLEPISODES, CLIPS):
+def seasons(SITE, FULLEPISODES, CLIPS, FULLEPISODESWEB = None):
 	season_urls = _common.args.url
 	for season_url in season_urls.split(','):
 		season_data = _connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
@@ -40,6 +44,14 @@ def seasons(SITE, FULLEPISODES, CLIPS):
 		if season_menu > 0:
 			season_url2 = FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu)
 			_common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
+		elif FULLEPISODESWEB:
+			show = season_url.split('/')[-1].replace(' ', '')
+			web_data = _connection.getURL(FULLEPISODESWEB % show)
+			web_tree = BeautifulSoup(web_data, 'html.parser')
+			all = len(web_tree.find_all('div', class_ = 'view-mode-vid_teaser_show_episode'))
+			auth = len(web_tree.find_all('div', class_ = 'tve-video-auth'))
+			if all > auth:
+				_common.add_directory('Full Episodes',  SITE, 'webepisodes', FULLEPISODESWEB % show)
 		season_data2 = _connection.getURL(CLIPS % urllib.quote_plus(season_url) + '&range=0-1')
 		try:
 			season_menu2 = int(simplejson.loads(season_data2)['totalResults'])
@@ -111,7 +123,18 @@ def list_qualities():
 	bitrates = []
 	video_data = _connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
-	video_rtmp = video_tree.meta
+	try:
+		video_rtmp = video_tree.meta['base']
+	except:
+		video_rtmp = None
+	if 'link.theplatform.com' not in video_url:
+		video_tree =  BeautifulSoup(video_data, 'html.parser')
+		player_url = 'http:' + video_tree.find('div', class_ = 'video-player-wrapper').iframe['src']
+		player_data = _connection.getURL(player_url)
+		player_tree =  BeautifulSoup(player_data, 'html.parser')
+		video_url = player_tree.find('link', type = "application/smil+xml")['href']
+		video_url = video_url + '&format=SMIL'
+		video_data = _connection.getURL(video_url)
 	if video_rtmp is not None:
 		for video_index in video_rtmp:
 			bitrate = int(video_index['system-bitrate'])
@@ -152,12 +175,23 @@ def play_video():
 	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
 	closedcaption = None
 	video_data = _connection.getURL(video_url)
+	if 'link.theplatform.com' not in video_url:
+		video_tree =  BeautifulSoup(video_data, 'html.parser')
+		player_url = 'http:' + video_tree.find('div', class_ = 'video-player-wrapper').iframe['src']
+		player_data = _connection.getURL(player_url)
+		player_tree =  BeautifulSoup(player_data, 'html.parser')
+		video_url = player_tree.find('link', type = "application/smil+xml")['href']
+		video_url = video_url + '&format=SMIL'
+		video_data = _connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	video_rtmp = video_tree.meta
 	playpath_url = None
 	lplaypath_url = None
-	if video_rtmp is not None:
+	try:
 		base_url = video_rtmp['base']
+	except:
+		base_url = None
+	if base_url is not None:
 		if qbitrate is None:
 			video_url2 = video_tree.switch.find_all('video')
 			for video_index in video_url2:
@@ -177,11 +211,13 @@ def play_video():
 		else:
 			playpath_url = playpath_url.replace('.flv','')
 		finalurl = base_url +' playpath=' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
+		player._localHTTPServer = False
 	else:
-		video_data = _connection.getURL(video_url + '&manifest=m3u')
-		video_tree = BeautifulSoup(video_data)
+		video_data = _connection.getURL(video_url + '&manifest=m3u&Tracking=true&Embedded=true&formats=F4M,MPEG4')
+		video_tree = BeautifulSoup(video_data, 'html.parser')
 		try:
 			closedcaption = video_tree.textstream['src']
+			player._subtitles_Enabled = True
 		except:
 			pass
 		if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
@@ -189,7 +225,7 @@ def play_video():
 		if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
 			video_url2 = video_tree.seq.find_all('video')[0]
 			video_url3 = video_url2['src']
-			video_data2 = _connection.getURL(video_url3)
+			video_data2 = _connection.getURL(video_url3, savecookie = True)
 			video_url5 = _m3u8.parse(video_data2)
 			for video_index in video_url5.get('playlists'):
 				bitrate = int(video_index.get('stream_info')['bandwidth'])
@@ -208,7 +244,30 @@ def play_video():
 					playpath_url =  video_index.get('uri')
 			if playpath_url is None:
 				playpath_url = lplaypath_url
-			finalurl = playpath_url
+			if 'https' not in playpath_url:
+				player._localHTTPServer = False
+				finalurl = playpath_url
+			else:
+				m3u_data = _connection.getURL(playpath_url, loadcookie = True)
+				key_url = re.compile('URI="(.*?)"').findall(m3u_data)[0]
+				key_data = _connection.getURL(key_url, loadcookie = True)		
+				key_file = open(_common.KEYFILE, 'wb')
+				key_file.write(key_data)
+				key_file.close()
+				video_url5 = re.compile('(http:.*?)\n').findall(m3u_data)
+				proxy_config = _common.proxyConfig()
+				for i, video_item in enumerate(video_url5):
+					newurl = base64.b64encode(video_item)
+					newurl = urllib.quote_plus(newurl)
+					m3u_data = m3u_data.replace(video_item, 'http://127.0.0.1:12345/proxy/' + newurl + '/' + proxy_config)
+				filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
+				xbmc.executebuiltin(filestring)
+				time.sleep(20)
+				m3u_data = m3u_data.replace(key_url, 'http://127.0.0.1:12345/play.key')
+				playfile = open(_common.PLAYFILE, 'w')
+				playfile.write(m3u_data)
+				playfile.close()
+				finalurl =  _common.PLAYFILE
 		else:
 			exception = True
 	if  not exception:
@@ -220,10 +279,8 @@ def play_video():
 							'episode' : _common.args.episode_number,
 							'TVShowTitle' : _common.args.show_title})
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
-		if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
-			while not xbmc.Player().isPlaying():
-				xbmc.sleep(100)
-			xbmc.Player().setSubtitles(_common.SUBTITLE)
+		while player.is_active:
+			player.sleep(250)
 	else:
 		_common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
 
