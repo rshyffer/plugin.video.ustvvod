@@ -8,12 +8,12 @@ import _m3u8
 import base64
 import glob
 import os
+import re
 import shutil
 import simplejson
-import re
 import sys
-import urllib
 import time
+import urllib
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -182,7 +182,6 @@ def play_video(video_url = _common.args.url):
 	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
 	while player.is_active:
 		player.sleep(250)
-
 
 def convert_subtitles(video_guid):
 	try:

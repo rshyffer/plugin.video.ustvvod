@@ -6,9 +6,9 @@ import _connection
 import _m3u8
 import base64
 import coveapi
+import re
 import simplejson
 import sys
-import re
 import urllib
 import xbmc
 import xbmcgui

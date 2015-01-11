@@ -22,4 +22,3 @@ def play_video():
 
 def list_qualities():
 	return _main_abcdisney.list_qualities(SITE, BRANDID, PARTNERID)
-

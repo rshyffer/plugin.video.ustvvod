@@ -3,7 +3,6 @@
 import resources.lib._addoncompat as _addoncompat
 import resources.lib._common as _common
 import resources.lib._contextmenu as _contextmenu
-import operator
 import os
 import sys
 import xbmcaddon

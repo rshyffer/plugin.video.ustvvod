@@ -7,7 +7,6 @@ import _main_nbcu
 import re
 import simplejson
 import sys
-import urllib
 import xbmc
 import xbmcgui
 import xbmcplugin

@@ -6,8 +6,7 @@ import _connection
 import _main_nbcu
 import sys
 import urllib
-from bs4 import BeautifulSoup, SoupStrainer
-
+from bs4 import BeautifulSoup
 
 SITE = 'usa'
 NAME = 'USA Network'
@@ -18,7 +17,6 @@ FULLEPISODES = 'http://feed.theplatform.com/f/OyMl-B/8IyhuVgUXDd_?count=true&for
 SWFURL = 'http://www.usanetwork.com/videos/pdk/swf/flvPlayer.swf'
 FULLEPISODESWEB ='http://www.usanetwork.com/%s/video-categories/full-episodes'
 BASE = 'http://www.usanetwork.com'
-
 
 def masterlist():
 	return _main_nbcu.masterlist(SITE, SHOWS)
@@ -35,7 +33,6 @@ def webepisodes():
 	web_tree = BeautifulSoup(episode_data, 'html.parser')
 	episode_menu = web_tree.find_all('div', class_ = 'view-mode-vid_teaser_show_episode')
 	for i, episode_item in enumerate(episode_menu):
-		
 		if 'tve-video-auth' not in episode_item['class']:
 			episode_name = episode_item['omniture-title']
 			try:

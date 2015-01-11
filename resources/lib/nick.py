@@ -8,8 +8,6 @@ import simplejson
 import sys
 import urllib
 
-pluginHandle = int(sys.argv[1])
-
 SITE = 'nick'
 NAME = 'Nickelodeon'
 DESCRIPTION = "Nickelodeon, now in its 31st year, is the number-one entertainment brand for kids. It has built a diverse, global business by putting kids first in everything it does. The company includes television programming and production in the United States and around the world, plus consumer products, online, recreation, books and feature films. Nickelodeon's U.S. television network is seen in more than 100 million households and has been the number-one-rated basic cable network for 16 consecutive years."
@@ -32,8 +30,10 @@ def masterlist():
 
 def seasons(season_url = _common.args.url):
 	season_data = _connection.getURL(FULLEPISODES % season_url, header = {'X-Forwarded-For' : '12.13.14.15'})
-	try: count = int(simplejson.loads(season_data)['meta']['count'])
-	except: count = 0
+	try:
+		count = int(simplejson.loads(season_data)['meta']['count'])
+	except:
+		count = 0
 	if count > 0:
 		season_url2 = FULLEPISODES % season_url + '&start=0&rows=' + str(count)
 		_common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
@@ -48,7 +48,6 @@ def seasons(season_url = _common.args.url):
 def episodes(episode_url = _common.args.url):
 	episode_data = _connection.getURL(episode_url, header = {'X-Forwarded-For' : '12.13.14.15'})
 	episode_menu = simplejson.loads(episode_data)['results']
-	
 	for episode_item in episode_menu:
 		try:
 			show_name = episode_item['seriesTitle']

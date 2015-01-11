@@ -3,10 +3,7 @@
 import _common
 import _connection
 import _main_nbcu
-import sys
 from bs4 import BeautifulSoup
-
-pluginHandle = int(sys.argv[1])
 
 SITE = 'bravo'
 NAME = 'Bravo'

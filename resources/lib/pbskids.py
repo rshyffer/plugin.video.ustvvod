@@ -4,9 +4,9 @@ import _addoncompat
 import _common
 import _connection
 import _m3u8
+import re
 import simplejson
 import sys
-import re
 import urllib
 import xbmc
 import xbmcgui

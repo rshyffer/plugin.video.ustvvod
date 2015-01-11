@@ -1,14 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _main_turner
 import _addoncompat
 import _common
 import _connection
+import _main_turner
 import re
 import simplejson
 import sys
 import urllib
-
 
 SITE = 'tcm'
 NAME = "TCM"
@@ -79,7 +78,6 @@ def episodes():
 						'director' : episode_director}
 		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 	_common.set_view('episodes')
-
 
 def play_video():
 	_main_turner.play_video(SITE, EPISODE, HLSPATH)

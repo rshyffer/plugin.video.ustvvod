@@ -366,7 +366,6 @@ def list_qualities(video_url = _common.args.url):
 		smil_url = player_tree.find('link', type = "application/smil+xml")['href']
 		video_data = _connection.getURL(smil_url + '&manifest=m3u&format=SMIL')
 	bitrates = []
-	
 	smil_tree = BeautifulSoup(video_data, 'html.parser')
 	video_url2 = smil_tree.video['src']
 	clip_id = smil_tree.video.find('param', attrs = {'name' : 'clipId'})

@@ -6,11 +6,11 @@ import _database
 import _importlib
 import base64
 import os
+import re
+import simplejson
 import sys
 import time
 import urllib
-import re
-import simplejson
 import xbmc
 import xbmcaddon
 import xbmcgui

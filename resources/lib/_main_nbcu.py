@@ -19,7 +19,6 @@ from bs4 import BeautifulSoup, SoupStrainer
 pluginHandle = int(sys.argv[1])
 player = _common.XBMCPlayer()
 
-
 CATERGORIES = ['Series', 'Featured', 'Shows']
 
 def masterlist(SITE, SHOWS):

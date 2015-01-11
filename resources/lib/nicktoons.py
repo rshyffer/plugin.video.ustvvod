@@ -8,8 +8,6 @@ import sys
 import urllib
 from bs4 import BeautifulSoup
 
-pluginHandle = int(sys.argv[1])
-
 SITE = 'nicktoons'
 NAME = 'Nick Toons'
 ALIAS = ['NickToons Network', 'Nicktoons']
