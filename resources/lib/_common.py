@@ -612,6 +612,11 @@ def get_show_data(series_title, mode = '', sitemode = '', url = ''):
 	return showdata
 
 def load_showlist(favored = 0):
+	shows = fetch_showlist(favored)
+	for show in shows:
+		add_show( masterList = True, showdata = show)
+
+def fetch_showlist(favored = 0):
 	if not os.path.exists(_database.DBFILE):
 		_database.create_db()
 		refresh_db()
@@ -627,9 +632,7 @@ def load_showlist(favored = 0):
 			refresh_db()
 	_database.check_db_version()
 	command = "select * from shows  where url <> '' and hide <> 1 and favor = ? order by series_title"
-	shows = _database.execute_command(command, fetchall = True, values = [favored]) 
-	for show in shows:
-		add_show( masterList = True, showdata = show)	
+	return _database.execute_command(command, fetchall = True, values = [favored]) 
 
 def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, hide = 0, masterList = False, showdata = None, siteplot = None):
 	infoLabels = {}
