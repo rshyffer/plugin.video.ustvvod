@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import simplejson
@@ -8,10 +7,12 @@ import sys
 import re
 import urllib
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
+addon = xbmcaddon.Addon()
 pluginHandle = int(sys.argv[1])
 
 SITE = 'crackle'
@@ -32,7 +33,7 @@ def masterlist():
 	master_data = _connection.getURL(master_url)
 	master_menu = simplejson.loads(master_data)['Entries']
 	for master_item in master_menu:
-		if _addoncompat.get_setting('hide_clip_only') == 'false' or not master_item.get('ClipsOnly', False):
+		if addon.getSetting('hide_clip_only') == 'false' or not master_item.get('ClipsOnly', False):
 			master_name = master_item['Title']
 			season_url = FULLEPISODES % master_item['ID']
 			master_dict[master_name] = season_url
@@ -46,7 +47,7 @@ def movielist(url = _common.args.url):
 	root_data = _connection.getURL(root_url)
 	root_menu = simplejson.loads(root_data)['Entries']
 	for root_item in root_menu:
-		if _addoncompat.get_setting('hide_clip_only') == 'false' or not root_item.get('ClipsOnly', False):
+		if addon.getSetting('hide_clip_only') == 'false' or not root_item.get('ClipsOnly', False):
 			root_name = root_item['Title']
 			season_url = FULLEPISODES % root_item['ID']
 			showdata = _common.get_skelton_series(root_name, SITE, 'episodes', season_url)
@@ -142,7 +143,7 @@ def play_video(video_url = _common.args.url):
 		qbitrate = None
 	hbitrate = -1
 	hpath = None
-	sbitrate = int(_addoncompat.get_setting('quality'))
+	sbitrate = int(addon.getSetting('quality'))
 	closedcaption = video_url.split('#')[1]
 	video_url = video_url.split('#')[0]
 	if qbitrate is None:
@@ -159,7 +160,7 @@ def play_video(video_url = _common.args.url):
 			hpath = lpath
 	else:
 		hpath = qbitrate	
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption != ''):
+	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption != ''):
 			convert_subtitles(closedcaption)
 	finalurl = video_url + hpath
 	item = xbmcgui.ListItem(path = finalurl)
@@ -170,7 +171,7 @@ def play_video(video_url = _common.args.url):
 								'episode' : _common.args.episode_number,
 								'TVShowTitle' : _common.args.show_title })
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption != ''):
+	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption != ''):
 		while not xbmc.Player().isPlaying():
 			xbmc.sleep(100)
 		xbmc.Player().setSubtitles(_common.SUBTITLE)

@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _m3u8
@@ -12,10 +11,12 @@ import sys
 import time
 import urllib
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
+addon = xbmcaddon.Addon()
 pluginHandle = int(sys.argv[1])
 
 def masterlist(SITE, SHOWS):
@@ -127,7 +128,7 @@ def play_video():
 	m3u_master_data = _connection.getURL(video_url2, savecookie = True)
 	m3u_master = _m3u8.parse(m3u_master_data)
 	hbitrate = -1
-	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+	sbitrate = int(addon.getSetting('quality')) * 1024
 	for video_index in m3u_master.get('playlists'):
 		bitrate = int(video_index.get('stream_info')['bandwidth'])
 		if qbitrate is None:
@@ -156,7 +157,7 @@ def play_video():
 	playfile.write(m3u_data)
 	playfile.close()
 	finalurl = _common.PLAYFILE
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
+	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 		convert_subtitles(closedcaption)
 	item = xbmcgui.ListItem(path = finalurl)
 	if qbitrate is not None:
@@ -166,10 +167,10 @@ def play_video():
 						'episode' : _common.args.episode_number,
 						'TVShowTitle' : _common.args.show_title})
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
-	if ((_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None))  or localhttpserver is True:
+	if ((addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None))  or localhttpserver is True:
 		while not xbmc.Player().isPlaying():
 			xbmc.sleep(100)
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
+	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 		xbmc.Player().setSubtitles(_common.SUBTITLE)
 	if localhttpserver is True:
 		while xbmc.Player().isPlaying():

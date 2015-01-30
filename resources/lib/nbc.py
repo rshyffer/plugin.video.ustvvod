@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _m3u8
@@ -13,13 +12,15 @@ import sys
 import time
 import urllib
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 from _ordereddict import OrderedDict
 
-pluginHandle = int(sys.argv[1])
+addon = xbmcaddon.Addon()
 player = _common.XBMCPlayer()
+pluginHandle = int(sys.argv[1])
 
 SITE = 'nbc'
 NAME = 'NBC'
@@ -208,7 +209,7 @@ def add_videos_thetonightshow(url, type_, page = 1, added_episodes = []):
 							'plot' : episode_plot,
 							'premiered' : episode_airdate}
 			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	if page < int(_addoncompat.get_setting('maxpages')):
+	if page < int(addon.getSetting('maxpages')):
 		add_videos_thetonightshow(url, type_, page + 1, added_episodes)
 	_common.set_view('episodes')
 
@@ -244,7 +245,7 @@ def play_video(video_url = _common.args.url, tonightshow = False):
 			smil_tree = BeautifulSoup(smil_data, 'html.parser')
 			base_url = get_rtmp()
 			hbitrate = -1
-			sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+			sbitrate = int(addon.getSetting('quality')) * 1024
 			if qbitrate is None:
 				video_url2 = smil_tree.find_all('video')
 				for video_index in video_url2:
@@ -263,7 +264,7 @@ def play_video(video_url = _common.args.url, tonightshow = False):
 			m3u_master_data = _connection.getURL(video_url2, savecookie = True)
 			m3u_master = _m3u8.parse(m3u_master_data)
 			hbitrate = -1
-			sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+			sbitrate = int(addon.getSetting('quality')) * 1024
 			for video_index in m3u_master.get('playlists'):
 				bitrate = int(video_index.get('stream_info')['bandwidth'])
 				if qbitrate is None:
@@ -292,7 +293,7 @@ def play_video(video_url = _common.args.url, tonightshow = False):
 			playfile.write(m3u_data)
 			playfile.close()
 			finalurl = _common.PLAYFILE
-		if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
+		if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 			convert_subtitles(closedcaption)
 			player._subtitles_Enabled = True
 		item = xbmcgui.ListItem(path = finalurl)

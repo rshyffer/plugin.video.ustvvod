@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _main_viacom
@@ -8,7 +7,10 @@ import re
 import sys
 import urllib
 import simplejson
+import xbmcaddon
 from bs4 import BeautifulSoup
+
+addon = xbmcaddon.Addon()
 
 SITE = 'comedy'
 NAME = 'Comedy Central'
@@ -210,7 +212,7 @@ def episodes_from_html(episode_url = _common.args.url, page = 1):
 						nexturl = next['onclick'].split(';')[0].replace("loadContent('", "").replace("')", "")
 					if 'http' not in nexturl:
 						nexturl = BASE + nexturl
-					if page < int(_addoncompat.get_setting('maxpages')):
+					if page < int(addon.getSetting('maxpages')):
 						episodes_from_html(nexturl, page + 1)
 				except:
 					pass
@@ -227,7 +229,7 @@ def episodes_from_html(episode_url = _common.args.url, page = 1):
 						nexturl = episode_url.split('?')[0] + nexturl				
 					elif 'http' not in nexturl: 
 						nexturl = BASE + nexturl
-					if page < int(_addoncompat.get_setting('maxpages')):
+					if page < int(addon.getSetting('maxpages')):
 						episodes_from_html(nexturl, page + 1)
 				except:
 					pass

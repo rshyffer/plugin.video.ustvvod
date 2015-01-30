@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
+
 import _common
 import _connection
 import _main_nbcu
@@ -8,10 +8,12 @@ import re
 import simplejson
 import sys
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
+addon = xbmcaddon.Addon()
 pluginHandle = int(sys.argv[1])
 
 SITE = 'msnbc'
@@ -53,7 +55,7 @@ def episodes():
 	
 def play_video(video_url = _common.args.url):
 	hbitrate = -1
-	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+	sbitrate = int(addon.getSetting('quality')) * 1024
 	closedcaption = None
 	video_data = _connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
@@ -62,10 +64,10 @@ def play_video(video_url = _common.args.url):
 		closedcaption = video_tree.find('textstream', type = 'text/vtt')['src']
 	except:
 		pass
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
+	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 			convert_subtitles(closedcaption)
 	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
+	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 		while not xbmc.Player().isPlaying():
 			xbmc.sleep(100)
 		xbmc.Player().setSubtitles(_common.SUBTITLE)

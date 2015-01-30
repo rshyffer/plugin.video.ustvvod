@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _m3u8
@@ -9,9 +8,11 @@ import simplejson
 import sys
 import urllib
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
 
+addon = xbmcaddon.Addon()
 pluginHandle = int (sys.argv[1])
 
 SITE = 'pbskids'
@@ -87,7 +88,7 @@ def play_video(guid = _common.args.url):
 	video_url =  VIDEO % guid
 	hbitrate = -1
 	lbitrate = -1
-	sbitrate = int(_addoncompat.get_setting('quality')) 
+	sbitrate = int(addon.getSetting('quality')) 
 	closedcaption = None
 	video_url2 = None
 	finalurl = ''
@@ -98,9 +99,9 @@ def play_video(guid = _common.args.url):
 		closedcaption = video_item['captions']['sami']['url']
 	except:
 		pass
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
+	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
 		convert_subtitles(closedcaption.replace(' ', '+'))
-	if _addoncompat.get_setting('preffered_stream_type') == 'RTMP':
+	if addon.getSetting('preffered_stream_type') == 'RTMP':
 		for video in video_item['videos']['flash'].itervalues():
 			try:
 				bitrate = video['bitrate']
@@ -162,7 +163,7 @@ def play_video(guid = _common.args.url):
 							'season' : _common.args.season_number,
 							'episode' : _common.args.episode_number})
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
+	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
 		while not xbmc.Player().isPlaying():
 			xbmc.sleep(100)
 		xbmc.Player().setSubtitles(_common.SUBTITLESMI)
@@ -172,7 +173,7 @@ def select_quailty(guid = _common.args.url):
 	video_url =  VIDEO % guid
 	#hbitrate = -1
 	#lbitrate = -1
-	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+	sbitrate = int(addon.getSetting('quality')) * 1024
 	closedcaption = None
 	video_url2 = None
 	#finalurl = ''
@@ -183,10 +184,10 @@ def select_quailty(guid = _common.args.url):
 	#	closedcaption = video_item['captions']['sami']['url']
 	#except:
 	#	pass
-#	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
+#	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
 #		convert_subtitles(closedcaption.replace(' ', '+'))
 	bitrates = []
-	if _addoncompat.get_setting('preffered_stream_type') == 'RTMP':
+	if addon.getSetting('preffered_stream_type') == 'RTMP':
 		for video in video_item['videos']['flash'].itervalues():
 			try:
 				bitrate = video['bitrate']

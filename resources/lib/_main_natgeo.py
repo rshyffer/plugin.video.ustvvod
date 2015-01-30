@@ -1,16 +1,17 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _m3u8
 import re
 import sys
 import urllib
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
+addon = xbmcaddon.Addon()
 pluginHandle = int(sys.argv[1])
 
 BASE = 'http://video.nationalgeographic.com'
@@ -90,7 +91,7 @@ def play_video(SITE):
 		qbitrate = None
 	hbitrate = -1
 	lbitrate = -1
-	sbitrate = int(_addoncompat.get_setting('quality'))
+	sbitrate = int(addon.getSetting('quality'))
 	video_data = _connection.getURL(video_url)
 	smil_url =  re.compile("window.video_auth_playlist_url = '(.*)'").findall(video_data)[0]
 	smil_data = _connection.getURL(smil_url + '&manifest=m3u')

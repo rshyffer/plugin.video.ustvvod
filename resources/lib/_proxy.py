@@ -1,6 +1,5 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import base64
 import BaseHTTPServer
 import cookielib
@@ -15,13 +14,12 @@ import time
 import urllib
 import urllib2
 import xbmc
-
-sys.path.append(
-    os.path.abspath(xbmc.translatePath(_addoncompat.get_path())))
-
+import xbmcaddon
 from dns.resolver import Resolver
 
-PLUGINPATH = xbmc.translatePath(_addoncompat.get_path())
+addon = xbmcaddon.Addon()
+
+PLUGINPATH = addon.getAddonInfo('path').decode('utf-8')
 RESOURCESPATH = os.path.join(PLUGINPATH, 'resources')
 CACHEPATH = os.path.join(RESOURCESPATH, 'cache')
 VIDEOPATH = os.path.join(CACHEPATH, 'videos')
@@ -113,11 +111,9 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				handler = proxy_handler
 			realpath = realpath.replace('/' + proxyconfig, '')
 			fURL = base64.b64decode(realpath)
-			
 			self.serveFile(fURL, sendData, handler)
 
 	def serveFile(self, fURL, sendData, httphandler = None):
-		
 		cj = cookielib.LWPCookieJar(COOKIE) 
 		if httphandler is None:
 			opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))

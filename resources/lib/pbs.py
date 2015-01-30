@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _m3u8
@@ -11,10 +10,12 @@ import simplejson
 import sys
 import urllib
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
+addon = xbmcaddon.Addon()
 pluginHandle = int (sys.argv[1])
 
 SITE = 'pbs'
@@ -126,7 +127,7 @@ def episodes(episode_url = _common.args.url):
 
 def play_video(video_url = _common.args.url):
 	hbitrate = -1
-	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+	sbitrate = int(addon.getSetting('quality')) * 1024
 	closedcaption = None
 	video_url2 = None
 	finalurl = ''
@@ -134,7 +135,7 @@ def play_video(video_url = _common.args.url):
 		closedcaption = simplejson.loads(_connection.getURL(CLOSEDCAPTION % video_url).replace('video_info(', '').replace(')', ''))['closed_captions_url']
 	except:
 		pass
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
+	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
 		convert_subtitles(closedcaption.replace(' ', '+'))
 	video_data = cove.videos.filter(fields = 'mediafiles', filter_tp_media_object_id = video_url)
 	video_menu = video_data['results'][0]['mediafiles']
@@ -161,7 +162,7 @@ def play_video(video_url = _common.args.url):
 				hbitrate = bitrate
 				finalurl = video_url3.rsplit('/', 1)[0] + '/' + video_index.get('uri')
 	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
+	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
 		while not xbmc.Player().isPlaying():
 			xbmc.sleep(100)
 		xbmc.Player().setSubtitles(_common.SUBTITLE)

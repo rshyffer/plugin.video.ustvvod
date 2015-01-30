@@ -1,6 +1,5 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import cookielib
 import httplib
 import os
@@ -12,9 +11,12 @@ import time
 import urllib
 import urllib2
 import xbmc
+import xbmcaddon
 from dns.resolver import Resolver
 
-PLUGINPATH = xbmc.translatePath(_addoncompat.get_path())
+addon = xbmcaddon.Addon()
+
+PLUGINPATH = addon.getAddonInfo('path').decode('utf-8')
 RESOURCESPATH = os.path.join(PLUGINPATH,'resources')
 CACHEPATH = os.path.join(RESOURCESPATH,'cache')
 COOKIE = os.path.join(CACHEPATH,'cookie.txt')
@@ -89,8 +91,8 @@ class TorHandler():
 	With some inspiration from https://github.com/benjkelley/torscraper
 	"""
 	def __init__(self):
-		self.SocksPort = str(_addoncompat.get_setting('tor_socks_port'))
-		self.ExitNodes = str(_addoncompat.get_setting('tor_exit_node'))
+		self.SocksPort = str(addon.getSetting('tor_socks_port'))
+		self.ExitNodes = str(addon.getSetting('tor_exit_node'))
 		self.tor_process = None
 
 	def start_tor(self):
@@ -137,7 +139,7 @@ class TorHandler():
 			print line + '\n'
 
 def prepare_dns_proxy(cookie_handler):
-	update_url = _addoncompat.get_setting('dns_update_url')
+	update_url = addon.getSetting('dns_update_url')
 	if update_url:
 		try:
 			t = os.path.getmtime(IPFILE)
@@ -160,30 +162,30 @@ def prepare_dns_proxy(cookie_handler):
 		file.write(oldip)
 		file.close()
 	dnsproxy = []
-	dnsproxy.append(_addoncompat.get_setting('dns_proxy'))
-	dnsproxy.append(_addoncompat.get_setting('dns_proxy_2'))
-	dnsproxy.append(_addoncompat.get_setting('dns_proxy_3'))
+	dnsproxy.append(addon.getSetting('dns_proxy'))
+	dnsproxy.append(addon.getSetting('dns_proxy_2'))
+	dnsproxy.append(addon.getSetting('dns_proxy_3'))
 	MyHTTPHandler._dnsproxy = dnsproxy
 	opener = urllib2.build_opener(MyHTTPHandler, cookie_handler)
 	return opener
 
 def prepare_us_proxy(cookie_handler):
-	if (_addoncompat.get_setting('us_proxy_socks5') == 'true'):
-		if ((_addoncompat.get_setting('us_proxy_pass') is not '') and (_addoncompat.get_setting('us_proxy_user') is not '')):
-			print 'Using socks5 authenticated proxy: ' + _addoncompat.get_setting('us_proxy') + ':' + _addoncompat.get_setting('us_proxy_port')
-			socks_handler = SocksiPyHandler(socks.PROXY_TYPE_SOCKS5, _addoncompat.get_setting('us_proxy'), int(_addoncompat.get_setting('us_proxy_port')), True, _addoncompat.get_setting('us_proxy_user'), _addoncompat.get_setting('us_proxy_pass'))
+	if (addon.getSetting('us_proxy_socks5') == 'true'):
+		if ((addon.getSetting('us_proxy_pass') is not '') and (addon.getSetting('us_proxy_user') is not '')):
+			print 'Using socks5 authenticated proxy: ' + addon.getSetting('us_proxy') + ':' + addon.getSetting('us_proxy_port')
+			socks_handler = SocksiPyHandler(socks.PROXY_TYPE_SOCKS5, addon.getSetting('us_proxy'), int(addon.getSetting('us_proxy_port')), True, addon.getSetting('us_proxy_user'), addon.getSetting('us_proxy_pass'))
 			opener = urllib2.build_opener(socks_handler, cookie_handler)
 		else:
-			print 'Using socks5 proxy: ' + _addoncompat.get_setting('us_proxy') + ':' + _addoncompat.get_setting('us_proxy_port')
-			socks_handler = SocksiPyHandler(socks.PROXY_TYPE_SOCKS5, _addoncompat.get_setting('us_proxy'), int(_addoncompat.get_setting('us_proxy_port')), True)
+			print 'Using socks5 proxy: ' + addon.getSetting('us_proxy') + ':' + addon.getSetting('us_proxy_port')
+			socks_handler = SocksiPyHandler(socks.PROXY_TYPE_SOCKS5, addon.getSetting('us_proxy'), int(addon.getSetting('us_proxy_port')), True)
 			opener = urllib2.build_opener(socks_handler, cookie_handler)
-	elif (_addoncompat.get_setting('us_proxy_socks5') == 'false'):
-		us_proxy = 'http://' + _addoncompat.get_setting('us_proxy') + ':' + _addoncompat.get_setting('us_proxy_port')
+	elif (addon.getSetting('us_proxy_socks5') == 'false'):
+		us_proxy = 'http://' + addon.getSetting('us_proxy') + ':' + addon.getSetting('us_proxy_port')
 		proxy_handler = urllib2.ProxyHandler({'http' : us_proxy})
-		if ((_addoncompat.get_setting('us_proxy_pass') is not '') and (_addoncompat.get_setting('us_proxy_user') is not '')):
+		if ((addon.getSetting('us_proxy_pass') is not '') and (addon.getSetting('us_proxy_user') is not '')):
 			print 'Using authenticated proxy: ' + us_proxy
 			password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
-			password_mgr.add_password(None, us_proxy, _addoncompat.get_setting('us_proxy_user'), _addoncompat.get_setting('us_proxy_pass'))
+			password_mgr.add_password(None, us_proxy, addon.getSetting('us_proxy_user'), addon.getSetting('us_proxy_pass'))
 			proxy_auth_handler = urllib2.ProxyBasicAuthHandler(password_mgr)
 			opener = urllib2.build_opener(proxy_handler, proxy_auth_handler, cookie_handler)
 		else:
@@ -192,16 +194,16 @@ def prepare_us_proxy(cookie_handler):
 	return opener
 
 def prepare_tor_proxy(cookie_handler):
-	if _addoncompat.get_setting('tor_use_local') == 'true':
+	if addon.getSetting('tor_use_local') == 'true':
 		tor_proxy = '127.0.0.1'
 	else:
-		tor_proxy = _addoncompat.get_setting('tor_proxy')
-	print 'Using tor proxy at ' + tor_proxy + ':' + _addoncompat.get_setting('tor_socks_port') + ' with exit node: ' + _addoncompat.get_setting('tor_exit_node')
-	socks_handler = SocksiPyHandler(socks.PROXY_TYPE_SOCKS5, tor_proxy, int(_addoncompat.get_setting('tor_socks_port')), True)
+		tor_proxy = addon.getSetting('tor_proxy')
+	print 'Using tor proxy at ' + tor_proxy + ':' + addon.getSetting('tor_socks_port') + ' with exit node: ' + addon.getSetting('tor_exit_node')
+	socks_handler = SocksiPyHandler(socks.PROXY_TYPE_SOCKS5, tor_proxy, int(addon.getSetting('tor_socks_port')), True)
 	opener = urllib2.build_opener(socks_handler, cookie_handler)
 	return opener	
 
-def getURL(url, values = None, header = {}, amf = False, savecookie = False, loadcookie = False, connectiontype = _addoncompat.get_setting('connectiontype'), cookiefile = None):
+def getURL(url, values = None, header = {}, amf = False, savecookie = False, loadcookie = False, connectiontype = addon.getSetting('connectiontype'), cookiefile = None):
 	try:
 		old_opener = urllib2._opener
 		cj = cookielib.LWPCookieJar(COOKIE)
@@ -214,7 +216,7 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 			urllib2.install_opener(prepare_us_proxy(cookie_handler))
 		elif int(connectiontype) == 3:
 			handler = TorHandler()
-			if ((_addoncompat.get_setting('tor_use_local') == 'true') and _addoncompat.get_setting('tor_as_service') == 'false'):
+			if ((addon.getSetting('tor_use_local') == 'true') and addon.getSetting('tor_as_service') == 'false'):
 				if not handler.start_tor():
 					print 'Error launching Tor. It may already be running.\n'
 			urllib2.install_opener(prepare_tor_proxy(cookie_handler))
@@ -229,9 +231,9 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 			req = urllib2.Request(bytes(url), data)
 		header.update({'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0'})
 		if connectiontype == 2:
-			header.update({'X-Forwarded-For' : _addoncompat.get_setting('us_proxy')})
+			header.update({'X-Forwarded-For' : addon.getSetting('us_proxy')})
 		elif int(connectiontype) == 1:
-			header.update({'X-Forwarded-For' : _addoncompat.get_setting('dns_proxy')})
+			header.update({'X-Forwarded-For' : addon.getSetting('dns_proxy')})
 		for key, value in header.iteritems():
 			req.add_header(key, value)
 		if loadcookie is True:
@@ -250,7 +252,7 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 				print 'Cookie Saving Error'
 				pass	
 		response.close()
-		if ((int(connectiontype) == 3) and (_addoncompat.get_setting('tor_use_local') == 'true') and (_addoncompat.get_setting('tor_as_service') == 'false')):
+		if ((int(connectiontype) == 3) and (addon.getSetting('tor_use_local') == 'true') and (addon.getSetting('tor_as_service') == 'false')):
 			if not handler.kill_tor(): 
 				print 'Error killing Tor process! It may still be running.\n' 
 			else: 
@@ -262,7 +264,7 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 	else:
 		return link
 
-def getRedirect(url, values = None , header = {}, connectiontype = _addoncompat.get_setting('connectiontype')):
+def getRedirect(url, values = None , header = {}, connectiontype = addon.getSetting('connectiontype')):
 	try:
 		old_opener = urllib2._opener
 		if cookiefile is not None:
@@ -276,7 +278,7 @@ def getRedirect(url, values = None , header = {}, connectiontype = _addoncompat.
 			urllib2.install_opener(prepare_us_proxy(cookie_handler))
 		elif int(connectiontype) == 3:
 			handler = TorHandler()
-			if ((_addoncompat.get_setting('tor_use_local') == 'true') and _addoncompat.get_setting('tor_as_service') == 'false'):
+			if ((addon.getSetting('tor_use_local') == 'true') and addon.getSetting('tor_as_service') == 'false'):
 				if not handler.start_tor():
 					print 'Error launching Tor. It may already be running.\n'
 			urllib2.install_opener(prepare_tor_proxy(cookie_handler))
@@ -288,15 +290,15 @@ def getRedirect(url, values = None , header = {}, connectiontype = _addoncompat.
 			req = urllib2.Request(bytes(url), data)
 		header.update({'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0'})
 		if int(connectiontype) == 2:
-			header.update({'X-Forwarded-For' : _addoncompat.get_setting('us_proxy')})
+			header.update({'X-Forwarded-For' : addon.getSetting('us_proxy')})
 		elif int(connectiontype) == 1:
-			header.update({'X-Forwarded-For' : _addoncompat.get_setting('dns_proxy')})
+			header.update({'X-Forwarded-For' : addon.getSetting('dns_proxy')})
 		for key, value in header.iteritems():
 			req.add_header(key, value)
 		response = urllib2.urlopen(req, timeout = TIMEOUT)
 		finalurl = response.geturl()
 		response.close()
-		if ((int(connectiontype) == 3) and (_addoncompat.get_setting('tor_use_local') == 'true') and (_addoncompat.get_setting('tor_as_service') == 'false')):
+		if ((int(connectiontype) == 3) and (addon.getSetting('tor_use_local') == 'true') and (addon.getSetting('tor_as_service') == 'false')):
 			if not handler.kill_tor(): 
 				print 'Error killing Tor process! It may still be running.\n' 
 			else: 

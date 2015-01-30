@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _database
@@ -19,8 +18,9 @@ import xbmcaddon
 import xbmcgui
 import xbmcplugin
 
-pluginHandle=int(sys.argv[1])
+addon = xbmcaddon.Addon()
 player = _common.XBMCPlayer()
+pluginHandle = int(sys.argv[1])
 
 SITE = 'thecw'
 NAME = 'The CW'
@@ -112,10 +112,10 @@ def play_video(video_url = _common.args.url):
 	hbitrate=-1
 	lbitrate=-1
 	playpath_url = None
-	if _addoncompat.get_setting('enablesubtitles') == 'true':
+	if addon.getSetting('enablesubtitles') == 'true':
 		convert_subtitles(video_url)
 		player._subtitles_Enabled = True
-	sbitrate = int(_addoncompat.get_setting('quality'))
+	sbitrate = int(addon.getSetting('quality'))
 	video_data = _connection.getURL(VIDEOURL % video_url)
 	video_tree = simplejson.loads(video_data)
 	for video_key in video_tree['videos']:
@@ -130,7 +130,7 @@ def play_video(video_url = _common.args.url):
  				playpath_url = video_index['uri'].split('mp4:')[1].replace('Level3', '')
 		except:
 			playpath_m3u8 = video_index['uri']
-	if _addoncompat.get_setting('preffered_stream_type') == 'HLS':
+	if addon.getSetting('preffered_stream_type') == 'HLS':
 		playpath_url = None
 		lplaypath_url = None
 		m3u8_data = _connection.getURL(playpath_m3u8)
@@ -147,7 +147,7 @@ def play_video(video_url = _common.args.url):
 					playpath_url = video_index.get('uri')
 	if playpath_url is None:
 		playpath_url = lplaypath_url
-	if _addoncompat.get_setting('preffered_stream_type') == 'RTMP':
+	if addon.getSetting('preffered_stream_type') == 'RTMP':
 		finalurl = RTMPURL + ' playpath=mp4:' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
 		player._localHTTPServer = False
 	else:
@@ -162,7 +162,7 @@ def play_video(video_url = _common.args.url):
 		proxy_config = _common.proxyConfig()
 		for i, video_item in enumerate(relative_urls):
 			absolueurl =  playpath_url.replace(name, video_item)
-			if int(_addoncompat.get_setting('connectiontype')) > 0:
+			if int(addon.getSetting('connectiontype')) > 0:
 				newurl = base64.b64encode(absolueurl)
 				newurl = urllib.quote_plus(newurl)
 				newurl = newurl + '/' + proxy_config

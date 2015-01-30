@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _m3u8
@@ -12,12 +11,14 @@ import sys
 import time
 import urllib
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
-pluginHandle=int(sys.argv[1])
+addon = xbmcaddon.Addon()
 player = _common.XBMCPlayer()
+pluginHandle = int(sys.argv[1])
 
 SITE = 'fox'
 NAME = 'FOX'
@@ -37,7 +38,7 @@ def masterlist():
 	master_data = _connection.getURL(SHOWS)
 	master_menu = simplejson.loads(master_data)['shows']
 	for master_item in master_menu:
-		if master_item['external_link'] == '' and (master_item['fullepisodes'] == 'true' or _addoncompat.get_setting('hide_clip_only') == 'false'):
+		if master_item['external_link'] == '' and (master_item['fullepisodes'] == 'true' or addon.getSetting('hide_clip_only') == 'false'):
 			master_name = master_item['title']
 			master_db.append((master_name, SITE, 'seasons', master_name))
 	return master_db
@@ -107,11 +108,11 @@ def play_video(video_url = _common.args.url):
 		qbitrate = None
 	hbitrate = -1
 	lbitrate = -1
-	sbitrate = int(_addoncompat.get_setting('quality')) * 1000
+	sbitrate = int(addon.getSetting('quality')) * 1000
 	finalurl = ''
 	video_data = _connection.getURL(video_url + '&manifest=m3u')
 	video_tree = BeautifulSoup(video_data, 'html.parser')
-	if (_addoncompat.get_setting('enablesubtitles') == 'true'):
+	if (addon.getSetting('enablesubtitles') == 'true'):
 		try:
 			closedcaption = video_tree.find('textstream', src = True)['src']
 			convert_subtitles(closedcaption)

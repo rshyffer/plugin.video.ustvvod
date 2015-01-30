@@ -9,6 +9,8 @@ import xbmc
 import xbmcgui
 import xbmcaddon
 
+addon = xbmcaddon.Addon()
+
 class _Info:
 	def __init__(self, s):
 		args = urllib.unquote_plus(s).split(' , ')
@@ -84,7 +86,7 @@ def select_quality():
 	exec 'import resources.lib.%s as sitemodule' % _common.args.mode 
 	exec 'resultlist = sitemodule.%s()' % qmode
 	select = xbmcgui.Dialog()
-	title = xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39022)
+	title = addon.getLocalizedString(39022)
 	resultset = set(resultlist)
 	resultlist = list(resultset)
 	resultlist = sorted(resultlist)

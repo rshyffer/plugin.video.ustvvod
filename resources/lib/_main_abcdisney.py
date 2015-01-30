@@ -1,6 +1,5 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _m3u8
@@ -11,12 +10,14 @@ import sys
 import time
 import urllib
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
-pluginHandle = int(sys.argv[1])
+addon = xbmcaddon.Addon()
 player = _common.XBMCPlayer()
+pluginHandle = int(sys.argv[1])
 
 SHOWS = 'http://api.watchabc.go.com/vp2/ws/s/contents/2015/shows/jsonp/%s/001/-1'
 VIDEOLIST = 'http://api.watchabc.go.com/vp2/ws/s/contents/2015/videos/jsonp/%s/'
@@ -60,7 +61,7 @@ def masterlist(SITE, BRANDID):
 				except:
 					if int(master_item['fullepisodes']['count']['video'][0]['@accesslevel']) == 0:
 						fullepisodes = int(master_item['fullepisodes']['count']['video'][0]['$'])
-			if fullepisodes > 0 or (clips > 0 and _addoncompat.get_setting('hide_clip_only') == 'false'):
+			if fullepisodes > 0 or (clips > 0 and addon.getSetting('hide_clip_only') == 'false'):
 				master_name = master_item['title'].strip()
 				season_url = master_item['@id']
 				master_db.append((master_name, SITE, 'seasons', season_url, plot))
@@ -226,7 +227,7 @@ def play_video(SITE, BRANDID, PARTNERID):
 	video_id, video_type = _common.args.url.split('#')
 	hbitrate = -1
 	lbitrate = -1
-	sbitrate = int(_addoncompat.get_setting('quality'))
+	sbitrate = int(addon.getSetting('quality'))
 	localhttpserver = False
 	video_auth = get_authorization(BRANDID, video_id, video_type)
 	if video_auth is False:
@@ -317,7 +318,7 @@ def play_video(SITE, BRANDID, PARTNERID):
 		playfile.write(video_data4)
 		playfile.close()
 		finalurl = _common.PLAYFILE
-	if (video_closedcaption == 'true') and (_addoncompat.get_setting('enablesubtitles') == 'true'):
+	if (video_closedcaption == 'true') and (addon.getSetting('enablesubtitles') == 'true'):
 		try:
 			closedcaption = CLOSEDCAPTIONHOST + video_data2['closedcaption']['src']['$'].split('.com')[1]
 			convert_subtitles(closedcaption)

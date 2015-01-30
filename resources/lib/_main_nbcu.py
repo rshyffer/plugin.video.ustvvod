@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _m3u8
@@ -12,12 +11,14 @@ import sys
 import time
 import urllib
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
-pluginHandle = int(sys.argv[1])
+addon = xbmcaddon.Addon()
 player = _common.XBMCPlayer()
+pluginHandle = int(sys.argv[1])
 
 CATERGORIES = ['Series', 'Featured', 'Shows']
 
@@ -171,7 +172,7 @@ def play_video():
 	video_url = _common.args.url
 	hbitrate = -1
 	lbitrate = -1
-	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+	sbitrate = int(addon.getSetting('quality')) * 1024
 	closedcaption = None
 	video_data = _connection.getURL(video_url)
 	if 'link.theplatform.com' not in video_url:
@@ -219,7 +220,7 @@ def play_video():
 			player._subtitles_Enabled = True
 		except:
 			pass
-		if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
+		if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 				convert_subtitles(closedcaption)
 		if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
 			video_url2 = video_tree.seq.find_all('video')[0]

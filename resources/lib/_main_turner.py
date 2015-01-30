@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _m3u8
@@ -12,12 +11,14 @@ import sys
 import time
 import urllib
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
-pluginHandle = int(sys.argv[1])
+addon = xbmcaddon.Addon()
 player = _common.XBMCPlayer()
+pluginHandle = int(sys.argv[1])
 
 AUTHURL = 'http://www.tbs.com/processors/cvp/token.jsp'
 SWFURL = 'http://z.cdn.turner.com/xslo/cvp/plugins/akamai/streaming/osmf1.6/2.10/AkamaiAdvancedStreamingPlugin.swf'
@@ -36,7 +37,7 @@ def masterlist(NAME, MOVIES, SHOWS, SITE, WEBSHOWS = None ):
 			has_full_eps = 'false'
 		else:
 			has_full_eps = 'true'
-		if (_addoncompat.get_setting('hide_clip_only') == 'false' and 'clips' not in master_item['excludedSections']) or has_full_eps == 'true' or WEBSHOWS is not None:
+		if (addon.getSetting('hide_clip_only') == 'false' and 'clips' not in master_item['excludedSections']) or has_full_eps == 'true' or WEBSHOWS is not None:
 			season_url = master_name + '#' + master_item['ID'] + '#' + has_full_eps
 			master_db.append((master_name,  SITE, 'seasons', season_url))
 	return master_db
@@ -205,7 +206,7 @@ def play_video(SITE, EPISODE, HLSPATH = None):
 		else:
 			video_url = video_id
 		hbitrate = -1
-		sbitrate = int(_addoncompat.get_setting('quality'))
+		sbitrate = int(addon.getSetting('quality'))
 		closedcaption = None
 		video_data = _connection.getURL(video_url)
 		video_tree = BeautifulSoup(video_data, 'html.parser')
@@ -216,7 +217,7 @@ def play_video(SITE, EPISODE, HLSPATH = None):
 			hasRTMP = True
 		else:
 			hasRTMP = False
-		if (_addoncompat.get_setting('preffered_stream_type') == 'RTMP' and int(_addoncompat.get_setting('connectiontype')) == 0) or not hasRTMP:
+		if (addon.getSetting('preffered_stream_type') == 'RTMP' and int(addon.getSetting('connectiontype')) == 0) or not hasRTMP:
 			if qbitrate is  None:
 				video_menu = video_tree.find_all('file')
 				for video_index in video_menu:
@@ -272,7 +273,7 @@ def play_video(SITE, EPISODE, HLSPATH = None):
 				playpath_url = lplaypath_url
 			master = video_url.split('/')[-1]
 			segurl = video_url.replace(master, playpath_url)
-			if int(_addoncompat.get_setting('connectiontype')) > 0:
+			if int(addon.getSetting('connectiontype')) > 0:
 				localhttpserver = True
 				play_data = _connection.getURL(segurl)
 				relative_urls = re.compile('(.*ts)\n').findall(play_data)

@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import simplejson
@@ -8,11 +7,13 @@ import sys
 import re
 import urllib
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 from _ordereddict import OrderedDict
 
+addon = xbmcaddon.Addon()
 pluginHandle = int(sys.argv[1])
 
 SITE = 'cbs'
@@ -67,7 +68,7 @@ def seasons(season_urls = _common.args.url):
 		if section_data['display_seasons'] and filter_menu:
 			
 			for season_item in reversed(filter_menu):
-				if season_item['premiumCount'] != season_item['total_count'] or _addoncompat.get_setting('cbs_use_login') == 'true':
+				if season_item['premiumCount'] != season_item['total_count'] or addon.getSetting('cbs_use_login') == 'true':
 					season_title = season_item['title']
 					season_number = season_item['season']
 					unlocked_episodes = int(season_item['total_count']) - int(season_item['premiumCount'])
@@ -84,7 +85,7 @@ def episodes(episode_url = _common.args.url):
 	episode_menu = episode_json['data']
 	title = episode_json['title']
 	for episode_item in episode_menu:
-		if episode_item['status'] == 'AVAILABLE' or (_addoncompat.get_setting('cbs_use_login') == 'true' and episode_item['status'] == 'PREMIUM'):
+		if episode_item['status'] == 'AVAILABLE' or (addon.getSetting('cbs_use_login') == 'true' and episode_item['status'] == 'PREMIUM'):
 			videourl = episode_item['streaming_url']
 			if '_hd_' in videourl:
 				HD = True
@@ -192,9 +193,9 @@ def list_qualities(video_url = _common.args.url):
 		_common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
 
 def play_video(video_url = _common.args.url):
-	if  _addoncompat.get_setting('cbs_use_login') == 'true':
-		username = _addoncompat.get_setting('cbs_username')
-		password = _addoncompat.get_setting('cbs_password')
+	if  addon.getSetting('cbs_use_login') == 'true':
+		username = addon.getSetting('cbs_username')
+		password = addon.getSetting('cbs_password')
 		login_values = values = {'j_username' : username, 'j_password' : password, '_remember_me' : '1' }
 		login_response = _connection.getURL(LOGIN_URL, login_values, savecookie = True)
 		response = simplejson.loads(login_response)
@@ -221,7 +222,7 @@ def play_video(video_url = _common.args.url):
 				video_url2 = video_tree.switch.find_all('video')
 				lbitrate = -1
 				hbitrate = -1
-				sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+				sbitrate = int(addon.getSetting('quality')) * 1024
 				for video_index in video_url2:
 					bitrate = int(video_index['system-bitrate'])
 					if bitrate < lbitrate or lbitrate == -1:
@@ -245,7 +246,7 @@ def play_video(video_url = _common.args.url):
 					closedcaption = None
 			except:
 				pass
-			if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
+			if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 					convert_subtitles(closedcaption)
 			finalurl = base_url + ' playpath=' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
 		item = xbmcgui.ListItem( path = finalurl)
@@ -255,7 +256,7 @@ def play_video(video_url = _common.args.url):
 							'season' : _common.args.season_number,
 							'episode' : _common.args.episode_number})
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
-		if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
+		if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 			while not xbmc.Player().isPlaying():
 				xbmc.sleep(100)
 			xbmc.Player().setSubtitles(_common.SUBTITLE)

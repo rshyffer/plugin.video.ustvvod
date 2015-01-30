@@ -1,13 +1,15 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _main_viacom
 import re
 import sys
 import urllib
+import xbmcaddon
 from bs4 import BeautifulSoup
+
+addon = xbmcaddon.Addon()
 
 SITE = 'spike'
 NAME = 'Spike TV'
@@ -83,8 +85,8 @@ def episodes(episode_url = _common.args.url):
 			episode_items, episode_rest = divmod(episode_count, 10)
 			if episode_rest > 0:
 				episode_items = episode_items + 1
-			if episode_items > int(_addoncompat.get_setting('maxpages')):
-				episode_items = int(_addoncompat.get_setting('maxpages'))
+			if episode_items > int(addon.getSetting('maxpages')):
+				episode_items = int(addon.getSetting('maxpages'))
 			for episode_item in range(episode_items):
 					episode_data2 = _connection.getURL(episode_url2 + '?page=' + str(episode_item + 1))
 					episode_tree2 = BeautifulSoup(episode_data2, 'html.parser')

@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _m3u8
@@ -13,14 +12,16 @@ import sys
 import time
 import urllib
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 from Queue import PriorityQueue
 from threading import Thread, BoundedSemaphore
 
-pluginHandle = int(sys.argv[1])
+addon = xbmcaddon.Addon()
 player = _common.XBMCPlayer()
+pluginHandle = int(sys.argv[1])
 
 VIDEOURL = 'http://media.mtvnservices.com/'
 VIDEOURLAPI = 'http://media-utils.mtvnservices.com/services/MediaGenerator/%s?device=Android&deviceOsVersion=4.4.4'
@@ -179,7 +180,7 @@ def play_video(BASE, video_uri = _common.args.url, media_base = VIDEOURL):
 		finalurl = video_url2[:-3]
 		localhttpserver = True
 		time.sleep(20)
-		if (_addoncompat.get_setting('enablesubtitles') == 'true') and closedcaption:
+		if (addon.getSetting('enablesubtitles') == 'true') and closedcaption:
 			convert_subtitles(closedcaption)
 			player._subtitles_Enabled = True
 		item = xbmcgui.ListItem(path = finalurl)
@@ -224,7 +225,7 @@ def play_video2(API, video_url = _common.args.url):
 	finalurl = video_url2[:-3]
 	localhttpserver = True
 	time.sleep(20)
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and closedcaption:
+	if (addon.getSetting('enablesubtitles') == 'true') and closedcaption:
 		convert_subtitles(closedcaption)
 		player._subtitles_Enabled = True
 	item = xbmcgui.ListItem(path = finalurl)
@@ -272,7 +273,7 @@ def get_videos(queue, i, video_item, qbitrate):
 		#	m3u8_master_data = _connection.getURL(video_menu, savecookie = False)
 		semaphore.release()
 		m3u8_master = _m3u8.parse(m3u8_master_data)
-		sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+		sbitrate = int(addon.getSetting('quality')) * 1024
 		for video_index in m3u8_master.get('playlists'):
 			bitrate = int(video_index.get('stream_info')['bandwidth'])
 			if qbitrate is None:

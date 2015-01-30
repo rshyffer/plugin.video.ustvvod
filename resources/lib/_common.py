@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _connection
 import _database
 import _importlib
@@ -17,9 +16,10 @@ import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup
 
+addon = xbmcaddon.Addon()
 pluginHandle = int(sys.argv[1])
 
-PLUGINPATH = xbmc.translatePath(_addoncompat.get_path())
+PLUGINPATH = addon.getAddonInfo('path').decode('UTF-8')
 RESOURCESPATH = os.path.join(PLUGINPATH,'resources')
 CACHEPATH = os.path.join(RESOURCESPATH,'cache')
 IMAGEPATH = os.path.join(RESOURCESPATH,'images')
@@ -124,17 +124,17 @@ def root_list(network_name):
 	"""
 	network = get_network(network_name)
 	dialog = xbmcgui.DialogProgress()
-	dialog.create(smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39016)))
+	dialog.create(smart_utf8(addon.getLocalizedString(39016)))
 	current = 0
 	rootlist = []
 	network_name = network.NAME
-	dialog.update(0, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39017)) + network.NAME, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39018)))
+	dialog.update(0, smart_utf8(addon.getLocalizedString(39017)) + network.NAME, smart_utf8(addon.getLocalizedString(39018)))
 	showdata = network.masterlist()
 	total_shows = len(showdata)
 	current_show = 0
 	for show in showdata:
 		percent = int( (float(current_show) / total_shows))
-		dialog.update(percent, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39017)) + network.NAME, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39005)) + show[0])
+		dialog.update(percent, smart_utf8(addon.getLocalizedString(39017)) + network.NAME, smart_utf8(addon.getLocalizedString(39005)) + show[0])
 		current_show += 1
 		if (dialog.iscanceled()):
 			return False
@@ -180,7 +180,7 @@ def get_networks():
 	return networks
 
 def get_quality_method():
-	val = _addoncompat.get_setting('qualityMethod')
+	val = addon.getSetting('qualityMethod')
 	if val == "Lowest":
 		return "LOW"
 	return "HIGH"
@@ -195,8 +195,8 @@ def set_view(type = 'root'):
 		if type == 'tvshows':
 			xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_LABEL)
 		xbmcplugin.setContent(pluginHandle, type)
-	if _addoncompat.get_setting('viewenable') == 'true':
-		view = int(_addoncompat.get_setting(type + 'view'))
+	if addon.getSetting('viewenable') == 'true':
+		view = int(addon.getSetting(type + 'view'))
 		xbmc.executebuiltin('Container.SetViewMode(' + str(confluence_views[view]) + ')')
 
 def format_date(inputDate = '', inputFormat = '', outputFormat = '%Y-%m-%d', epoch = False):
@@ -273,16 +273,16 @@ def refresh_db():
 		_database.create_db()
 	networks = get_networks()
 	dialog = xbmcgui.DialogProgress()
-	dialog.create(smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39016)))
+	dialog.create(smart_utf8(addon.getLocalizedString(39016)))
 	total_stations = len(networks)
 	current = 0
 	increment = 100.0 / total_stations
 	all_shows = []
 	for network in networks:
 		network_name = network.NAME
-		if _addoncompat.get_setting(network.SITE) == 'true':
+		if addon.getSetting(network.SITE) == 'true':
 			percent = int(increment * current)
-			dialog.update(percent, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39017)) + network.NAME, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39018)))
+			dialog.update(percent, smart_utf8(addon.getLocalizedString(39017)) + network.NAME, smart_utf8(addon.getLocalizedString(39018)))
 			showdata = network.masterlist()
 			for show in showdata:
 				try:
@@ -294,7 +294,7 @@ def refresh_db():
 			current_show = 0
 			for show in showdata:
 				percent = int((increment * current) + (float(current_show) / total_shows) * increment)
-				dialog.update(percent, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39017)) + network.NAME, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39005)) + show[0])
+				dialog.update(percent, smart_utf8(addon.getLocalizedString(39017)) + network.NAME, smart_utf8(addon.getLocalizedString(39005)) + show[0])
 				get_serie(show[0], show[1], show[2], show[3], forceRefresh = False)
 				current_show += 1
 				if (dialog.iscanceled()):
@@ -319,7 +319,7 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False):
 	checkdata = _database.execute_command(command, values, fetchone = True)
 	empty_values = get_skelton_series(series_title, mode, submode, url)
 	try:
-		tvdb_setting = int(_addoncompat.get_setting('strict_names'))
+		tvdb_setting = int(addon.getSetting('strict_names'))
 	except:
 		tvdb_setting = 0
 	if checkdata and not forceRefresh and checkdata[24]  is not None and checkdata[20] != 'None':
@@ -424,7 +424,7 @@ def get_series_id(seriesdata, seriesname, site = '', allowManual = False, networ
 				station = 'The ' + site.replace(', The', '')
 			else:
 				station = site
-			ret = select.select(smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39020)) + seriesname + ' [' + station.strip() + ']', show_list)
+			ret = select.select(smart_utf8(addon.getLocalizedString(39020)) + seriesname + ' [' + station.strip() + ']', show_list)
 		if ret is not -1:
 			seriesid = shows[ret].seriesid.string
 	else:
@@ -434,14 +434,14 @@ def get_series_id(seriesdata, seriesname, site = '', allowManual = False, networ
 def get_tvdb_series(seriesname, manualSearch = False, site = '', network_alias = []):
 	seriesdata = _connection.getURL(TVDBSERIESLOOKUP + urllib.quote_plus(smart_utf8(seriesname)), connectiontype = 0)
 	try:
-		if int(_addoncompat.get_setting('strict_names')) != 2 or manualSearch:
+		if int(addon.getSetting('strict_names')) != 2 or manualSearch:
 			interactive = True
 		else:
 			interactive = False
 		tvdb_id = get_series_id(seriesdata, seriesname, site, interactive, network_alias)
 	except:
 		if manualSearch:
-			keyb = xbmc.Keyboard(seriesname, smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39004)))
+			keyb = xbmc.Keyboard(seriesname, smart_utf8(addon.getLocalizedString(39004)))
 			keyb.doModal()
 			if (keyb.isConfirmed()):
 					seriesname_custom = keyb.getText()
@@ -592,11 +592,11 @@ def get_plot_by_tvdbid(tvdb_id):
 	if showdata:
 		series_title, mode, sitemode, url, tvdb_id, imdb_id, tvdbbanner, tvdbposter, tvdbfanart, first_aired, date, year, actors, genres, network, plot, runtime, rating, airs_dayofweek, airs_time, status, has_full_episodes, favor, hide, tvdb_series_title = showdata
 		if network is not None:
-			prefixplot += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39013)) + network + '\n'
+			prefixplot += smart_utf8(addon.getLocalizedString(39013)) + network + '\n'
 		if (airs_dayofweek is not None) and (airs_time is not None):
-			prefixplot += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39014)) + airs_dayofweek + '@' + airs_time + '\n'
+			prefixplot += smart_utf8(addon.getLocalizedString(39014)) + airs_dayofweek + '@' + airs_time + '\n'
 		if status is not None:
-			prefixplot += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39015)) + status + '\n'
+			prefixplot += smart_utf8(addon.getLocalizedString(39015)) + status + '\n'
 		if prefixplot is not '':
 			prefixplot += '\n'
 		if plot is not None:
@@ -626,7 +626,7 @@ def fetch_showlist(favored = 0):
 		modes = _database.execute_command(command, fetchall = True)
 		mode_list = [element[0] for element in modes]
 		for network in get_networks():
-			if _addoncompat.get_setting(network.SITE) == 'true' and network.SITE not in mode_list:
+			if addon.getSetting(network.SITE) == 'true' and network.SITE not in mode_list:
 				refresh = True
 		if refresh:
 			refresh_db()
@@ -676,22 +676,22 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 		station = network_name
 	if network is not None:
 		if station == network:
-			prefixplot += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39013)) + station + '\n'
+			prefixplot += smart_utf8(addon.getLocalizedString(39013)) + station + '\n'
 		else:
-			prefixplot += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39012)) + network + '\n'
-			prefixplot += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39013)) + station + '\n'
+			prefixplot += smart_utf8(addon.getLocalizedString(39012)) + network + '\n'
+			prefixplot += smart_utf8(addon.getLocalizedString(39013)) + station + '\n'
 	else:
-		prefixplot += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39013)) + station + '\n'
+		prefixplot += smart_utf8(addon.getLocalizedString(39013)) + station + '\n'
 	if (airs_dayofweek is not None) and (airs_time is not None):
-		prefixplot += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39014)) + airs_dayofweek + '@' + airs_time + '\n'
+		prefixplot += smart_utf8(addon.getLocalizedString(39014)) + airs_dayofweek + '@' + airs_time + '\n'
 	elif (airs_dayofweek is not None) and (airs_time is None):
-		prefixplot += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39014)) + airs_dayofweek + '\n'
+		prefixplot += smart_utf8(addon.getLocalizedString(39014)) + airs_dayofweek + '\n'
 	elif  (airs_dayofweek is None) and (airs_time is not None):
-		prefixplot += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39014)) + airs_time + '\n'
+		prefixplot += smart_utf8(addon.getLocalizedString(39014)) + airs_time + '\n'
 	else:
 		pass
 	if status is not None:
-		prefixplot += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39015)) + status + '\n'
+		prefixplot += smart_utf8(addon.getLocalizedString(39015)) + status + '\n'
 	if plot is None and siteplot is not None:
 		plot = siteplot
 	if prefixplot is not None:
@@ -736,22 +736,22 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 	u += '&name="' + urllib.quote_plus(series_title) + '"'
 	contextmenu = []
 	refresh_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=refresh_show'
-	contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39008)), 'XBMC.RunPlugin(%s)' % refresh_u))
+	contextmenu.append((smart_utf8(addon.getLocalizedString(39008)), 'XBMC.RunPlugin(%s)' % refresh_u))
 	if favor is 1:
 		fav_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=unfavor_show'
-		contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39006)), 'XBMC.RunPlugin(%s)' % fav_u))
+		contextmenu.append((smart_utf8(addon.getLocalizedString(39006)), 'XBMC.RunPlugin(%s)' % fav_u))
 	else:
 		fav_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=favor_show'
-		contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39007)), 'XBMC.RunPlugin(%s)' % fav_u))
+		contextmenu.append((smart_utf8(addon.getLocalizedString(39007)), 'XBMC.RunPlugin(%s)' % fav_u))
 	if hide is 1:
 		hide_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=unhide_show'
-		contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39009)), 'XBMC.RunPlugin(%s)' % hide_u))
+		contextmenu.append((smart_utf8(addon.getLocalizedString(39009)), 'XBMC.RunPlugin(%s)' % hide_u))
 	else: 
 		hide_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=hide_show'
-		contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39010)), 'XBMC.RunPlugin(%s)' % hide_u))
+		contextmenu.append((smart_utf8(addon.getLocalizedString(39010)), 'XBMC.RunPlugin(%s)' % hide_u))
 	delete_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=_contextmenu' + '&sitemode=delete_show'
-	contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39011)), 'XBMC.RunPlugin(%s)' % delete_u))
-	if masterList and _addoncompat.get_setting('network_in_master') == 'true': 
+	contextmenu.append((smart_utf8(addon.getLocalizedString(39011)), 'XBMC.RunPlugin(%s)' % delete_u))
+	if masterList and addon.getSetting('network_in_master') == 'true': 
 		displayname = name + ' on ' + network_name
 	else:
 		displayname = name
@@ -786,11 +786,11 @@ def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = No
 			else:
 				description = network.DESCRIPTION
 		else:
-			description = smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39013)) + get_network(mode).NAME + '\n\n'
-			description += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39031)) + str(unlocked) + "\n"
-			description += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39032)) + str(locked)
+			description = smart_utf8(addon.getLocalizedString(39013)) + get_network(mode).NAME + '\n\n'
+			description += smart_utf8(addon.getLocalizedString(39031)) + str(unlocked) + "\n"
+			description += smart_utf8(addon.getLocalizedString(39032)) + str(locked)
 			if locked > 0:
-				description += smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39033)) % network.ACCOUNTNAME + '\n' + network.ACCOUNTINFOURL
+				description += smart_utf8(addon.getLocalizedString(39033)) % network.ACCOUNTNAME + '\n' + network.ACCOUNTINFOURL
 	infoLabels = {	'title' : name,
 					'tvshowtitle' : showname,
 					'genre' : genre,
@@ -811,7 +811,7 @@ def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = No
 	item.setInfo(type = 'Video', infoLabels = infoLabels)
 	contextmenu = []
 	refresh_u = sys.argv[0] + '?url="<join>"' + sys.argv[0] + '?url="' + '&mode=_contextmenu' + '&sitemode=refresh_db' 
-	contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39021)), 'XBMC.RunPlugin(%s)' % refresh_u))
+	contextmenu.append((smart_utf8(addon.getLocalizedString(39021)), 'XBMC.RunPlugin(%s)' % refresh_u))
 	item.addContextMenuItems(contextmenu)
 	xbmcplugin.addDirectoryItem(pluginHandle, url = u, listitem = item, isFolder = True)
 
@@ -827,7 +827,7 @@ def add_video(video_url, displayname, thumb = None, fanart = None, infoLabels = 
 			thumb = args.thumb
 		else:
 			thumb = ''
-	if 'episode' in infoLabels.keys() and 'season' in infoLabels.keys() and _addoncompat.get_setting('add_episode_identifier') == 'true' and infoLabels['season'] != -1 and infoLabels['episode'] != -1:
+	if 'episode' in infoLabels.keys() and 'season' in infoLabels.keys() and addon.getSetting('add_episode_identifier') == 'true' and infoLabels['season'] != -1 and infoLabels['episode'] != -1:
 			displayname = 'S' + str(infoLabels['season']).zfill(2) + 'E' + str(infoLabels['episode']).zfill(2) + ' - ' + displayname
 	item = xbmcgui.ListItem(displayname, iconImage = thumb, thumbnailImage = thumb)
 	item.setInfo(type = 'Video', infoLabels = infoLabels)
@@ -860,7 +860,7 @@ def add_video(video_url, displayname, thumb = None, fanart = None, infoLabels = 
 		else:
 			show_title = ''
 		quailty_u = sys.argv[0] + '?url='+ urllib.quote_plus('<join>'.join([show_title, str(season), str(episode), thumb, base64.b64encode(displayname), quality_mode, video_url])) +'&mode=_contextmenu' + '&sitemode=select_quality' 
-		contextmenu.append((smart_utf8(xbmcaddon.Addon(id = ADDONID).getLocalizedString(39022)), 'XBMC.PlayMedia(%s)' % quailty_u))
+		contextmenu.append((smart_utf8(addon.getLocalizedString(39022)), 'XBMC.PlayMedia(%s)' % quailty_u))
 		item.addContextMenuItems(contextmenu)
 	xbmcplugin.addDirectoryItem(pluginHandle, url = video_url, listitem = item, isFolder = False)
 
@@ -868,13 +868,13 @@ def show_exception(error1, error2):
 	xbmc.executebuiltin('XBMC.Notification(%s, %s, 5000)' % (error1, smart_utf8(error2)))
 	
 def proxyConfig():
-	proxy_config =  {"connectiontype" : _addoncompat.get_setting('connectiontype'), 
-				"dns_proxy" : [_addoncompat.get_setting('dns_proxy'), _addoncompat.get_setting('dns_proxy_2'), _addoncompat.get_setting('dns_proxy_3')],
+	proxy_config =  {"connectiontype" : addon.getSetting('connectiontype'), 
+				"dns_proxy" : [addon.getSetting('dns_proxy'), addon.getSetting('dns_proxy_2'), addon.getSetting('dns_proxy_3')],
 				"proxy" : {
-							"us_proxy" : _addoncompat.get_setting('us_proxy'),
-							"us_proxy_port" : _addoncompat.get_setting('us_proxy_port'),
-							"us_proxy_user" : _addoncompat.get_setting('us_proxy_user'),
-							"us_proxy_pass" : _addoncompat.get_setting('us_proxy_pass')
+							"us_proxy" : addon.getSetting('us_proxy'),
+							"us_proxy_port" : addon.getSetting('us_proxy_port'),
+							"us_proxy_user" : addon.getSetting('us_proxy_user'),
+							"us_proxy_pass" : addon.getSetting('us_proxy_pass')
 							}
 				}
 	proxy_config = simplejson.dumps(proxy_config)

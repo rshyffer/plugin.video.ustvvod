@@ -1,13 +1,15 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _main_viacom
 import re
 import sys
 import urllib
+import xbmcaddon
 from bs4 import BeautifulSoup
+
+addon = xbmcaddon.Addon()
 
 SITE = 'tvland'
 NAME = 'TV Land'
@@ -29,7 +31,7 @@ def masterlist():
 		for master_item in master_menu:
 			master_name = master_item.contents[0].strip()
 			season_url = master_item['href'].rsplit('/', 1)[0]
-			if '/full-episodes' in  master_item['href'] or _addoncompat.get_setting('hide_clip_only') == 'false':
+			if '/full-episodes' in  master_item['href'] or addon.getSetting('hide_clip_only') == 'false':
 				master_dict[master_name] = season_url
 	for master_name, season_url in master_dict.iteritems():	
 		master_db.append((master_name, SITE, 'seasons', season_url))

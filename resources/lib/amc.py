@@ -1,16 +1,17 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _main_brightcove
 import simplejson
 import sys
 import urllib
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup
 
+addon = xbmcaddon.Addon()
 pluginHandle = int(sys.argv[1])
 
 SITE = 'amc'
@@ -80,7 +81,7 @@ def play_video(video_url = _common.args.url):
 	video_player_id = video_tree.find('param', attrs = {'name' : 'playerID'})['value']
 	renditions = _main_brightcove.get_episode_info(video_player_key, video_content_id, video_url, video_player_id, CONST)
 	hbitrate = -1
-	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+	sbitrate = int(addon.getSetting('quality')) * 1024
 	for item in renditions['programmedContent']['videoPlayer']['mediaDTO']['IOSRenditions']:
 		bitrate = int(item['encodingRate'])
 		if bitrate > hbitrate and bitrate <= sbitrate and item['audioOnly'] == False:

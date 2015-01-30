@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _addoncompat
 import _common
 import _connection
 import _m3u8
@@ -9,10 +8,12 @@ import simplejson
 import sys
 import urllib
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
+addon = xbmcaddon.Addon()
 pluginHandle = int(sys.argv[1])
 
 SITE = 'oxygen'
@@ -96,7 +97,7 @@ def episodes(episode_url = _common.args.url):
 
 def play_video(video_url = _common.args.url):
 	hbitrate = -1
-	sbitrate = int(_addoncompat.get_setting('quality')) * 1024
+	sbitrate = int(addon.getSetting('quality')) * 1024
 	closedcaption = None
 	video_data = _connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
@@ -121,7 +122,7 @@ def play_video(video_url = _common.args.url):
 			closedcaption = video_tree.textstream['src']
 		except:
 			pass
-		if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
+		if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 				convert_subtitles(closedcaption)#
 		video_url2 = video_tree.seq.find_all('video')[0]
 		video_url3 = video_url2['src']
@@ -134,7 +135,7 @@ def play_video(video_url = _common.args.url):
 				hbitrate = bitrate
 				finalurl = video_url3.replace(video_url4, video_index.get('uri'))
 	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
-	if (_addoncompat.get_setting('enablesubtitles') == 'true') and (closedcaption is not None):
+	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 		while not xbmc.Player().isPlaying():
 			xbmc.sleep(100)
 		xbmc.Player().setSubtitles(_common.SUBTITLE)
