@@ -23,7 +23,7 @@ COOKIE = os.path.join(CACHEPATH,'cookie.txt')
 IPURL = 'http://icanhazip.com'
 IPFILE = os.path.join(CACHEPATH,'ip.txt')
 DNS_REFESH_DELAY = 10
-TIMEOUT = 50
+TIMEOUT = 80
 
 class MyHTTPConnection(httplib.HTTPConnection):
 	_dnsproxy = []
@@ -264,7 +264,7 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 	else:
 		return link
 
-def getRedirect(url, values = None , header = {}, connectiontype = addon.getSetting('connectiontype')):
+def getRedirect(url, values = None , header = {}, connectiontype = addon.getSetting('connectiontype'), cookiefile = None):
 	try:
 		old_opener = urllib2._opener
 		if cookiefile is not None:
