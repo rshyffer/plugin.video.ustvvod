@@ -15,9 +15,9 @@ import urllib
 import urllib2
 import xbmc
 import xbmcaddon
-from dns.resolver import Resolver
 
-addon = xbmcaddon.Addon()
+
+addon = xbmcaddon.Addon(id = 'plugin.video.ustvvod')
 
 PLUGINPATH = addon.getAddonInfo('path').decode('utf-8')
 RESOURCESPATH = os.path.join(PLUGINPATH, 'resources')
@@ -30,6 +30,9 @@ COOKIE = os.path.join(CACHEPATH, 'cookie.txt')
 HOST_NAME = 'localhost'
 TIMEOUT = 50
 PORT_NUMBER = int(sys.argv[1])
+
+sys.path.append(os.path.abspath(PLUGINPATH))
+from dns.resolver import Resolver
 
 class MyHTTPConnection(httplib.HTTPConnection):
 	_dnsproxy = []
