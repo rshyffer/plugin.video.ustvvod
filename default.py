@@ -1,6 +1,5 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
-import resources.lib._addoncompat as _addoncompat
 import resources.lib._common as _common
 import resources.lib._contextmenu as _contextmenu
 import os
@@ -8,6 +7,7 @@ import sys
 import xbmcaddon
 import xbmcplugin
 
+addon = xbmcaddon.Addon()
 pluginHandle = int(sys.argv[1])
 
 __plugin__ = 'USTV VoD'
@@ -23,21 +23,21 @@ def modes():
 		networks = _common.get_networks()
 		networks.sort(key = lambda x: x.SITE.replace('the', ''))
 		for network in networks:
-			if _addoncompat.get_setting(network.SITE) == 'true':
+			if addon.getSetting(network.SITE) == 'true':
 				if network.NAME.endswith(', The'):
 					name = 'The ' +network.NAME.replace(', The', '')
 				all_description += network.NAME + ', '
 		count = 0
-		_common.add_directory(_common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39000)), 'Favorlist', 'NoUrl', thumb = _common.FAVICON, count = count, description = _common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39001)) + '\n' + all_description)
+		_common.add_directory(_common.smart_utf8(addon.getLocalizedString(39000)), 'Favorlist', 'NoUrl', thumb = _common.FAVICON, count = count, description = _common.smart_utf8(addon.getLocalizedString(39001)) + '\n' + all_description)
 		count += 1
-		_common.add_directory(_common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39002)), 'Masterlist', 'NoUrl', thumb = _common.ALLICON, count = count, description = _common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39003)) + '\n' + all_description)
+		_common.add_directory(_common.smart_utf8(addon.getLocalizedString(39002)), 'Masterlist', 'NoUrl', thumb = _common.ALLICON, count = count, description = _common.smart_utf8(addon.getLocalizedString(39003)) + '\n' + all_description)
 		count += 1
 		for network in networks:
 			network_name = network.NAME
 			station_icon = os.path.join(_common.IMAGEPATH, network.SITE + '.png')
 			if network_name.endswith(', The'):
 				network_name = 'The ' + network_name.replace(', The', '')
-			if _addoncompat.get_setting(network.SITE) == 'true':
+			if addon.getSetting(network.SITE) == 'true':
 				_common.add_directory(network_name, network.SITE, 'rootlist', thumb = station_icon, fanart = _common.PLUGINFANART, description = network.DESCRIPTION, count = count)
 			count += 1
 		xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_PLAYLIST_ORDER)
@@ -65,7 +65,7 @@ def modes():
 		network = _common.get_network(_common.args.mode)
 		if network:
 			getattr(network, _common.args.sitemode)()
-			if 'episodes' in  _common.args.sitemode and _addoncompat.get_setting('add_episode_identifier') == 'false':
+			if 'episodes' in  _common.args.sitemode and addon.getSetting('add_episode_identifier') == 'false':
 				try:
 					xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_DATEADDED)
 				except:
@@ -74,5 +74,8 @@ def modes():
 				xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_UNSORTED)
 			if not _common.args.sitemode.startswith('play'):
 				xbmcplugin.endOfDirectory(pluginHandle)
-modes()
-sys.modules.clear()
+
+try:
+	modes()
+except:
+	sys.modules.clear()

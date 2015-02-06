@@ -4,6 +4,7 @@
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.beautifulsoup4" version="4.3.2"/>
     <import addon="script.module.coveapi" version="0.2.1"/>
+	<import addon="script.module.dnspython" version="1.12.0"/>
     <import addon="script.module.free.cable.database" version="0.0.5"/>
     <import addon="script.module.html5lib" version="0.999.0"/>
     <import addon="script.module.pyamf" version="0.6.2"/>
