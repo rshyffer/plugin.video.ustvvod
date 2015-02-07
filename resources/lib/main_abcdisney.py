@@ -65,7 +65,25 @@ def masterlist(SITE, BRANDID):
 			if fullepisodes > 0 or (clips > 0 and addon.getSetting('hide_clip_only') == 'false'):
 				master_name = master_item['title'].strip()
 				season_url = master_item['@id']
-				master_db.append((master_name, SITE, 'seasons', season_url, plot))
+				try:
+					thumb = master_item['thumbnails']['thumbnail']['$']
+				except:
+					thumb = None
+				try:
+					genre = master_item['genre'].title()
+				except:
+					genre = None
+				if genre == 'Movies':
+					master_name = '--' + master_name
+					mode = 'episodes'
+					season_url = VIDEOLIST % BRANDID + '001/lf/' + season_url + '/-1/-1/-1/-1'
+				else:
+					mode = 'seasons'
+				site_data = {'plot' : plot,
+							'thumb' : thumb,
+							'genre' : genre}
+				if 'Long Form' not in genre:
+					master_db.append((master_name, SITE, 'seasons', season_url, site_data))
 	return master_db
 
 def seasons(SITE, BRANDID):
