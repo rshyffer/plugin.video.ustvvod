@@ -86,9 +86,7 @@ def masterlist(SITE, BRANDID):
 					master_db.append((master_name, SITE, 'seasons', season_url, site_data))
 	return master_db
 
-def seasons(SITE, BRANDID):
-	xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_LABEL)
-	season_url = common.args.url
+def seasons(SITE, BRANDID, season_url = common.args.url):
 	season_menu = []
 	season_numbers = []
 	clip_numbers = []
