@@ -1,7 +1,8 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
-import resources.lib._common as _common
-import resources.lib._contextmenu as _contextmenu
+import resources.lib.common as common
+import resources.lib.contextmenu as contextmenu
+import resources.lib.ustvpaths as ustvpaths
 import os
 import sys
 import xbmcaddon
@@ -15,7 +16,7 @@ print '\n\n\n start of USTV VoD plugin'
 def modes():
 	if sys.argv[2] == '':
 		all_description = ''
-		networks = _common.get_networks()
+		networks = common.get_networks()
 		networks.sort(key = lambda x: x.SITE.replace('the', ''))
 		for network in networks:
 			if addon.getSetting(network.SITE) == 'true':
@@ -23,51 +24,51 @@ def modes():
 					name = 'The ' +network.NAME.replace(', The', '')
 				all_description += network.NAME + ', '
 		count = 0
-		_common.add_directory(_common.smart_utf8(addon.getLocalizedString(39000)), 'Favorlist', 'NoUrl', thumb = _common.FAVICON, count = count, description = _common.smart_utf8(addon.getLocalizedString(39001)) + '\n' + all_description)
+		common.add_directory(common.smart_utf8(addon.getLocalizedString(39000)), 'Favorlist', 'NoUrl', thumb = ustvpaths.FAVICON, count = count, description = common.smart_utf8(addon.getLocalizedString(39001)) + '\n' + all_description)
 		count += 1
-		_common.add_directory(_common.smart_utf8(addon.getLocalizedString(39002)), 'Masterlist', 'NoUrl', thumb = _common.ALLICON, count = count, description = _common.smart_utf8(addon.getLocalizedString(39003)) + '\n' + all_description)
+		common.add_directory(common.smart_utf8(addon.getLocalizedString(39002)), 'Masterlist', 'NoUrl', thumb = ustvpaths.ALLICON, count = count, description = common.smart_utf8(addon.getLocalizedString(39003)) + '\n' + all_description)
 		count += 1
 		for network in networks:
 			network_name = network.NAME
-			station_icon = os.path.join(_common.IMAGEPATH, network.SITE + '.png')
+			station_icon = os.path.join(ustvpaths.IMAGEPATH, network.SITE + '.png')
 			if network_name.endswith(', The'):
 				network_name = 'The ' + network_name.replace(', The', '')
 			if addon.getSetting(network.SITE) == 'true':
-				_common.add_directory(network_name, network.SITE, 'rootlist', thumb = station_icon, fanart = _common.PLUGINFANART, description = network.DESCRIPTION, count = count)
+				common.add_directory(network_name, network.SITE, 'rootlist', thumb = station_icon, fanart = ustvpaths.PLUGINFANART, description = network.DESCRIPTION, count = count)
 			count += 1
 		xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_PLAYLIST_ORDER)
-		_common.set_view()
+		common.set_view()
 		xbmcplugin.endOfDirectory(pluginHandle)
-	elif _common.args.mode == 'Masterlist':
+	elif common.args.mode == 'Masterlist':
 		xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_LABEL)
-		_common.load_showlist()
-		_common.set_view('tvshows')
+		common.load_showlist()
+		common.set_view('tvshows')
 		xbmcplugin.endOfDirectory(pluginHandle)
-	elif _common.args.sitemode == 'rootlist':
+	elif common.args.sitemode == 'rootlist':
 		xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_LABEL)
-		_common.root_list(_common.args.mode)
+		common.root_list(common.args.mode)
 		xbmcplugin.endOfDirectory(pluginHandle)
-	elif _common.args.mode == 'Favorlist':   
+	elif common.args.mode == 'Favorlist':   
 		xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_LABEL)
-		_common.load_showlist(favored = 1)
-		_common.set_view('tvshows')
+		common.load_showlist(favored = 1)
+		common.set_view('tvshows')
 		xbmcplugin.endOfDirectory(pluginHandle)
-	elif _common.args.mode == '_contextmenu':
-		getattr(_contextmenu, _common.args.sitemode)()
-	elif _common.args.mode == '_common':
-		getattr(_common, _common.args.sitemode)()
+	elif common.args.mode == 'contextmenu':
+		getattr(contextmenu, common.args.sitemode)()
+	elif common.args.mode == 'common':
+		getattr(common, common.args.sitemode)()
 	else:
-		network = _common.get_network(_common.args.mode)
+		network = common.get_network(common.args.mode)
 		if network:
-			getattr(network, _common.args.sitemode)()
-			if 'episodes' in  _common.args.sitemode and addon.getSetting('add_episode_identifier') == 'false':
+			getattr(network, common.args.sitemode)()
+			if 'episodes' in  common.args.sitemode and addon.getSetting('add_episode_identifier') == 'false':
 				try:
 					xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_DATEADDED)
 				except:
 					pass
 				xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_EPISODE)
 				xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_UNSORTED)
-			if not _common.args.sitemode.startswith('play'):
+			if not common.args.sitemode.startswith('play'):
 				xbmcplugin.endOfDirectory(pluginHandle)
 
 try:

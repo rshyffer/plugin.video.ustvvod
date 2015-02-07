@@ -4,9 +4,9 @@ import re
 import simplejson
 import sys
 import urllib
-from .. import _connection
-from .. import _common
-from .. import _main_turner
+from .. import connection
+from .. import common
+from .. import main_turner
 
 
 SITE = 'tcm'
@@ -27,10 +27,10 @@ def masterlist():
 	return master_db
 
 def seasons():
-	_main_turner.seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS)
+	main_turner.seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS)
 
 def episodes():
-	episode_data = _connection.getURL(MOVIES)
+	episode_data = connection.getURL(MOVIES)
 	episode_list = simplejson.loads(episode_data)
 	episode_menu = episode_list['tcm']['titles']
 	for episode_item in episode_menu:
@@ -76,11 +76,11 @@ def episodes():
 						'genre' : episode_genre, 
 						'mpaa'  : episode_rating,
 						'director' : episode_director}
-		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	_common.set_view('episodes')
+		common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+	common.set_view('episodes')
 
 def play_video():
-	_main_turner.play_video(SITE, EPISODE, HLSPATH)
+	main_turner.play_video(SITE, EPISODE, HLSPATH)
 
 def list_qualities():
-	return _main_turner.list_qualities(SITE, EPISODE)
+	return main_turner.list_qualities(SITE, EPISODE)

@@ -1,10 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _common
-import _connection
-import _m3u8
+import common
+import connection
+import m3u8
 import base64
 import os
+import ustvpaths
 import re
 import simplejson
 import sys
@@ -21,39 +22,39 @@ pluginHandle = int(sys.argv[1])
 
 def masterlist(SITE, SHOWS):
 	master_db = []
-	master_data = _connection.getURL(SHOWS)
+	master_data = connection.getURL(SHOWS)
 	master_tree = simplejson.loads(master_data)
 	for master_item in master_tree:
 		if (master_item['hasNoVideo'] == 'false'):
-			master_name = _common.smart_utf8(master_item['detailTitle'])
+			master_name = common.smart_utf8(master_item['detailTitle'])
 			master_db.append((master_name, SITE, 'seasons', urllib.quote_plus(master_item['showID'])))
 	return master_db
 
 def seasons(SITE, SEASONSEPISODE, SEASONSCLIPS, EPISODES, CLIPS):
-	season_url = _common.args.url
-	season_data = _connection.getURL(SEASONSEPISODE % season_url)
+	season_url = common.args.url
+	season_data = connection.getURL(SEASONSEPISODE % season_url)
 	season_tree = simplejson.loads(season_data)['season']
 	for season_item in season_tree:
 		season_name = 'Season ' + str(season_item)
-		_common.add_directory(season_name,  SITE, 'episodes', EPISODES % (season_url, season_item))
-	season_url = _common.args.url
-	season_data = _connection.getURL(SEASONSCLIPS % season_url)
+		common.add_directory(season_name,  SITE, 'episodes', EPISODES % (season_url, season_item))
+	season_url = common.args.url
+	season_data = connection.getURL(SEASONSCLIPS % season_url)
 	season_tree = simplejson.loads(season_data)['season']
 	for season_item in season_tree:
 		season_name = 'Season Clips ' + str(season_item)
-		_common.add_directory(season_name,  SITE, 'episodes', CLIPS % (season_url, season_item))
-	_common.set_view('seasons')
+		common.add_directory(season_name,  SITE, 'episodes', CLIPS % (season_url, season_item))
+	common.set_view('seasons')
 
 def episodes(SITE):
-	episode_url = _common.args.url
-	episode_data = _connection.getURL(episode_url)
+	episode_url = common.args.url
+	episode_data = connection.getURL(episode_url)
 	episode_tree = simplejson.loads(episode_data)['Items']
 	for episode_item in episode_tree:
 		if episode_item['isBehindWall'] == 'false':
 			url = episode_item['playURL_HLS']
 			episode_duration = int(episode_item['totalVideoDuration']) / 1000
 			try:
-				episode_airdate = _common.format_date(episode_item['airDate'].split('T')[0],'%Y-%m-%d')
+				episode_airdate = common.format_date(episode_item['airDate'].split('T')[0],'%Y-%m-%d')
 			except:
 				episode_airdate = -1
 			episode_name = episode_item['title']
@@ -90,19 +91,19 @@ def episodes(SITE):
 							'premiered' : episode_airdate,
 							'TVShowTitle' : episode_showtitle,
 							'MPAA' : episode_mpaa }
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode = 'list_qualities')
-	_common.set_view('episodes')
+			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode = 'list_qualities')
+	common.set_view('episodes')
 
 def list_qualities():
-	video_url = _common.args.url
+	video_url = common.args.url
 	bitrates = []
 	sig = sign_url(video_url)
 	smil_url = re.compile('(.+)\?').findall(video_url)[0] + '?switch=hls&assetTypes=medium_video_s3&mbr=true&metafile=true&sig=' + sig
-	video_data = _connection.getURL(smil_url)
+	video_data = connection.getURL(smil_url)
 	smil_tree = BeautifulSoup(video_data, 'html.parser')
 	video_url2 = smil_tree.video['src']
-	m3u_master_data = _connection.getURL(video_url2)
-	m3u_master = _m3u8.parse(m3u_master_data)
+	m3u_master_data = connection.getURL(video_url2)
+	m3u_master = m3u8.parse(m3u_master_data)
 	for video_index in m3u_master.get('playlists'):
 		bitrate = int(video_index.get('stream_info')['bandwidth'])
 		display = int(bitrate) / 1024
@@ -111,22 +112,22 @@ def list_qualities():
 
 def play_video():
 	try:
-		qbitrate = _common.args.quality
+		qbitrate = common.args.quality
 	except:
 		qbitrate = None
 	closedcaption = None
-	video_url = _common.args.url
+	video_url = common.args.url
 	sig = sign_url(video_url)
 	smil_url = re.compile('(.+)\?').findall(video_url)[0] + '?switch=hls&assetTypes=medium_video_s3&mbr=true&metafile=true&sig=' + sig
-	smil_data = _connection.getURL(smil_url)
+	smil_data = connection.getURL(smil_url)
 	smil_tree = BeautifulSoup(smil_data, 'html.parser')
 	video_url2 = smil_tree.video['src']	
 	try:
 		closedcaption = smil_tree.textstream['src']
 	except:
 		pass
-	m3u_master_data = _connection.getURL(video_url2, savecookie = True)
-	m3u_master = _m3u8.parse(m3u_master_data)
+	m3u_master_data = connection.getURL(video_url2, savecookie = True)
+	m3u_master = m3u8.parse(m3u_master_data)
 	hbitrate = -1
 	sbitrate = int(addon.getSetting('quality')) * 1024
 	for video_index in m3u_master.get('playlists'):
@@ -137,10 +138,10 @@ def play_video():
 				m3u8_url =  video_index.get('uri')
 		elif  bitrate == qbitrate:
 			m3u8_url =  video_index.get('uri')
-	m3u_data = _connection.getURL(m3u8_url, loadcookie = True)
+	m3u_data = connection.getURL(m3u8_url, loadcookie = True)
 	key_url = re.compile('URI="(.*?)"').findall(m3u_data)[0]
-	key_data = _connection.getURL(key_url, loadcookie = True)		
-	key_file = open(_common.KEYFILE, 'wb')
+	key_data = connection.getURL(key_url, loadcookie = True)		
+	key_file = open(ustvpaths.KEYFILE, 'wb')
 	key_file.write(key_data)
 	key_file.close()
 	video_url5 = re.compile('(http:.*?)\n').findall(m3u_data)
@@ -149,33 +150,33 @@ def play_video():
 		newurl = urllib.quote_plus(newurl)
 		m3u_data = m3u_data.replace(video_item, 'http://127.0.0.1:12345/foxstation/' + newurl)
 	localhttpserver = True
-	filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
+	filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
 	xbmc.executebuiltin(filestring)
 	time.sleep(20)
 	m3u_data = m3u_data.replace(key_url, 'http://127.0.0.1:12345/play.key')
-	playfile = open(_common.PLAYFILE, 'w')
+	playfile = open(ustvpaths.PLAYFILE, 'w')
 	playfile.write(m3u_data)
 	playfile.close()
-	finalurl = _common.PLAYFILE
+	finalurl = ustvpaths.PLAYFILE
 	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 		convert_subtitles(closedcaption)
 	item = xbmcgui.ListItem(path = finalurl)
 	if qbitrate is not None:
-		item.setThumbnailImage(_common.args.thumb)
-		item.setInfo('Video', {	'title' : _common.args.name,
-						'season' : _common.args.season_number,
-						'episode' : _common.args.episode_number,
-						'TVShowTitle' : _common.args.show_title})
+		item.setThumbnailImage(common.args.thumb)
+		item.setInfo('Video', {	'title' : common.args.name,
+						'season' : common.args.season_number,
+						'episode' : common.args.episode_number,
+						'TVShowTitle' : common.args.show_title})
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	if ((addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None))  or localhttpserver is True:
 		while not xbmc.Player().isPlaying():
 			xbmc.sleep(100)
 	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
-		xbmc.Player().setSubtitles(_common.SUBTITLE)
+		xbmc.Player().setSubtitles(ustvpaths.SUBTITLE)
 	if localhttpserver is True:
 		while xbmc.Player().isPlaying():
 			xbmc.sleep(1000)
-		_connection.getURL('http://localhost:12345/stop', connectiontype = 0)
+		connection.getURL('http://localhost:12345/stop', connectiontype = 0)
 
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')
@@ -192,7 +193,7 @@ def clean_subs(data):
 
 def convert_subtitles(closedcaption):
 	str_output = ''
-	subtitle_data = _connection.getURL(closedcaption, connectiontype = 0)
+	subtitle_data = connection.getURL(closedcaption, connectiontype = 0)
 	subtitle_data = BeautifulSoup(subtitle_data, 'html.parser', parse_only = SoupStrainer('div'))
 	srt_output = ''
 	lines = subtitle_data.find_all('p')
@@ -202,9 +203,9 @@ def convert_subtitles(closedcaption):
 	for line in lines:
 		try:
 			if line is not None:
-				sub = clean_subs(_common.smart_utf8(line))
-				start_time = _common.smart_utf8(line['begin'].replace('.', ','))
-				end_time = _common.smart_utf8(line['end'].replace('.', ','))
+				sub = clean_subs(common.smart_utf8(line))
+				start_time = common.smart_utf8(line['begin'].replace('.', ','))
+				end_time = common.smart_utf8(line['end'].replace('.', ','))
 				if start_time != last_start_time and end_time != last_end_time:
 					str_output += '\n' + str(i + 1) + '\n' + start_time + ' --> ' + end_time + '\n' + sub + '\n'
 					i = i + 1
@@ -214,10 +215,10 @@ def convert_subtitles(closedcaption):
 					str_output +=  sub + '\n\n'
 		except:
 			pass
-	file = open(_common.SUBTITLE, 'w')
+	file = open(ustvpaths.SUBTITLE, 'w')
 	file.write(str_output)
 	file.close()
 
 def sign_url(url):
-	sig = _connection.getURL('http://www.history.com/components/get-signed-signature?url=' + re.compile('/[sz]/(.+)\?').findall(url)[0])
+	sig = connection.getURL('http://www.history.com/components/get-signed-signature?url=' + re.compile('/[sz]/(.+)\?').findall(url)[0])
 	return sig

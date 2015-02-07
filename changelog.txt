@@ -73,7 +73,7 @@ version 1.1.2
   * fix for viacomm subs
   * fix for CSB shows with no link mapping
   * code changes for viacomn and for how to connect
-  * fix USA NETWORK and changed code filename to _main_nbcu
+  * fix USA NETWORK and changed code filename to main_nbcu
   * added season selection to CBS
   * optimization for viacomm code
   * fix for NICK
@@ -197,7 +197,7 @@ version 1.0.5
   * fix for type change in settings
   * fix South Park
   * fix for subtitles
-  * tidy up ‚_main_viacom.py‘ file
+  * tidy up ‚main_viacom.py‘ file
 
 version 1.0.4
 

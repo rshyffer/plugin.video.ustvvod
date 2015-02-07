@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
-from .. import _main_abcdisney
+from .. import main_abcdisney
 
 SITE = 'disneyjunior'
 NAME = 'Disney Junior'
@@ -9,16 +9,16 @@ BRANDID = '008'
 PARTNERID = '585231'
 
 def masterlist():
-	return _main_abcdisney.masterlist(SITE, BRANDID)
+	return main_abcdisney.masterlist(SITE, BRANDID)
 
 def seasons():
-	_main_abcdisney.seasons(SITE, BRANDID)
+	main_abcdisney.seasons(SITE, BRANDID)
 
 def episodes():
-	_main_abcdisney.episodes(SITE)
+	main_abcdisney.episodes(SITE)
 
 def play_video():
-	_main_abcdisney.play_video(SITE, BRANDID, PARTNERID)
+	main_abcdisney.play_video(SITE, BRANDID, PARTNERID)
 
 def list_qualities():
-	return _main_abcdisney.list_qualities(SITE, BRANDID, PARTNERID)
+	return main_abcdisney.list_qualities(SITE, BRANDID, PARTNERID)

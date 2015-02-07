@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from .. import _common
-from .. import _main_viacom
+from .. import common
+from .. import main_viacom
 
 SITE = 'logotv'
 NAME = 'LogoTV'
@@ -11,16 +11,16 @@ API = 'http://api.mtv.com/api/hVqrnHigT6Rq/'
 SHOWS = API + 'promolist/10394912.json'
 
 def masterlist():
-	return _main_viacom.masterlist(SITE, SHOWS)
+	return main_viacom.masterlist(SITE, SHOWS)
 
 def seasons():
-	_main_viacom.seasons(SITE, API)
+	main_viacom.seasons(SITE, API)
 
 def videos():
-	_main_viacom.videos(SITE)
+	main_viacom.videos(SITE)
 
 def play():
-	_main_viacom.play_video2(API, _common.args.url)
+	main_viacom.play_video2(API, common.args.url)
 
 def list_qualities():
-	return _main_viacom.list_qualities2(API, _common.args.url)
+	return main_viacom.list_qualities2(API, common.args.url)

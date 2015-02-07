@@ -5,8 +5,8 @@ import sys
 import urllib
 import xbmcgui
 import xbmcplugin
-from .. import _common
-from .. import _connection
+from .. import common
+from .. import connection
 from bs4 import BeautifulSoup
 
 pluginHandle = int(sys.argv[1])
@@ -20,7 +20,7 @@ VIDEOURL = 'http://metaframe.digitalsmiths.tv/v2/WBtv/assets/%s/partner/11?forma
 
 def masterlist():
 	master_db = []
-	master_data = _connection.getURL(SHOWS)
+	master_data = connection.getURL(SHOWS)
 	master_tree = BeautifulSoup(master_data, 'html.parser').find('ul', id = 'channelCarousel_ul')
 	master_menu = master_tree.find_all('a')
 	for master_item in master_menu:
@@ -29,8 +29,8 @@ def masterlist():
 		master_db.append((master_name, SITE, 'episodes', season_url))
 	return master_db
 
-def episodes(episode_url = _common.args.url):
-	episode_data = _connection.getURL(EPISODES + episode_url)
+def episodes(episode_url = common.args.url):
+	episode_data = connection.getURL(EPISODES + episode_url)
 	episode_data2 = simplejson.loads(episode_data)['list_html']
 	episode_tree = BeautifulSoup(episode_data2, 'html.parser').find('ul', id = 'videoList_ul')
 	if episode_tree:
@@ -49,11 +49,11 @@ def episodes(episode_url = _common.args.url):
 			infoLabels={	'title' : episode_name,
 							'plot' : episode_plot,
 							'tvshowtitle' : show_name }
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
-	_common.set_view('episodes')
+			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
+	common.set_view('episodes')
 
-def play_video(video_url = _common.args.url):
-	video_data = _connection.getURL(VIDEOURL % video_url.split('/')[-1])
+def play_video(video_url = common.args.url):
+	video_data = connection.getURL(VIDEOURL % video_url.split('/')[-1])
 	video_tree = simplejson.loads(video_data)['videos']['limelight700']['uri']
 	rtmpsplit = video_tree.split('mp4:')
 	finalurl = rtmpsplit[0] + ' playpath=mp4:' + rtmpsplit[1]

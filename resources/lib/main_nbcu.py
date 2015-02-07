@@ -1,10 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _common
-import _connection
-import _m3u8
+import common
+import connection
+import m3u8
 import base64
 import os
+import ustvpaths
 import re
 import simplejson
 import sys
@@ -17,14 +18,14 @@ import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
 addon = xbmcaddon.Addon()
-player = _common.XBMCPlayer()
+player = common.XBMCPlayer()
 pluginHandle = int(sys.argv[1])
 
 CATERGORIES = ['Series', 'Featured', 'Shows']
 
 def masterlist(SITE, SHOWS):
 	master_db = []
-	master_data = _connection.getURL(SHOWS)
+	master_data = connection.getURL(SHOWS)
 	master_menu = simplejson.loads(master_data)['entries']
 	for master_item in master_menu:
 		master_name = master_item['title']
@@ -34,25 +35,25 @@ def masterlist(SITE, SHOWS):
 	return master_db
 
 def seasons(SITE, FULLEPISODES, CLIPS, FULLEPISODESWEB = None):
-	season_urls = _common.args.url
+	season_urls = common.args.url
 	for season_url in season_urls.split(','):
-		season_data = _connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
+		season_data = connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
 		try:
 			season_menu = int(simplejson.loads(season_data)['totalResults'])
 		except:
 			season_menu = 0
 		if season_menu > 0:
 			season_url2 = FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu)
-			_common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
+			common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
 		elif FULLEPISODESWEB:
 			show = season_url.split('/')[-1].replace(' ', '')
-			web_data = _connection.getURL(FULLEPISODESWEB % show)
+			web_data = connection.getURL(FULLEPISODESWEB % show)
 			web_tree = BeautifulSoup(web_data, 'html.parser')
 			all = len(web_tree.find_all('div', class_ = 'view-mode-vid_teaser_show_episode'))
 			auth = len(web_tree.find_all('div', class_ = 'tve-video-auth'))
 			if all > auth:
-				_common.add_directory('Full Episodes',  SITE, 'webepisodes', FULLEPISODESWEB % show)
-		season_data2 = _connection.getURL(CLIPS % urllib.quote_plus(season_url) + '&range=0-1')
+				common.add_directory('Full Episodes',  SITE, 'webepisodes', FULLEPISODESWEB % show)
+		season_data2 = connection.getURL(CLIPS % urllib.quote_plus(season_url) + '&range=0-1')
 		try:
 			season_menu2 = int(simplejson.loads(season_data2)['totalResults'])
 		except:
@@ -60,14 +61,14 @@ def seasons(SITE, FULLEPISODES, CLIPS, FULLEPISODESWEB = None):
 		if season_menu2 > 0:
 			season_url3 = CLIPS % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu2)
 			if ',' in season_urls:
-				_common.add_directory('Clips %s'%season_url,  SITE, 'episodes', season_url3)
+				common.add_directory('Clips %s'%season_url,  SITE, 'episodes', season_url3)
 			else:
-				_common.add_directory('Clips',  SITE, 'episodes', season_url3)
-	_common.set_view('seasons')
+				common.add_directory('Clips',  SITE, 'episodes', season_url3)
+	common.set_view('seasons')
 
 def episodes(SITE, quality = True):
-	episode_url = _common.args.url
-	episode_data = _connection.getURL(episode_url)
+	episode_url = common.args.url
+	episode_data = connection.getURL(episode_url)
 	episode_menu = simplejson.loads(episode_data)['entries']
 	for i, episode_item in enumerate(episode_menu):
 		default_mediacontent = None
@@ -81,7 +82,7 @@ def episodes(SITE, quality = True):
 		url = default_mediacontent['plfile$url']
 		episode_duration = int(episode_item['media$content'][0]['plfile$duration'])
 		episode_plot = episode_item['description']
-		episode_airdate = _common.format_date(epoch = episode_item['pubDate']/1000)
+		episode_airdate = common.format_date(epoch = episode_item['pubDate']/1000)
 		episode_name = episode_item['title']
 		try:
 			season_number = int(episode_item['pl' + str(i + 1) + '$season'][0])
@@ -112,16 +113,16 @@ def episodes(SITE, quality = True):
 						'plot' : episode_plot,
 						'premiered' : episode_airdate }
 		if quality:
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 		else:
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
-	_common.set_view('episodes')
+			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
+	common.set_view('episodes')
 
 def list_qualities():
 	exception = False
-	video_url = _common.args.url
+	video_url = common.args.url
 	bitrates = []
-	video_data = _connection.getURL(video_url)
+	video_data = connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	try:
 		video_rtmp = video_tree.meta['base']
@@ -130,24 +131,24 @@ def list_qualities():
 	if 'link.theplatform.com' not in video_url:
 		video_tree =  BeautifulSoup(video_data, 'html.parser')
 		player_url = 'http:' + video_tree.find('div', class_ = 'video-player-wrapper').iframe['src']
-		player_data = _connection.getURL(player_url)
+		player_data = connection.getURL(player_url)
 		player_tree =  BeautifulSoup(player_data, 'html.parser')
 		video_url = player_tree.find('link', type = "application/smil+xml")['href']
 		video_url = video_url + '&format=SMIL'
-		video_data = _connection.getURL(video_url)
+		video_data = connection.getURL(video_url)
 	if video_rtmp is not None:
 		for video_index in video_rtmp:
 			bitrate = int(video_index['system-bitrate'])
 			display = int(bitrate)
 			bitrates.append((display, bitrate))
 	else:
-		video_data = _connection.getURL(video_url + '&manifest=m3u')
+		video_data = connection.getURL(video_url + '&manifest=m3u')
 		video_tree = BeautifulSoup(video_data, 'html.parser')
 		if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
 			video_url2 = video_tree.seq.find_all('video')[0]
 			video_url3 = video_url2['src']
-			video_data2 = _connection.getURL(video_url3)
-			video_url4 = _m3u8.parse(video_data2)
+			video_data2 = connection.getURL(video_url3)
+			video_url4 = m3u8.parse(video_data2)
 			for video_index in video_url4.get('playlists'):
 				bitrate = int(video_index.get('stream_info')['bandwidth'])
 				try:
@@ -161,28 +162,28 @@ def list_qualities():
 	if  not exception:
 		return bitrates
 	else:
-		_common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
+		common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
 
 def play_video():
 	try:
-		qbitrate = _common.args.quality
+		qbitrate = common.args.quality
 	except:
 		qbitrate = None
 	exception = False
-	video_url = _common.args.url
+	video_url = common.args.url
 	hbitrate = -1
 	lbitrate = -1
 	sbitrate = int(addon.getSetting('quality')) * 1024
 	closedcaption = None
-	video_data = _connection.getURL(video_url)
+	video_data = connection.getURL(video_url)
 	if 'link.theplatform.com' not in video_url:
 		video_tree =  BeautifulSoup(video_data, 'html.parser')
 		player_url = 'http:' + video_tree.find('div', class_ = 'video-player-wrapper').iframe['src']
-		player_data = _connection.getURL(player_url)
+		player_data = connection.getURL(player_url)
 		player_tree =  BeautifulSoup(player_data, 'html.parser')
 		video_url = player_tree.find('link', type = "application/smil+xml")['href']
 		video_url = video_url + '&format=SMIL'
-		video_data = _connection.getURL(video_url)
+		video_data = connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	video_rtmp = video_tree.meta
 	playpath_url = None
@@ -213,7 +214,7 @@ def play_video():
 		finalurl = base_url +' playpath=' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
 		player._localHTTPServer = False
 	else:
-		video_data = _connection.getURL(video_url + '&manifest=m3u&Tracking=true&Embedded=true&formats=F4M,MPEG4')
+		video_data = connection.getURL(video_url + '&manifest=m3u&Tracking=true&Embedded=true&formats=F4M,MPEG4')
 		video_tree = BeautifulSoup(video_data, 'html.parser')
 		try:
 			closedcaption = video_tree.textstream['src']
@@ -225,8 +226,8 @@ def play_video():
 		if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
 			video_url2 = video_tree.seq.find_all('video')[0]
 			video_url3 = video_url2['src']
-			video_data2 = _connection.getURL(video_url3, savecookie = True)
-			video_url5 = _m3u8.parse(video_data2)
+			video_data2 = connection.getURL(video_url3, savecookie = True)
+			video_url5 = m3u8.parse(video_data2)
 			for video_index in video_url5.get('playlists'):
 				bitrate = int(video_index.get('stream_info')['bandwidth'])
 				try:
@@ -248,41 +249,41 @@ def play_video():
 				player._localHTTPServer = False
 				finalurl = playpath_url
 			else:
-				m3u_data = _connection.getURL(playpath_url, loadcookie = True)
+				m3u_data = connection.getURL(playpath_url, loadcookie = True)
 				key_url = re.compile('URI="(.*?)"').findall(m3u_data)[0]
-				key_data = _connection.getURL(key_url, loadcookie = True)		
-				key_file = open(_common.KEYFILE, 'wb')
+				key_data = connection.getURL(key_url, loadcookie = True)		
+				key_file = open(ustvpaths.KEYFILE, 'wb')
 				key_file.write(key_data)
 				key_file.close()
 				video_url5 = re.compile('(http:.*?)\n').findall(m3u_data)
-				proxy_config = _common.proxyConfig()
+				proxy_config = common.proxyConfig()
 				for i, video_item in enumerate(video_url5):
 					newurl = base64.b64encode(video_item)
 					newurl = urllib.quote_plus(newurl)
 					m3u_data = m3u_data.replace(video_item, 'http://127.0.0.1:12345/proxy/' + newurl + '/' + proxy_config)
-				filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
+				filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
 				xbmc.executebuiltin(filestring)
 				time.sleep(20)
 				m3u_data = m3u_data.replace(key_url, 'http://127.0.0.1:12345/play.key')
-				playfile = open(_common.PLAYFILE, 'w')
+				playfile = open(ustvpaths.PLAYFILE, 'w')
 				playfile.write(m3u_data)
 				playfile.close()
-				finalurl =  _common.PLAYFILE
+				finalurl =  ustvpaths.PLAYFILE
 		else:
 			exception = True
 	if  not exception:
 		item = xbmcgui.ListItem(path = finalurl)
 		if qbitrate is not None:
-			item.setThumbnailImage(_common.args.thumb)
-			item.setInfo('Video', {	'title' : _common.args.name,
-							'season' : _common.args.season_number,
-							'episode' : _common.args.episode_number,
-							'TVShowTitle' : _common.args.show_title})
+			item.setThumbnailImage(common.args.thumb)
+			item.setInfo('Video', {	'title' : common.args.name,
+							'season' : common.args.season_number,
+							'episode' : common.args.episode_number,
+							'TVShowTitle' : common.args.show_title})
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 		while player.is_active:
 			player.sleep(250)
 	else:
-		_common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
+		common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
 
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')
@@ -297,20 +298,20 @@ def clean_subs(data):
 
 def convert_subtitles(closedcaption):
 	str_output = ''
-	subtitle_data = _connection.getURL(closedcaption, connectiontype = 0)
+	subtitle_data = connection.getURL(closedcaption, connectiontype = 0)
 	subtitle_data = BeautifulSoup(subtitle_data, 'html.parser', parse_only = SoupStrainer('div'))
 	lines = subtitle_data.find_all('p')
 	for i, line in enumerate(lines):
 		if line is not None:
-			sub = clean_subs(_common.smart_utf8(line))
+			sub = clean_subs(common.smart_utf8(line))
 			start_time_rest, start_time_msec = line['begin'].rsplit(':',1)
-			start_time = _common.smart_utf8(start_time_rest + ',' + start_time_msec)
+			start_time = common.smart_utf8(start_time_rest + ',' + start_time_msec)
 			try:
 				end_time_rest, end_time_msec = line['end'].rsplit(':',1)
-				end_time = _common.smart_utf8(end_time_rest + ',' + end_time_msec)
+				end_time = common.smart_utf8(end_time_rest + ',' + end_time_msec)
 			except:
 				continue
 			str_output += str(i + 1) + '\n' + start_time + ' --> ' + end_time + '\n' + sub + '\n\n'
-	file = open(_common.SUBTITLE, 'w')
+	file = open(ustvpaths.SUBTITLE, 'w')
 	file.write(str_output)
 	file.close()

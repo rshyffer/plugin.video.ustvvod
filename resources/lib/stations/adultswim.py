@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import plistlib
-from .. import _common
-from .. import _connection
-from .. import _main_turner
+from .. import common
+from .. import connection
+from .. import main_turner
 from bs4 import BeautifulSoup
 
 SITE = 'adultswim'
@@ -22,11 +22,11 @@ HLSPATH = 'adultswim'
 def masterlist():
 	master_db = []
 	master_dict = {}
-	master_data = _connection.getURL(SHOWS)
+	master_data = connection.getURL(SHOWS)
 	master_tree = plistlib.readPlistFromString(master_data)
 	for master_item in master_tree:
-		master_name = _common.smart_utf8(master_item['name'])
-		tvdb_name = _common.get_show_data(master_name, SITE, 'seasons')[-1]
+		master_name = common.smart_utf8(master_item['name'])
+		tvdb_name = common.get_show_data(master_name, SITE, 'seasons')[-1]
 		if tvdb_name not in master_dict.keys():
 			master_dict[tvdb_name] = master_item['show-id']
 		else:
@@ -36,13 +36,13 @@ def masterlist():
 		master_db.append((master_name,  SITE, 'seasons', season_url))
 	return master_db
 
-def seasons(collection_ids = _common.args.url):
+def seasons(collection_ids = common.args.url):
 	for collection_id in collection_ids.split(','):
 		if ',' not in collection_ids:
 			season_url = SEASONSEPISODES
 		else:
 			season_url = SEASONSEPISODESEXTRA
-		season_data = _connection.getURL(season_url % collection_id)
+		season_data = connection.getURL(season_url % collection_id)
 		season_tree = BeautifulSoup(season_data, 'html.parser')
 		episode_count = int(season_tree.episodes['totalitems'])
 		if episode_count > 0:
@@ -50,13 +50,13 @@ def seasons(collection_ids = _common.args.url):
 				display = 'Episodes'
 			else:
 				display = 'Episodes - %s' % season_tree.episode['collectiontitle']
-			_common.add_directory(display,  SITE, 'episodes', FULLEPISODES % collection_id)
+			common.add_directory(display,  SITE, 'episodes', FULLEPISODES % collection_id)
 	for collection_id in collection_ids.split(','):
 		if ',' not in collection_ids:
 			seasonclips_url = SEASONSCLIPS
 		else:
 			seasonclips_url = SEASONSCLIPSEXTRA
-		season_data2 = _connection.getURL(seasonclips_url % collection_id)
+		season_data2 = connection.getURL(seasonclips_url % collection_id)
 		season_tree2 = BeautifulSoup(season_data2, 'html.parser')
 		episode_count = int(season_tree2.episodes['totalitems'])
 		if episode_count > 0:
@@ -64,14 +64,14 @@ def seasons(collection_ids = _common.args.url):
 				display = 'Clips'
 			else:
 				display = 'Clips - %s' % season_tree2.episode['collectiontitle']
-			_common.add_directory(display,  SITE, 'episodes', CLIPS % collection_id)
-	_common.set_view('seasons')
+			common.add_directory(display,  SITE, 'episodes', CLIPS % collection_id)
+	common.set_view('seasons')
 
 def episodes():
-	_main_turner.episodes(SITE)
+	main_turner.episodes(SITE)
 
 def play_video():
-	_main_turner.play_video(SITE, EPISODE, HLSPATH)
+	main_turner.play_video(SITE, EPISODE, HLSPATH)
 
 def list_qualities():
-	return _main_turner.list_qualities(SITE, EPISODE)
+	return main_turner.list_qualities(SITE, EPISODE)

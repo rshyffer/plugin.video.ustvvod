@@ -8,9 +8,10 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-from .. import _common
-from .. import _connection
-from .. import _m3u8
+from .. import common
+from .. import connection
+from .. import m3u8
+from .. import ustvpaths
 
 addon = xbmcaddon.Addon()
 pluginHandle = int (sys.argv[1])
@@ -27,33 +28,33 @@ VIDEO = 'http://pbskids.org/pbsk/video/api/getVideos/?guid=%s&endindex=1&encodin
 
 def masterlist():
 	master_db = []
-	master_menu = simplejson.loads(_connection.getURL(SHOWS))
+	master_menu = simplejson.loads(connection.getURL(SHOWS))
 	for master_item in master_menu['items']:
-		master_name = _common.smart_utf8(master_item['title'])
+		master_name = common.smart_utf8(master_item['title'])
 		master_db.append((master_name, SITE, 'seasons', urllib.quote_plus(master_name)))
 	return master_db
 
-def seasons(show_name = _common.args.url):
+def seasons(show_name = common.args.url):
 	for type in TYPES:
-		season_data = _connection.getURL(SEASON % (show_name, type))
+		season_data = connection.getURL(SEASON % (show_name, type))
 		season_menu = simplejson.loads(season_data)
 		try:
 			season_count = int(season_menu['matched'])
 		except:
 			season_count = 0
 		if season_count > 0:
-			_common.add_directory(type + 's',  SITE, 'episodes', EPISODES % (show_name, type))
-		_common.set_view('seasons')
+			common.add_directory(type + 's',  SITE, 'episodes', EPISODES % (show_name, type))
+		common.set_view('seasons')
 
-def episodes(episode_url = _common.args.url):
-	episode_data = _connection.getURL(episode_url)
+def episodes(episode_url = common.args.url):
+	episode_data = connection.getURL(episode_url)
 	episode_menu = simplejson.loads(episode_data)
 	for episode_item in episode_menu['items']:
 		if episode_item['videos']:
 			url = episode_item['guid']
 			episode_name = episode_item['title']
 			episode_plot = episode_item['description']
-			episode_airdate = _common.format_date(episode_item['airdate'], '%Y-%m-%d %H:%M:%S', '%d.%m.%Y')
+			episode_airdate = common.format_date(episode_item['airdate'], '%Y-%m-%d %H:%M:%S', '%d.%m.%Y')
 			episode_duration = int(episode_item['videos'].itervalues().next()['length']) / 1000
 			try:
 				episode_thumb = episode_item['images']['kids-mezzannine-16x9']['url']
@@ -77,12 +78,12 @@ def episodes(episode_url = _common.args.url):
 							'durationinseconds' : episode_duration,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate }
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, HD = HD, quality_mode = 'select_quailty')
-	_common.set_view('episodes')
+			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, HD = HD, quality_mode = 'select_quailty')
+	common.set_view('episodes')
 
-def play_video(guid = _common.args.url):
+def play_video(guid = common.args.url):
 	try:
-		qbitrate = _common.args.quality
+		qbitrate = common.args.quality
 	except:
 		qbitrate = None
 	video_url =  VIDEO % guid
@@ -92,7 +93,7 @@ def play_video(guid = _common.args.url):
 	closedcaption = None
 	video_url2 = None
 	finalurl = ''
-	video_data = _connection.getURL(video_url)
+	video_data = connection.getURL(video_url)
 	video_menu = simplejson.loads(video_data)['items']
 	video_item = video_menu[0] 
 	try:
@@ -119,7 +120,7 @@ def play_video(guid = _common.args.url):
 				pass
 		if uri is None:
 			uri = luri
-		video_data2 = _connection.getURL(uri + '?format=json')
+		video_data2 = connection.getURL(uri + '?format=json')
 		video_url3 = simplejson.loads(video_data2)['url']
 		if '.mp4' in video_url3:
 			base_url, playpath_url = video_url3.split('mp4:')
@@ -130,10 +131,10 @@ def play_video(guid = _common.args.url):
 		finalurl = base_url + playpath_url + '?player= swfurl=' + SWFURL % guid + ' swfvfy=true'
 	else:
 		ipad_url = video_item['videos']['iphone']['url']
-		video_data2 = _connection.getURL(ipad_url + '?format=json')
+		video_data2 = connection.getURL(ipad_url + '?format=json')
 		video_url3 = simplejson.loads(video_data2)['url']
-		video_data3 = _connection.getURL(video_url3)
-		video_url4 = _m3u8.parse(video_data3)
+		video_data3 = connection.getURL(video_url3)
+		video_url4 = m3u8.parse(video_data3)
 		uri = None
 		for video_index in video_url4.get('playlists'):
 			try:
@@ -158,18 +159,18 @@ def play_video(guid = _common.args.url):
 		finalurl = video_url3.rsplit('/', 1)[0] + '/' + uri
 	item = xbmcgui.ListItem(path = finalurl)
 	if qbitrate is not None:
-			item.setThumbnailImage(_common.args.thumb)
-			item.setInfo('Video', {	'title' : _common.args.name,
-							'season' : _common.args.season_number,
-							'episode' : _common.args.episode_number})
+			item.setThumbnailImage(common.args.thumb)
+			item.setInfo('Video', {	'title' : common.args.name,
+							'season' : common.args.season_number,
+							'episode' : common.args.episode_number})
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
 		while not xbmc.Player().isPlaying():
 			xbmc.sleep(100)
-		xbmc.Player().setSubtitles(_common.SUBTITLESMI)
+		xbmc.Player().setSubtitles(ustvpaths.SUBTITLESMI)
 
 
-def select_quailty(guid = _common.args.url):
+def select_quailty(guid = common.args.url):
 	video_url =  VIDEO % guid
 	#hbitrate = -1
 	#lbitrate = -1
@@ -177,7 +178,7 @@ def select_quailty(guid = _common.args.url):
 	closedcaption = None
 	video_url2 = None
 	#finalurl = ''
-	video_data = _connection.getURL(video_url)
+	video_data = connection.getURL(video_url)
 	video_menu = simplejson.loads(video_data)['items']
 	video_item = video_menu[0] 
 	#try:
@@ -204,10 +205,10 @@ def select_quailty(guid = _common.args.url):
 			#print uri,luri
 	else:
 		ipad_url = video_item['videos']['iphone']['url']
-		video_data2 = _connection.getURL(ipad_url + '?format=json')
+		video_data2 = connection.getURL(ipad_url + '?format=json')
 		video_url3 = simplejson.loads(video_data2)['url']
-		video_data3 = _connection.getURL(video_url3)
-		video_url4 = _m3u8.parse(video_data3)
+		video_data3 = connection.getURL(video_url3)
+		video_url4 = m3u8.parse(video_data3)
 		uri = None
 		for video_index in video_url4.get('playlists'):
 			try:
@@ -230,8 +231,8 @@ def clean_subs(data):
 
 def convert_subtitles(closedcaption):
 	str_output = ''
-	subtitle_data = _connection.getURL(closedcaption, connectiontype = 0)
-	subtitle_data = clean_subs(_common.smart_utf8(subtitle_data))
-	file = open(_common.SUBTITLESMI, 'w')
+	subtitle_data = connection.getURL(closedcaption, connectiontype = 0)
+	subtitle_data = clean_subs(common.smart_utf8(subtitle_data))
+	file = open(ustvpaths.SUBTITLESMI, 'w')
 	file.write(subtitle_data)
 	file.close()

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from .. import _main_nbcu
+from .. import main_nbcu
 
 SITE = 'syfy'
 NAME = 'Syfy'
@@ -12,16 +12,16 @@ FULLEPISODES = 'http://feed.theplatform.com/f/hQNl-B/2g1gkJT0urp6?count=true&for
 SWFURL = 'http://www.syfy.com/_utils/video/codebase/pdk/swf/flvPlayer.swf'
 
 def masterlist():
-	return _main_nbcu.masterlist(SITE, SHOWS)
+	return main_nbcu.masterlist(SITE, SHOWS)
 
 def seasons():
-	_main_nbcu.seasons(SITE, FULLEPISODES, CLIPS)
+	main_nbcu.seasons(SITE, FULLEPISODES, CLIPS)
 
 def episodes():
-	_main_nbcu.episodes(SITE)
+	main_nbcu.episodes(SITE)
 
 def list_qualities():
-	return _main_nbcu.list_qualities()
+	return main_nbcu.list_qualities()
 
 def play_video():
-	_main_nbcu.play_video()
+	main_nbcu.play_video()

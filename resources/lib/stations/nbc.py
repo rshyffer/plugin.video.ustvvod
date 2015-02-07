@@ -12,14 +12,15 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-from .. import _common
-from .. import _connection
-from .. import _m3u8
-from .._ordereddict import OrderedDict
+from .. import common
+from .. import connection
+from .. import m3u8
+from .. import ordereddict
+from .. import ustvpaths
 from bs4 import BeautifulSoup, SoupStrainer
 
 addon = xbmcaddon.Addon()
-player = _common.XBMCPlayer()
+player = common.XBMCPlayer()
 pluginHandle = int(sys.argv[1])
 
 SITE = 'nbc'
@@ -39,17 +40,17 @@ TONIGHT_SHOW_FEED = '%s/content/a/filter-items/?type=video'
 
 def masterlist():
 	master_db = []
-	master_data = _connection.getURL(SHOWS)
+	master_data = connection.getURL(SHOWS)
 	master_menu =  re.compile('<li class="views-row .*?">.*?<div>\s*<div><a href="(.*?)">.*?<div class="field .*?">\n\s*(.*?)</div>.*?</li>' , re.DOTALL).findall(master_data)
 	for season_url, master_name in master_menu:
-		master_name = _common.smart_unicode(master_name).strip()
+		master_name = common.smart_unicode(master_name).strip()
 		master_name = HTMLParser.HTMLParser().unescape(master_name)
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def seasons(season_url = _common.args.url):
+def seasons(season_url = common.args.url):
 	base_url = season_url
-	season_dict = OrderedDict({})
+	season_dict = ordereddict.OrderedDict({})
 	if 'the-tonight-show' in season_url:
 		add_show_thetonightshow(season_url)
 		return
@@ -57,7 +58,7 @@ def seasons(season_url = _common.args.url):
 	video_url = season_url + '/video'
 	episode_url = season_url 
 	for season_url in (episode_url, video_url):
-		season_data = _connection.getURL(season_url)
+		season_data = connection.getURL(season_url)
 		season_menu = re.compile('<div class="nbc_mpx_carousel.*? id="(.*?)">\s*<h2.*?>(.*?)</h2>', re.DOTALL).findall(season_data)
 		for season_id, season_title in season_menu:
 			try:
@@ -73,20 +74,20 @@ def seasons(season_url = _common.args.url):
 			except:
 				pass
 	if not has_episodes:
-		_common.add_directory('Full Episodes', SITE, 'episodes',  base_url + '/episodes')
+		common.add_directory('Full Episodes', SITE, 'episodes',  base_url + '/episodes')
 	for season_title in season_dict:
 		season_url = season_dict[season_title]
-		_common.add_directory(season_title, SITE, 'episodes',  season_url)
-	_common.set_view('seasons')
+		common.add_directory(season_title, SITE, 'episodes',  season_url)
+	common.set_view('seasons')
 
-def episodes(episode_url = _common.args.url):
+def episodes(episode_url = common.args.url):
 	if 'the-tonight-show' in episode_url:
-		if 'Clips' in _common.args.name:
+		if 'Clips' in common.args.name:
 			add_videos_thetonightshow(episode_url, 'segment')
 		else:
 			add_videos_thetonightshow(episode_url, 'episode')
 		return
-	episode_data = _connection.getURL(episode_url)
+	episode_data = connection.getURL(episode_url)
 	if 'video_carousel' in episode_url:
 		episode_json = simplejson.loads(episode_data)
 		episode_menu = episode_json['entries']
@@ -100,7 +101,7 @@ def episodes(episode_url = _common.args.url):
 					episode_duration = -1
 				episode_plot = HTMLParser.HTMLParser().unescape(episode_item['description'])
 				epoch = int(episode_item['pubDate']) / 1000
-				episode_airdate = _common.format_date(epoch = epoch)
+				episode_airdate = common.format_date(epoch = epoch)
 				episode_name = HTMLParser.HTMLParser().unescape(episode_item['title'])
 				show_title = episode_item['showShortName']
 				try:
@@ -126,7 +127,7 @@ def episodes(episode_url = _common.args.url):
 								'plot' : episode_plot,
 								'premiered' : episode_airdate,
 								'TVShowTitle' : show_title}
-				_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+				common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 	else:
 		show_title = re.compile('<h2 class="show-title"><a href=".*?">(.*?)</a></h2>').findall(episode_data)[0]
 		episode_menu = re.compile('src="(.*?)".*?<a href="([^"]*?)" class="watch-now-onion-skin">.*?(\d+) min.*?Season (\d+).*?Episode \d+(\d{2}).*?Air date (\d{2}/\d{2}/\d{2}).*?<div class="episode-title dotdotdot"><a href=".*?">(.*?)</a></div>.*?<p>(.*?)</p>', re.DOTALL).findall(episode_data)
@@ -138,7 +139,7 @@ def episodes(episode_url = _common.args.url):
 				episode_duration = -1
 			season_number = int(season_number)
 			episode_number =  int(episode_number)
-			episode_airdate = _common.format_date(episode_airdate,'%m/%d/%y')
+			episode_airdate = common.format_date(episode_airdate,'%m/%d/%y')
 			try:
 				url = BASE + episode_url
 				u = sys.argv[0]
@@ -152,19 +153,19 @@ def episodes(episode_url = _common.args.url):
 								'plot' : episode_plot,
 								'TVShowTitle' : show_title,
 								'premiered' : episode_airdate}
-				_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+				common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 			except:
 				pass
-	_common.set_view('episodes')
+	common.set_view('episodes')
 
 def add_show_thetonightshow(url):
-	_common.add_directory('Full Episodes',  SITE, 'episodes', url)
-	_common.add_directory('Clips',  SITE, 'episodes', url)
-	_common.set_view('seasons')
+	common.add_directory('Full Episodes',  SITE, 'episodes', url)
+	common.add_directory('Clips',  SITE, 'episodes', url)
+	common.set_view('seasons')
 
 def add_videos_thetonightshow(url, type_, page = 1, added_episodes = []):
 	this_url = (TONIGHT_SHOW_FEED % url) + '&offset=' + str((page-1) * 10)
-	root_data = _connection.getURL(this_url)
+	root_data = connection.getURL(this_url)
 	data = simplejson.loads(root_data)
 	for video in data['content']:
 		if video['type'] == type_:
@@ -184,7 +185,7 @@ def add_videos_thetonightshow(url, type_, page = 1, added_episodes = []):
 			except:
 				episode_plot = ''
 			try:
-				episode_airdate = _common.format_date(video['airDate'][:-6],'%Y-%m-%dT%H:%M:%S','%d.%m.%Y')
+				episode_airdate = common.format_date(video['airDate'][:-6],'%Y-%m-%dT%H:%M:%S','%d.%m.%Y')
 			except:
 				episode_airdate = -1
 			try:
@@ -208,25 +209,25 @@ def add_videos_thetonightshow(url, type_, page = 1, added_episodes = []):
 							'episode' : episode_number,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate}
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
 	if page < int(addon.getSetting('maxpages')):
 		add_videos_thetonightshow(url, type_, page + 1, added_episodes)
-	_common.set_view('episodes')
+	common.set_view('episodes')
 
-def play_video(video_url = _common.args.url, tonightshow = False):
+def play_video(video_url = common.args.url, tonightshow = False):
 	try:
-		qbitrate = _common.args.quality
+		qbitrate = common.args.quality
 	except:
 		qbitrate = None
 	closedcaption = None
-	video_data = _connection.getURL(video_url)
+	video_data = connection.getURL(video_url)
 	if 'link.theplatform.com' not in video_url:
 		video_tree =  BeautifulSoup(video_data, 'html.parser')
 		player_url = video_tree.find('div', class_ = 'video-player-full')['data-mpx-url']
-		player_data = _connection.getURL(player_url)
+		player_data = connection.getURL(player_url)
 		player_tree =  BeautifulSoup(player_data, 'html.parser')
 		smil_url = player_tree.find('link', type = "application/smil+xml")['href']
-		video_data = _connection.getURL(smil_url + '&manifest=m3u&format=SMIL')
+		video_data = connection.getURL(smil_url + '&manifest=m3u&format=SMIL')
 	smil_tree = BeautifulSoup(video_data, 'html.parser')
 	if  smil_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
 		video_url2 = smil_tree.video['src']	
@@ -238,10 +239,10 @@ def play_video(video_url = _common.args.url, tonightshow = False):
 		if clip_id is not None:
 			clip_id = clip_id['value']
 			video_url = VIDEOPAGE % clip_id
-			video_data = _connection.getURL(video_url)
+			video_data = connection.getURL(video_url)
 			video_tree = BeautifulSoup(video_data, 'html.parser')
 			clip_url = SMIL_BASE + video_tree.clipurl.string
-			smil_data = _connection.getURL(clip_url)
+			smil_data = connection.getURL(clip_url)
 			smil_tree = BeautifulSoup(smil_data, 'html.parser')
 			base_url = get_rtmp()
 			hbitrate = -1
@@ -261,8 +262,8 @@ def play_video(video_url = _common.args.url, tonightshow = False):
 				playpath_url = playpath_url.replace('.flv', '')
 			finalurl = base_url + ' playpath=' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
 		else:
-			m3u_master_data = _connection.getURL(video_url2, savecookie = True)
-			m3u_master = _m3u8.parse(m3u_master_data)
+			m3u_master_data = connection.getURL(video_url2, savecookie = True)
+			m3u_master = m3u8.parse(m3u_master_data)
 			hbitrate = -1
 			sbitrate = int(addon.getSetting('quality')) * 1024
 			for video_index in m3u_master.get('playlists'):
@@ -273,10 +274,10 @@ def play_video(video_url = _common.args.url, tonightshow = False):
 						m3u8_url =  video_index.get('uri')
 				elif  bitrate == qbitrate:
 					m3u8_url =  video_index.get('uri')
-			m3u_data = _connection.getURL(m3u8_url, loadcookie = True)
+			m3u_data = connection.getURL(m3u8_url, loadcookie = True)
 			key_url = re.compile('URI="(.*?)"').findall(m3u_data)[0]
-			key_data = _connection.getURL(key_url, loadcookie = True)		
-			key_file = open(_common.KEYFILE, 'wb')
+			key_data = connection.getURL(key_url, loadcookie = True)		
+			key_file = open(ustvpaths.KEYFILE, 'wb')
 			key_file.write(key_data)
 			key_file.close()
 			video_url5 = re.compile('(http:.*?)\n').findall(m3u_data)
@@ -285,29 +286,29 @@ def play_video(video_url = _common.args.url, tonightshow = False):
 				newurl = urllib.quote_plus(newurl)
 				m3u_data = m3u_data.replace(video_item, 'http://127.0.0.1:12345/foxstation/' + newurl)
 			localhttpserver = True
-			filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
+			filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
 			xbmc.executebuiltin(filestring)
 			time.sleep(20)
 			m3u_data = m3u_data.replace(key_url, 'http://127.0.0.1:12345/play.key')
-			playfile = open(_common.PLAYFILE, 'w')
+			playfile = open(ustvpaths.PLAYFILE, 'w')
 			playfile.write(m3u_data)
 			playfile.close()
-			finalurl = _common.PLAYFILE
+			finalurl = ustvpaths.PLAYFILE
 		if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 			convert_subtitles(closedcaption)
 			player._subtitles_Enabled = True
 		item = xbmcgui.ListItem(path = finalurl)
 		if qbitrate is not None:
-			item.setThumbnailImage(_common.args.thumb)
-			item.setInfo('Video', {	'title' : _common.args.name,
-							'season' : _common.args.season_number,
-							'episode' : _common.args.episode_number,
-							'TVShowTitle' : _common.args.show_title})
+			item.setThumbnailImage(common.args.thumb)
+			item.setInfo('Video', {	'title' : common.args.name,
+							'season' : common.args.season_number,
+							'episode' : common.args.episode_number,
+							'TVShowTitle' : common.args.show_title})
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 		while player.is_active:
 				player.sleep(250)
 	else:
-		_common.show_exception(smil_tree.ref['title'], smil_tree.ref['abstract'])
+		common.show_exception(smil_tree.ref['title'], smil_tree.ref['abstract'])
 
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')
@@ -324,7 +325,7 @@ def clean_subs(data):
 
 def convert_subtitles(closedcaption):
 	str_output = ''
-	subtitle_data = _connection.getURL(closedcaption, connectiontype = 0)
+	subtitle_data = connection.getURL(closedcaption, connectiontype = 0)
 	subtitle_data = BeautifulSoup(subtitle_data, 'html.parser', parse_only = SoupStrainer('div'))
 	srt_output = ''
 	lines = subtitle_data.find_all('p')
@@ -334,9 +335,9 @@ def convert_subtitles(closedcaption):
 	for line in lines:
 		try:
 			if line is not None:
-				sub = clean_subs(_common.smart_utf8(line))
-				start_time = _common.smart_utf8(line['begin'].replace('.', ','))
-				end_time = _common.smart_utf8(line['end'].replace('.', ','))
+				sub = clean_subs(common.smart_utf8(line))
+				start_time = common.smart_utf8(line['begin'].replace('.', ','))
+				end_time = common.smart_utf8(line['end'].replace('.', ','))
 				if start_time != last_start_time and end_time != last_end_time:
 					str_output += '\n' + str(i + 1) + '\n' + start_time + ' --> ' + end_time + '\n' + sub + '\n'
 					i = i + 1
@@ -346,26 +347,26 @@ def convert_subtitles(closedcaption):
 					str_output +=  sub + '\n\n'
 		except:
 			pass
-	file = open(_common.SUBTITLE, 'w')
+	file = open(ustvpaths.SUBTITLE, 'w')
 	file.write(str_output)
 	file.close()
 
 def get_rtmp():
-	ident_data = _connection.getURL(IDENTURL)
+	ident_data = connection.getURL(IDENTURL)
 	ident_tree = BeautifulSoup(ident_data, 'html.parser')
 	ip = ident_tree.ip.string
 	rtmpurl = 'rtmp://' + ip + ':1935/' + APP + '?_fcs_vhost=' + RTMP
 	return str(rtmpurl)
 
-def list_qualities(video_url = _common.args.url):
-	video_data = _connection.getURL(video_url)
+def list_qualities(video_url = common.args.url):
+	video_data = connection.getURL(video_url)
 	if 'link.theplatform.com' not in video_url:
 		video_tree =  BeautifulSoup(video_data, 'html.parser')
 		player_url = video_tree.find('div', class_ = 'video-player-full')['data-mpx-url']
-		player_data = _connection.getURL(player_url)
+		player_data = connection.getURL(player_url)
 		player_tree =  BeautifulSoup(player_data, 'html.parser')
 		smil_url = player_tree.find('link', type = "application/smil+xml")['href']
-		video_data = _connection.getURL(smil_url + '&manifest=m3u&format=SMIL')
+		video_data = connection.getURL(smil_url + '&manifest=m3u&format=SMIL')
 	bitrates = []
 	smil_tree = BeautifulSoup(video_data, 'html.parser')
 	video_url2 = smil_tree.video['src']
@@ -373,10 +374,10 @@ def list_qualities(video_url = _common.args.url):
 	if clip_id is not None:
 		clip_id = clip_id['value']
 		video_url = VIDEOPAGE % clip_id
-		video_data = _connection.getURL(video_url)
+		video_data = connection.getURL(video_url)
 		video_tree = BeautifulSoup(video_data, 'html.parser')
 		clip_url = SMIL_BASE + video_tree.clipurl.string	
-		smil_data = _connection.getURL(clip_url)
+		smil_data = connection.getURL(clip_url)
 		smil_tree = BeautifulSoup(smil_data, 'html.parser')
 		video_url2 = smil_tree.find_all('video')
 		for video_index in video_url2:
@@ -384,8 +385,8 @@ def list_qualities(video_url = _common.args.url):
 			display = int(bitrate)/1024
 			bitrates.append((display, bitrate))
 	else:
-		m3u_master_data = _connection.getURL(video_url2)
-		m3u_master = _m3u8.parse(m3u_master_data)
+		m3u_master_data = connection.getURL(video_url2)
+		m3u_master = m3u8.parse(m3u_master_data)
 		for video_index in m3u_master.get('playlists'):
 			try:
 				codecs =  video_index.get('stream_info')['codecs']

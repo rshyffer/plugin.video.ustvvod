@@ -11,13 +11,14 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-from .. import _common
-from .. import _connection
-from .. import _m3u8
+from .. import common
+from .. import connection
+from .. import m3u8
+from .. import ustvpaths
 from bs4 import BeautifulSoup, SoupStrainer
 
 addon = xbmcaddon.Addon()
-player = _common.XBMCPlayer()
+player = common.XBMCPlayer()
 pluginHandle = int(sys.argv[1])
 
 SITE = 'fox'
@@ -35,7 +36,7 @@ different_show_name = {
 
 def masterlist():
 	master_db = []
-	master_data = _connection.getURL(SHOWS)
+	master_data = connection.getURL(SHOWS)
 	master_menu = simplejson.loads(master_data)['shows']
 	for master_item in master_menu:
 		if master_item['external_link'] == '' and (master_item['fullepisodes'] == 'true' or addon.getSetting('hide_clip_only') == 'false'):
@@ -43,34 +44,34 @@ def masterlist():
 			master_db.append((master_name, SITE, 'seasons', master_name))
 	return master_db
 
-def seasons(season_url = _common.args.url):
+def seasons(season_url = common.args.url):
 	if season_url in different_show_name:
 		season_url = different_show_name[season_url]
-	season_data = _connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
+	season_data = connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
 	try:
 		season_menu = int(simplejson.loads(season_data)['total_count'])
 	except:
 		season_menu = 0
 	if season_menu > 0:
 		season_url2 = FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu)
-		_common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
-	season_data2 = _connection.getURL(CLIPS % urllib.quote_plus(season_url) + '&range=0-1')
+		common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
+	season_data2 = connection.getURL(CLIPS % urllib.quote_plus(season_url) + '&range=0-1')
 	try:
 		season_menu2 = int(simplejson.loads(season_data2)['total_count'])
 	except:
 		season_menu2 = 0
 	if season_menu2 > 0:
 		season_url3 = CLIPS % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu2)
-		_common.add_directory('Clips',  SITE, 'episodes', season_url3)
-	_common.set_view('seasons')
+		common.add_directory('Clips',  SITE, 'episodes', season_url3)
+	common.set_view('seasons')
 
-def episodes(episode_url = _common.args.url):
-	episode_data = _connection.getURL(episode_url)
+def episodes(episode_url = common.args.url):
+	episode_data = connection.getURL(episode_url)
 	episode_menu = simplejson.loads(episode_data.replace('}{', '},{'))['results']
 	for episode_item in episode_menu:
-		episode_airdate = _common.format_date(episode_item['airdate'],'%Y-%m-%d', '%d.%m.%Y')
-		if (episode_item['authEndDate'] is None or time.time() >= long(episode_item['authEndDate'])/1000) or (_common.args.name == 'Clips'):
-			show_name = _common.args.name
+		episode_airdate = common.format_date(episode_item['airdate'],'%Y-%m-%d', '%d.%m.%Y')
+		if (episode_item['authEndDate'] is None or time.time() >= long(episode_item['authEndDate'])/1000) or (common.args.name == 'Clips'):
+			show_name = common.args.name
 			url = episode_item['videoURL']
 			episode_duration = int(episode_item['length'])
 			episode_plot = episode_item['shortDescription']
@@ -98,19 +99,19 @@ def episodes(episode_url = _common.args.url):
 							'plot' : episode_plot,
 							'premiered' : episode_airdate,
 							'tvshowtitle': show_name }
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels,  quality_mode  = 'list_qualities')
-	_common.set_view('episodes')
+			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels,  quality_mode  = 'list_qualities')
+	common.set_view('episodes')
 
-def play_video(video_url = _common.args.url):
+def play_video(video_url = common.args.url):
 	try:
-		qbitrate = _common.args.quality
+		qbitrate = common.args.quality
 	except:
 		qbitrate = None
 	hbitrate = -1
 	lbitrate = -1
 	sbitrate = int(addon.getSetting('quality')) * 1000
 	finalurl = ''
-	video_data = _connection.getURL(video_url + '&manifest=m3u')
+	video_data = connection.getURL(video_url + '&manifest=m3u')
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	if (addon.getSetting('enablesubtitles') == 'true'):
 		try:
@@ -121,8 +122,8 @@ def play_video(video_url = _common.args.url):
 		except:
 			video_closedcaption = 'false'
 	video_url2 = video_tree.find('video', src = True)['src']
-	video_data2 = _connection.getURL(video_url2, savecookie = True)
-	video_url3 = _m3u8.parse(video_data2)
+	video_data2 = connection.getURL(video_url2, savecookie = True)
+	video_url3 = m3u8.parse(video_data2)
 	video_url4 = None
 	for video_index in video_url3.get('playlists'):
 		bitrate = int(video_index.get('stream_info')['bandwidth'])
@@ -138,10 +139,10 @@ def play_video(video_url = _common.args.url):
 		else:
 			if qbitrate == bitrate:
 				video_url4 = video_index.get('uri')
-	video_data4 = _connection.getURL(video_url4, loadcookie = True)
+	video_data4 = connection.getURL(video_url4, loadcookie = True)
 	key_url = re.compile('URI="(.*?)"').findall(video_data4)[0]
-	key_data = _connection.getURL(key_url, loadcookie = True)
-	key_file = open(_common.KEYFILE, 'wb')
+	key_data = connection.getURL(key_url, loadcookie = True)
+	key_file = open(ustvpaths.KEYFILE, 'wb')
 	key_file.write(key_data)
 	key_file.close()
 	video_url5 = re.compile('(http:.*?)\n').findall(video_data4)
@@ -151,31 +152,31 @@ def play_video(video_url = _common.args.url):
 		video_data4 = video_data4.replace(video_item, 'http://127.0.0.1:12345/foxstation/' + newurl)
 	video_data4 = video_data4.replace(key_url, 'http://127.0.0.1:12345/play.key')
 	localhttpserver = True
-	filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
+	filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
 	xbmc.executebuiltin(filestring)
 	time.sleep(2)
-	playfile = open(_common.PLAYFILE, 'w')
+	playfile = open(ustvpaths.PLAYFILE, 'w')
 	playfile.write(video_data4)
 	playfile.close()
-	finalurl = _common.PLAYFILE
+	finalurl = ustvpaths.PLAYFILE
 	item = xbmcgui.ListItem(path = finalurl)
 	if qbitrate is not None:
-		item.setThumbnailImage(_common.args.thumb)
-		item.setInfo('Video', {	'title' : _common.args.name,
-						'season' : _common.args.season_number,
-						'episode' : _common.args.episode_number,
-						'TVShowTitle' : _common.args.show_title})
+		item.setThumbnailImage(common.args.thumb)
+		item.setInfo('Video', {	'title' : common.args.name,
+						'season' : common.args.season_number,
+						'episode' : common.args.episode_number,
+						'TVShowTitle' : common.args.show_title})
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	while player.is_active:
 		player.sleep(250)
 
-def list_qualities(video_url = _common.args.url):
+def list_qualities(video_url = common.args.url):
 	bitrates = []
-	video_data = _connection.getURL(video_url + '&manifest=m3u')
+	video_data = connection.getURL(video_url + '&manifest=m3u')
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	video_url2 = video_tree.find('video', src = True)['src']
-	video_data2 = _connection.getURL(video_url2, savecookie = True)
-	video_url3 = _m3u8.parse(video_data2)
+	video_data2 = connection.getURL(video_url2, savecookie = True)
+	video_url3 = m3u8.parse(video_data2)
 	for video_index in video_url3.get('playlists'):
 		bitrate = int(video_index.get('stream_info')['bandwidth'])
 		if bitrate  > 100000:
@@ -196,15 +197,15 @@ def clean_subs(data):
 def convert_subtitles(closedcaption):
 	str_output = ''
 	last_start_time = ''
-	subtitle_data = _connection.getURL(closedcaption, connectiontype = 0)
+	subtitle_data = connection.getURL(closedcaption, connectiontype = 0)
 	subtitle_data = BeautifulSoup(subtitle_data, 'html.parser', parse_only = SoupStrainer('div'))
 	lines = subtitle_data.find_all('p')
 	for i, line in enumerate(lines):
 		if line is not None:
-			sub = clean_subs(_common.smart_utf8(line))
-			start_time = _common.smart_utf8(line['begin'].replace('.', ','))
+			sub = clean_subs(common.smart_utf8(line))
+			start_time = common.smart_utf8(line['begin'].replace('.', ','))
 			try:
-				end_time = _common.smart_utf8(line['end'].replace('.', ','))
+				end_time = common.smart_utf8(line['end'].replace('.', ','))
 			except:
 				continue
 			if last_start_time != start_time:
@@ -214,6 +215,6 @@ def convert_subtitles(closedcaption):
 			else:
 				str_output += '\n' + sub 
 			last_start_time = start_time
-	file = open(_common.SUBTITLE, 'w')
+	file = open(ustvpaths.SUBTITLE, 'w')
 	file.write(str_output)
 	file.close()

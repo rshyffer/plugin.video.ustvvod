@@ -3,9 +3,9 @@
 import HTMLParser
 import urllib
 import sys
-from .. import _connection
-from .. import _common
-from .. import _main_turner
+from .. import connection
+from .. import common
+from .. import main_turner
 from bs4 import BeautifulSoup, SoupStrainer
 
 SITE = 'tnt'
@@ -22,17 +22,17 @@ WEBEPISODE = 'http://www.tntdrama.com/service/cvpXml?titleId=%s'
 HLSPATH = 'tnt'
 
 def masterlist():
-	return _main_turner.masterlist(NAME, MOVIES, SHOWS, SITE, WEBSHOWS)
+	return main_turner.masterlist(NAME, MOVIES, SHOWS, SITE, WEBSHOWS)
 
 def seasons():
-	_main_turner.seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS, WEBSHOWS)
+	main_turner.seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS, WEBSHOWS)
 
 def episodes():
-	_main_turner.episodes_json(SITE)
+	main_turner.episodes_json(SITE)
 	
 def episodes_web():
-	master_name = _common.args.url
-	webdata = _connection.getURL(WEBSHOWS)
+	master_name = common.args.url
+	webdata = connection.getURL(WEBSHOWS)
 	web_tree =  BeautifulSoup(webdata, 'html.parser', parse_only = SoupStrainer('div', id = 'page-shows'))
 	show = web_tree.find('h2', text = master_name).parent.parent
 	for item in show.findAll('div', class_ = 'item'):
@@ -71,11 +71,11 @@ def episodes_web():
 							'season' : season_number,
 							'episode' : episode_number,
 							'plot' : episode_plot}
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	_common.set_view('episodes')
+			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+	common.set_view('episodes')
 
 def play_video():
-	_main_turner.play_video(SITE, EPISODE, HLSPATH)
+	main_turner.play_video(SITE, EPISODE, HLSPATH)
 
 def list_qualities():
-	return _main_turner.list_qualities(SITE, EPISODE)
+	return main_turner.list_qualities(SITE, EPISODE)

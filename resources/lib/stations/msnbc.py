@@ -7,9 +7,10 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-from .. import _common
-from .. import _connection
-from .. import _main_nbcu
+from .. import common
+from .. import connection
+from .. import main_nbcu
+from .. import ustvpaths
 from bs4 import BeautifulSoup, SoupStrainer
 
 addon = xbmcaddon.Addon()
@@ -25,7 +26,7 @@ FEED = 'http://feed.theplatform.com/f/2E2eJC/%s?form=json'
 
 def masterlist():
 	master_db = []
-	master_data = _connection.getURL(SHOWS)
+	master_data = connection.getURL(SHOWS)
 	master_menu = simplejson.loads(master_data)['shows']
 	for master_item in master_menu:
 		master_name = master_item['show']['title']
@@ -33,30 +34,30 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def seasons(season_url = _common.args.url):
-	season_data = _connection.getURL(season_url)
+def seasons(season_url = common.args.url):
+	season_data = connection.getURL(season_url)
 	season_tree = BeautifulSoup(season_data, 'html.parser', parse_only = SoupStrainer('div'))
 	season_source = season_tree.find('div', id = 'TPVideoPlaylistTaxonomyContainer')['source']
 	playlist_url = PLAYLIST % season_source
-	playlist_data = _connection.getURL(playlist_url)
+	playlist_data = connection.getURL(playlist_url)
 	playlist_data = playlist_data.replace('$pdk.NBCplayer.ShowPlayerTaxonomy.GetList(', '').replace(');', '')
 	season_menu = simplejson.loads(playlist_data)
 	try:
 		for season_item in season_menu['playlistTaxonomy']:
-			_common.add_directory(season_item['reference']['name'],  SITE, 'episodes', FEED % season_item['reference']['feed'])
+			common.add_directory(season_item['reference']['name'],  SITE, 'episodes', FEED % season_item['reference']['feed'])
 	except:
 		pass
-	_common.set_view('seasons')
+	common.set_view('seasons')
 
 def episodes():
-	_main_nbcu.episodes(SITE, False)
+	main_nbcu.episodes(SITE, False)
 	
 	
-def play_video(video_url = _common.args.url):
+def play_video(video_url = common.args.url):
 	hbitrate = -1
 	sbitrate = int(addon.getSetting('quality')) * 1024
 	closedcaption = None
-	video_data = _connection.getURL(video_url)
+	video_data = connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	finalurl = video_tree.video['src']
 	try:
@@ -69,7 +70,7 @@ def play_video(video_url = _common.args.url):
 	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 		while not xbmc.Player().isPlaying():
 			xbmc.sleep(100)
-		xbmc.Player().setSubtitles(_common.SUBTITLE)
+		xbmc.Player().setSubtitles(ustvpaths.SUBTITLE)
 
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')
@@ -84,8 +85,8 @@ def clean_subs(data):
 
 def convert_subtitles(closedcaption):
 	str_output = ''
-	subtitle_data = _connection.getURL(closedcaption, connectiontype = 0)
+	subtitle_data = connection.getURL(closedcaption, connectiontype = 0)
 	str_output = clean_subs(subtitle_data)
-	file = open(_common.SUBTITLE, 'w')
+	file = open(ustvpaths.SUBTITLE, 'w')
 	file.write(str_output)
 	file.close()

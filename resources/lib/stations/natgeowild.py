@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
-from .. import _main_natgeo
+from .. import main_natgeo
 
 SITE = 'natgeowild'
 NAME = 'Nat Geo Wild'
@@ -9,13 +9,13 @@ SHOWS = 'http://video.nationalgeographic.com/video/nat-geo-wild?gs=all'
 SPECIALS = 'http://video.nationalgeographic.com/video/nat-geo-wild/specials-2/'
 
 def masterlist():
-	return _main_natgeo.masterlist(SITE, SHOWS, SPECIALS)
+	return main_natgeo.masterlist(SITE, SHOWS, SPECIALS)
 
 def episodes():
-	_main_natgeo.episodes(SITE)
+	main_natgeo.episodes(SITE)
 
 def play_video():
-	_main_natgeo.play_video(SITE)
+	main_natgeo.play_video(SITE)
 
 def list_qualities():
-	return _main_natgeo.list_qualities(SITE)
+	return main_natgeo.list_qualities(SITE)

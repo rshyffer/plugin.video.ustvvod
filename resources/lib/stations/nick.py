@@ -4,9 +4,9 @@ import re
 import simplejson
 import sys
 import urllib
-from .. import _common
-from .. import _connection
-from .. import _main_viacom
+from .. import common
+from .. import connection
+from .. import main_viacom
 
 
 SITE = 'nick'
@@ -21,7 +21,7 @@ EPISODE_URL ='http://legacy.nick.com/videos/clip/%s.html'
 
 def masterlist():
 	master_db = []
-	master_data = _connection.getURL(SHOWS, header = {'X-Forwarded-For' : '12.13.14.15'})
+	master_data = connection.getURL(SHOWS, header = {'X-Forwarded-For' : '12.13.14.15'})
 	showdata = simplejson.loads(master_data)
 	for data in showdata:
 		master_name = data['title'].replace('&', 'and')
@@ -29,25 +29,25 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def seasons(season_url = _common.args.url):
-	season_data = _connection.getURL(FULLEPISODES % season_url, header = {'X-Forwarded-For' : '12.13.14.15'})
+def seasons(season_url = common.args.url):
+	season_data = connection.getURL(FULLEPISODES % season_url, header = {'X-Forwarded-For' : '12.13.14.15'})
 	try:
 		count = int(simplejson.loads(season_data)['meta']['count'])
 	except:
 		count = 0
 	if count > 0:
 		season_url2 = FULLEPISODES % season_url + '&start=0&rows=' + str(count)
-		_common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
-	season_data2 = _connection.getURL(CLIPS % season_url, header = {'X-Forwarded-For' : '12.13.14.15'})
+		common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
+	season_data2 = connection.getURL(CLIPS % season_url, header = {'X-Forwarded-For' : '12.13.14.15'})
 	try: count = int(simplejson.loads(season_data2)['meta']['count'])
 	except: count = 0
 	if count > 0:
 		season_url3 = CLIPS % season_url + '&start=0&rows=' + str(count)
-		_common.add_directory('Clips',  SITE, 'episodes', season_url3)
-	_common.set_view('seasons')
+		common.add_directory('Clips',  SITE, 'episodes', season_url3)
+	common.set_view('seasons')
 
-def episodes(episode_url = _common.args.url):
-	episode_data = _connection.getURL(episode_url, header = {'X-Forwarded-For' : '12.13.14.15'})
+def episodes(episode_url = common.args.url):
+	episode_data = connection.getURL(episode_url, header = {'X-Forwarded-For' : '12.13.14.15'})
 	episode_menu = simplejson.loads(episode_data)['results']
 	for episode_item in episode_menu:
 		try:
@@ -69,7 +69,7 @@ def episodes(episode_url = _common.args.url):
 		except:
 			episode_thumb = None
 		try:
-			episode_duration = _common.format_seconds(episode_item['duration'])
+			episode_duration = common.format_seconds(episode_item['duration'])
 		except:
 			episode_duration = -1
 		u = sys.argv[0]
@@ -80,16 +80,16 @@ def episodes(episode_url = _common.args.url):
 						'plot' : episode_plot,
 						'durationinseconds' : episode_duration,
 						'tvshowtitle' : show_name }
-		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	_common.set_view('episodes')
+		common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+	common.set_view('episodes')
 
-def play_video(video_url = _common.args.url):
-	video_data = _connection.getURL(video_url, header = {'X-Forwarded-For' : '12.13.14.15'})
+def play_video(video_url = common.args.url):
+	video_data = connection.getURL(video_url, header = {'X-Forwarded-For' : '12.13.14.15'})
 	video_url2 = re.compile('<meta content="http://media.mtvnservices.com/fb/(.+?).swf" property="og:video"/>').findall(video_data)[0]
 	feed_url = FEED % video_url2
-	_main_viacom.play_video(BASE, feed_url)
+	main_viacom.play_video(BASE, feed_url)
 
-def list_qualities(video_url = _common.args.url):
-	video_data = _connection.getURL(video_url, header = {'X-Forwarded-For' : '12.13.14.15'})
+def list_qualities(video_url = common.args.url):
+	video_data = connection.getURL(video_url, header = {'X-Forwarded-For' : '12.13.14.15'})
 	video_url2 = re.compile('<meta content="http://media.mtvnservices.com/fb/(.+?).swf" property="og:video"/>').findall(video_data)[0]
-	return _main_viacom.list_qualities(BASE, video_url2)
+	return main_viacom.list_qualities(BASE, video_url2)

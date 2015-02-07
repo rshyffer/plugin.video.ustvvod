@@ -10,9 +10,10 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-from .. import _common
-from .. import _connection
-from .. import _m3u8
+from .. import common
+from .. import connection
+from .. import m3u8
+from .. import ustvpaths
 from bs4 import BeautifulSoup, SoupStrainer
 
 addon = xbmcaddon.Addon()
@@ -36,7 +37,7 @@ def masterlist():
 	master_db = []
 	master_dict = {}
 	master_check = []
-	master_menu = simplejson.loads(_connection.getURL(SHOWS, header = {'X-Requested-With' : 'XMLHttpRequest'}))
+	master_menu = simplejson.loads(connection.getURL(SHOWS, header = {'X-Requested-With' : 'XMLHttpRequest'}))
 	for master_item in master_menu.itervalues():
 		for master_item in master_item:
 			master_check.append(master_item['title'])
@@ -51,11 +52,11 @@ def masterlist():
 			if website is None:
 				website = ''
 			if master_item2['title'] in master_check and ('PBS Kids' !=  master_item2['nola_root']) and ('blog' not in website):
-				master_name = _common.smart_utf8(master_item2['title'])
-				tvdb_name = _common.get_show_data(master_name, SITE, 'seasons')[-1]
+				master_name = common.smart_utf8(master_item2['title'])
+				tvdb_name = common.get_show_data(master_name, SITE, 'seasons')[-1]
 				season_url = re.compile('/cove/v1/programs/(.*?)/').findall(master_item2['resource_uri'])[0]
 				if tvdb_name not in master_dict.keys():
-					master_dict[tvdb_name] = _common.smart_unicode(master_name) + '#' +season_url
+					master_dict[tvdb_name] = common.smart_unicode(master_name) + '#' +season_url
 				else:
 					master_dict[tvdb_name] = master_dict[tvdb_name] + ',' + master_name + '#' + season_url
 		master_start = master_stop
@@ -64,7 +65,7 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def seasons(season_urls = _common.args.url):
+def seasons(season_urls = common.args.url):
 	for season_url in season_urls.split(','):
 		name = season_url.split('#')[0]
 		season_url = season_url.split('#')[1]
@@ -76,12 +77,12 @@ def seasons(season_urls = _common.args.url):
 				season_menu = 0
 			if season_menu > 0:
 				if ',' in season_urls:
-					_common.add_directory(name + ' ' + type+'s',  SITE, 'episodes', (season_url + '#' + type))
+					common.add_directory(name + ' ' + type+'s',  SITE, 'episodes', (season_url + '#' + type))
 				else:
-					_common.add_directory(type+'s',  SITE, 'episodes', (season_url + '#' + type))
-	_common.set_view('seasons')
+					common.add_directory(type+'s',  SITE, 'episodes', (season_url + '#' + type))
+	common.set_view('seasons')
 
-def episodes(episode_url = _common.args.url):
+def episodes(episode_url = common.args.url):
 	episode_id, type = episode_url.split('#')
 	episode_start = 0
 	episode_count = 200
@@ -105,7 +106,7 @@ def episodes(episode_url = _common.args.url):
 				except:
 					episode_number = -1
 				episode_plot = episode_item['long_description']
-				episode_airdate = _common.format_date(episode_item['airdate'], '%Y-%m-%d %H:%M:%S', '%d.%m.%Y')
+				episode_airdate = common.format_date(episode_item['airdate'], '%Y-%m-%d %H:%M:%S', '%d.%m.%Y')
 				episode_duration = int(episode_item['mediafiles'][0]['length_mseconds'] / 1000)
 				episode_thumb = episode_item['associated_images'][0]['url']
 				for episode_thumbs in episode_item['associated_images']:
@@ -121,18 +122,18 @@ def episodes(episode_url = _common.args.url):
 								'durationinseconds' : episode_duration,
 								'plot' : episode_plot,
 								'premiered' : episode_airdate }
-				_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
+				common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
 		episode_start = episode_stop
-	_common.set_view('episodes')
+	common.set_view('episodes')
 
-def play_video(video_url = _common.args.url):
+def play_video(video_url = common.args.url):
 	hbitrate = -1
 	sbitrate = int(addon.getSetting('quality')) * 1024
 	closedcaption = None
 	video_url2 = None
 	finalurl = ''
 	try:
-		closedcaption = simplejson.loads(_connection.getURL(CLOSEDCAPTION % video_url).replace('video_info(', '').replace(')', ''))['closed_captions_url']
+		closedcaption = simplejson.loads(connection.getURL(CLOSEDCAPTION % video_url).replace('video_info(', '').replace(')', ''))['closed_captions_url']
 	except:
 		pass
 	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
@@ -148,14 +149,14 @@ def play_video(video_url = _common.args.url):
 			pass
 	if video_url2 is None:
 		video_url2 = video_item['video_data_url']
-	video_data2 = _connection.getURL(video_url2 + '?format=jsonp&callback=jQuery18303874830141490152_1377946043740')
+	video_data2 = connection.getURL(video_url2 + '?format=jsonp&callback=jQuery18303874830141490152_1377946043740')
 	video_url3 = simplejson.loads(video_data2.replace('jQuery18303874830141490152_1377946043740(', '').replace(')', ''))['url']
 	if '.mp4' in video_url3:
 		base_url, playpath_url = video_url3.split('mp4:')
 		finalurl = base_url +' playpath=mp4:' + playpath_url + '?player= swfurl=' + SWFURL % video_data['results'][0]['guid'] + ' swfvfy=true'
 	else:
-		video_data3 = _connection.getURL(video_url3)
-		video_url4 = _m3u8.parse(video_data3)
+		video_data3 = connection.getURL(video_url3)
+		video_url4 = m3u8.parse(video_data3)
 		for video_index in video_url4.get('playlists'):
 			bitrate = int(video_index.get('stream_info')['bandwidth'])
 			if bitrate > hbitrate and bitrate <= sbitrate:
@@ -165,7 +166,7 @@ def play_video(video_url = _common.args.url):
 	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
 		while not xbmc.Player().isPlaying():
 			xbmc.sleep(100)
-		xbmc.Player().setSubtitles(_common.SUBTITLE)
+		xbmc.Player().setSubtitles(ustvpaths.SUBTITLE)
 
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')
@@ -182,19 +183,19 @@ def clean_subs(data):
 
 def convert_subtitles(closedcaption):
 	str_output = ''
-	subtitle_data = _connection.getURL(closedcaption, connectiontype = 0)
+	subtitle_data = connection.getURL(closedcaption, connectiontype = 0)
 	subtitle_data = BeautifulSoup(subtitle_data, 'html.parser', parse_only = SoupStrainer('div'))
 	lines = subtitle_data.find_all('p')
 	for i, line in enumerate(lines):
 		if line is not None:
-			sub = clean_subs(_common.smart_utf8(line))
-			start_time = _common.smart_utf8(line['begin'].replace('.', ','))
+			sub = clean_subs(common.smart_utf8(line))
+			start_time = common.smart_utf8(line['begin'].replace('.', ','))
 			if ',' not in start_time:
 				start_time = start_time + ',00'
-			end_time = _common.smart_utf8(line['end'].replace('.', ','))
+			end_time = common.smart_utf8(line['end'].replace('.', ','))
 			if ',' not in end_time:
 				end_time = end_time + ',00'
 			str_output += str(i + 1) + '\n' + start_time[:11] + ' --> ' + end_time[:11] + '\n' + sub + '\n\n'
-	file = open(_common.SUBTITLE, 'w')
+	file = open(ustvpaths.SUBTITLE, 'w')
 	file.write(str_output)
 	file.close()

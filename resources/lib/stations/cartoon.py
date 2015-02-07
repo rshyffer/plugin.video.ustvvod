@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from .. import _common
-from .. import _connection
-from .. import _main_turner
+from .. import common
+from .. import connection
+from .. import main_turner
 from bs4 import BeautifulSoup
 
 SITE = 'cartoon'
@@ -17,13 +17,13 @@ HLSPATH = 'toon'
 def masterlist():
 	master_db = []
 	master_dict = {}
-	master_data = _connection.getURL(SHOWS)
+	master_data = connection.getURL(SHOWS)
 	master_tree = BeautifulSoup(master_data, 'html.parser')
 	master_menu = master_tree.allcollections.find_all('collection')
 	for master_item in master_menu:
-		master_name = _common.smart_utf8(master_item['name'])
+		master_name = common.smart_utf8(master_item['name'])
 		if '[AD]' not in master_name:
-			tvdb_name = _common.get_show_data(master_name, SITE, 'seasons')[-1]
+			tvdb_name = common.get_show_data(master_name, SITE, 'seasons')[-1]
 			season_url = master_item['id'] 
 			season_url = season_url + '#tveepisodes='
 			try:
@@ -43,27 +43,27 @@ def masterlist():
 			master_db.append((master_name,  SITE, 'seasons', season_url))
 	return master_db
 
-def seasons(season_string = _common.args.url):
+def seasons(season_string = common.args.url):
 	collection_id = season_string.split('#')[0]
 	tve = season_string.split('#')[1].split('=')[1][1:]
 	clips = season_string.split('#')[2].split('=')[1][1:]
 	for season in tve.split('-'):
 		if season:
-			_common.add_directory('Season ' + season,  SITE, 'episodes', FULLEPISODES % (collection_id, season))
+			common.add_directory('Season ' + season,  SITE, 'episodes', FULLEPISODES % (collection_id, season))
 	for season in clips.split('-'):
 		if season:
 			if season != '*':
 				display = 'Clips Season ' + season
 			else:
 				display = 'Specials'
-			_common.add_directory(display,  SITE, 'episodes', CLIPS % (collection_id, season.replace('*', '')))
-	_common.set_view('seasons')
+			common.add_directory(display,  SITE, 'episodes', CLIPS % (collection_id, season.replace('*', '')))
+	common.set_view('seasons')
 
 def episodes():
-	_main_turner.episodes(SITE)
+	main_turner.episodes(SITE)
 
-def play_video(video_id = _common.args.url):
-	_main_turner.play_video(SITE, EPISODE, HLSPATH)
+def play_video(video_id = common.args.url):
+	main_turner.play_video(SITE, EPISODE, HLSPATH)
 
 def list_qualities():
-	return _main_turner.list_qualities(SITE, EPISODE)
+	return main_turner.list_qualities(SITE, EPISODE)

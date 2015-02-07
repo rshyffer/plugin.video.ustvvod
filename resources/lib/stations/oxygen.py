@@ -8,9 +8,10 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-from .. import _common
-from .. import _connection
-from .. import _m3u8
+from .. import common
+from .. import connection
+from .. import m3u8
+from .. import ustvpaths
 from bs4 import BeautifulSoup, SoupStrainer
 
 addon = xbmcaddon.Addon()
@@ -26,7 +27,7 @@ SWFURL = 'http://features.oxygen.com/videos/pdk/swf/flvPlayer.swf'
 
 def masterlist():
 	master_db = []
-	master_data = _connection.getURL(SHOWS)
+	master_data = connection.getURL(SHOWS)
 	master_menu = simplejson.loads(master_data)['entries']
 	for master_item in master_menu:
 		master_name = master_item['title']
@@ -34,27 +35,27 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def seasons(season_url = _common.args.url):
-	season_data = _connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
+def seasons(season_url = common.args.url):
+	season_data = connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
 	try:
 		season_menu = int(simplejson.loads(season_data)['totalResults'])
 	except:
 		season_menu = 0
 	if season_menu > 0:
 		season_url2 = FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu)
-		_common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
-	season_data2 = _connection.getURL(CLIPS % urllib.quote_plus(season_url) + '&range=0-1')
+		common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
+	season_data2 = connection.getURL(CLIPS % urllib.quote_plus(season_url) + '&range=0-1')
 	try:
 		season_menu2 = int(simplejson.loads(season_data2)['totalResults'])
 	except:
 		season_menu2 = 0
 	if season_menu2 > 0:
 		season_url3 = CLIPS % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu2)
-		_common.add_directory('Clips',  SITE, 'episodes', season_url3)
-	_common.set_view('seasons')
+		common.add_directory('Clips',  SITE, 'episodes', season_url3)
+	common.set_view('seasons')
 
-def episodes(episode_url = _common.args.url):
-	episode_data = _connection.getURL(episode_url)
+def episodes(episode_url = common.args.url):
+	episode_data = connection.getURL(episode_url)
 	episode_menu = simplejson.loads(episode_data)['entries']
 	for i, episode_item in enumerate(episode_menu):
 		default_mediacontent = None
@@ -68,7 +69,7 @@ def episodes(episode_url = _common.args.url):
 		url = default_mediacontent['plfile$url']
 		episode_duration = int(default_mediacontent['plfile$duration'])
 		episode_plot = episode_item['description']
-		episode_airdate = _common.format_date(epoch = episode_item['pubDate']/1000)
+		episode_airdate = common.format_date(epoch = episode_item['pubDate']/1000)
 		episode_name = episode_item['title']
 		try:
 			season_number = int(episode_item['pl' + str(i + 1) + '$season'][0])
@@ -92,14 +93,14 @@ def episodes(episode_url = _common.args.url):
 						'episode' : episode_number,
 						'plot' : episode_plot,
 						'premiered' : episode_airdate }
-		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
-	_common.set_view('episodes')
+		common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
+	common.set_view('episodes')
 
-def play_video(video_url = _common.args.url):
+def play_video(video_url = common.args.url):
 	hbitrate = -1
 	sbitrate = int(addon.getSetting('quality')) * 1024
 	closedcaption = None
-	video_data = _connection.getURL(video_url)
+	video_data = connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	video_rtmp = video_tree.meta
 	if video_rtmp is not None:
@@ -116,7 +117,7 @@ def play_video(video_url = _common.args.url):
 					playpath_url = playpath_url.replace('.flv','')
 				finalurl = base_url +' playpath=' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
 	else:
-		video_data = _connection.getURL(video_url + '&manifest=m3u')
+		video_data = connection.getURL(video_url + '&manifest=m3u')
 		video_tree = BeautifulSoup(video_data, 'html.parser')
 		try:
 			closedcaption = video_tree.textstream['src']
@@ -127,8 +128,8 @@ def play_video(video_url = _common.args.url):
 		video_url2 = video_tree.seq.find_all('video')[0]
 		video_url3 = video_url2['src']
 		video_url4 = video_url3.split('/')[-1]
-		video_data2 = _connection.getURL(video_url3)
-		video_url5 = _m3u8.parse(video_data2)
+		video_data2 = connection.getURL(video_url3)
+		video_url5 = m3u8.parse(video_data2)
 		for video_index in video_url5.get('playlists'):
 			bitrate = int(video_index.get('stream_info')['bandwidth'])
 			if bitrate > hbitrate and bitrate <= sbitrate:
@@ -138,7 +139,7 @@ def play_video(video_url = _common.args.url):
 	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 		while not xbmc.Player().isPlaying():
 			xbmc.sleep(100)
-		xbmc.Player().setSubtitles(_common.SUBTITLE)
+		xbmc.Player().setSubtitles(ustvpaths.SUBTITLE)
 
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')
@@ -153,20 +154,20 @@ def clean_subs(data):
 
 def convert_subtitles(closedcaption):
 	str_output = ''
-	subtitle_data = _connection.getURL(closedcaption, connectiontype = 0)
+	subtitle_data = connection.getURL(closedcaption, connectiontype = 0)
 	subtitle_data = BeautifulSoup(subtitle_data, 'html.parser', parse_only = SoupStrainer('div'))
 	lines = subtitle_data.find_all('p')
 	for i, line in enumerate(lines):
 		if line is not None:
-			sub = clean_subs(_common.smart_utf8(line))
+			sub = clean_subs(common.smart_utf8(line))
 			start_time_rest, start_time_msec = line['begin'].rsplit(':',1)
-			start_time = _common.smart_utf8(start_time_rest + ',' + start_time_msec)
+			start_time = common.smart_utf8(start_time_rest + ',' + start_time_msec)
 			try:
 				end_time_rest, end_time_msec = line['end'].rsplit(':',1)
-				end_time = _common.smart_utf8(end_time_rest + ',' + end_time_msec)
+				end_time = common.smart_utf8(end_time_rest + ',' + end_time_msec)
 			except:
 				continue
 			str_output += str(i + 1) + '\n' + start_time + ' --> ' + end_time + '\n' + sub + '\n\n'
-	file = open(_common.SUBTITLE, 'w')
+	file = open(ustvpaths.SUBTITLE, 'w')
 	file.write(str_output)
 	file.close()

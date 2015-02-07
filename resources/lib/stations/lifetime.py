@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from .. import _main_aenetwork
+from .. import main_aenetwork
 
 SITE = 'lifetime'
 NAME = 'Lifetime'
@@ -12,16 +12,16 @@ EPISODES = 'https://mobileservices-a.akamaihd.net/jservice/wombattpservice/show_
 CLIPS = 'https://mobileservices-a.akamaihd.net/jservice/wombattpservice/show_titles/clip/mlt?show_name=%s&filter_by=season&filter_value=%d'
 
 def masterlist():
-	return _main_aenetwork.masterlist(SITE, SHOWS)
+	return main_aenetwork.masterlist(SITE, SHOWS)
 
 def seasons():
-	_main_aenetwork.seasons(SITE, SEASONSEPISODE, SEASONSCLIPS, EPISODES, CLIPS)
+	main_aenetwork.seasons(SITE, SEASONSEPISODE, SEASONSCLIPS, EPISODES, CLIPS)
 
 def episodes():
-	_main_aenetwork.episodes(SITE)
+	main_aenetwork.episodes(SITE)
 
 def play_video():
-	_main_aenetwork.play_video()
+	main_aenetwork.play_video()
 
 def list_qualities():
-	_main_aenetwork.list_qualities()
+	main_aenetwork.list_qualities()

@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from .. import _common
-from .. import _connection
-from .. import _main_nbcu
+from .. import common
+from .. import connection
+from .. import main_nbcu
 from bs4 import BeautifulSoup
 
 SITE = 'bravo'
@@ -16,14 +16,14 @@ def masterlist():
 	master_db = []
 	master_doubles = []
 	master_dict = {}
-	master_data = _connection.getURL(SHOWS)
+	master_data = connection.getURL(SHOWS)
 	master_menu = BeautifulSoup(master_data, 'html.parser').find_all('article', class_ = 'all-shows')
 	for master_item in master_menu:
 		print master_item
 		master_name = master_item.a['title']
 		print master_name
 		if master_name not in master_doubles:
-			tvdb_name = _common.get_show_data(master_name, SITE, 'seasons')[-1]
+			tvdb_name = common.get_show_data(master_name, SITE, 'seasons')[-1]
 			if tvdb_name not in master_dict.keys():
 				master_dict[tvdb_name] = master_name
 			else:
@@ -35,13 +35,13 @@ def masterlist():
 	return master_db
 
 def seasons():
-	_main_nbcu.seasons(SITE, FULLEPISODES, CLIPS)
+	main_nbcu.seasons(SITE, FULLEPISODES, CLIPS)
 
 def episodes():
-	_main_nbcu.episodes(SITE)
+	main_nbcu.episodes(SITE)
 
 def list_qualities():
-	return _main_nbcu.list_qualities()
+	return main_nbcu.list_qualities()
 
 def play_video():
-	_main_nbcu.play_video()
+	main_nbcu.play_video()

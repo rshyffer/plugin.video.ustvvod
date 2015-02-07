@@ -13,13 +13,14 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-from .. import _common
-from .. import _connection
-from .. import _database
-from .. import _m3u8
+from .. import common
+from .. import connection
+from .. import database
+from .. import m3u8
+from .. import ustvpaths
 
 addon = xbmcaddon.Addon()
-player = _common.XBMCPlayer()
+player = common.XBMCPlayer()
 pluginHandle = int(sys.argv[1])
 
 SITE = 'thecw'
@@ -34,7 +35,7 @@ CLOSEDCAPTION = 'http://api.digitalsmiths.tv/metaframe/200f2a4d/asset/%s/filter'
 
 def masterlist():
 	master_db = []
-	master_data = _connection.getURL(SHOWS)
+	master_data = connection.getURL(SHOWS)
 	master_menu = simplejson.loads(master_data)['items']
 	for master_item in master_menu:
 		master_name = master_item['title']
@@ -42,10 +43,10 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def seasons(season_url = _common.args.url):
+def seasons(season_url = common.args.url):
 	fullepisodes = 0
 	clips = 0
-	season_data = _connection.getURL(VIDEOLIST % season_url)
+	season_data = connection.getURL(VIDEOLIST % season_url)
 	season_menu = simplejson.loads(season_data)['videos']
 	for season_item in season_menu:
 		if int(season_item['fullep']) == 1:
@@ -53,19 +54,19 @@ def seasons(season_url = _common.args.url):
 		else:
 			clips = 1
 	if fullepisodes == 1:
-		_common.add_directory('Full Episodes',  SITE, 'episodes', season_url + '#1')
+		common.add_directory('Full Episodes',  SITE, 'episodes', season_url + '#1')
 	if clips == 1:
-		_common.add_directory('Clips',  SITE, 'episodes', season_url + '#0')
-	_common.set_view('seasons')
+		common.add_directory('Clips',  SITE, 'episodes', season_url + '#0')
+	common.set_view('seasons')
 
-def episodes(episode_url = _common.args.url):
+def episodes(episode_url = common.args.url):
 	try:
-		shutil.rmtree(os.path.join(_common.DATAPATH,'thumbs'))
+		shutil.rmtree(os.path.join(ustvpaths.DATAPATH,'thumbs'))
 	except:
 		pass
-	episode_data = _connection.getURL(VIDEOLIST % episode_url.split('#')[0])
+	episode_data = connection.getURL(VIDEOLIST % episode_url.split('#')[0])
 	episode_menu = simplejson.loads(episode_data)['videos']
-	os.mkdir(os.path.join(_common.DATAPATH,'thumbs'))
+	os.mkdir(os.path.join(ustvpaths.DATAPATH,'thumbs'))
 	for episode_item in episode_menu:
 		if int(episode_item['fullep']) == int(episode_url.split('#')[1]):
 			show_name = episode_item['series_name']
@@ -76,13 +77,13 @@ def episodes(episode_url = _common.args.url):
 			season_number = int(episode_item['season'])
 			episode_thumb = episode_item['large_thumbnail']
 			thumb_file = episode_thumb.split('/')[-1]
-			thumb_path = os.path.join(_common.DATAPATH, 'thumbs', thumb_file)
-			dbpath = xbmc.translatePath(_database.DBPATH)
+			thumb_path = os.path.join(ustvpaths.DATAPATH, 'thumbs', thumb_file)
+			dbpath = xbmc.translatePath(database.DBPATH)
 			thumbcount = 0
 			for name in glob.glob(os.path.join(dbpath, 'textures[0-9]*.db')):
-				thumbcount = thumbcount+ _database.execute_command('select count(1) from texture where url = ?', [thumb_path,], fetchone = True, dbfile = name)[0]
+				thumbcount = thumbcount+ database.execute_command('select count(1) from texture where url = ?', [thumb_path,], fetchone = True, dbfile = name)[0]
 			if thumbcount == 0:
-				thumb_data = _connection.getURL(episode_thumb)
+				thumb_data = connection.getURL(episode_thumb)
 				file = open(thumb_path, 'wb')
 				file.write(thumb_data)
 				file.close()
@@ -91,7 +92,7 @@ def episodes(episode_url = _common.args.url):
 			except:
 				episode_number = -1
 			try:
-				episode_airdate = _common.format_date(episode_item['airdate'],'%Y-%b-%d', '%d.%m.%Y')
+				episode_airdate = common.format_date(episode_item['airdate'],'%Y-%b-%d', '%d.%m.%Y')
 			except:
 				episode_airdate = -1
 			u = sys.argv[0]
@@ -105,10 +106,10 @@ def episodes(episode_url = _common.args.url):
 							'plot' : episode_plot,
 							'premiered' : episode_airdate,
 							'tvshowtitle': show_name }
-			_common.add_video(u, episode_name, thumb_path, infoLabels = infoLabels)
-	_common.set_view('episodes')
+			common.add_video(u, episode_name, thumb_path, infoLabels = infoLabels)
+	common.set_view('episodes')
 
-def play_video(video_url = _common.args.url):
+def play_video(video_url = common.args.url):
 	hbitrate=-1
 	lbitrate=-1
 	playpath_url = None
@@ -116,7 +117,7 @@ def play_video(video_url = _common.args.url):
 		convert_subtitles(video_url)
 		player._subtitles_Enabled = True
 	sbitrate = int(addon.getSetting('quality'))
-	video_data = _connection.getURL(VIDEOURL % video_url)
+	video_data = connection.getURL(VIDEOURL % video_url)
 	video_tree = simplejson.loads(video_data)
 	for video_key in video_tree['videos']:
 		try:
@@ -129,12 +130,12 @@ def play_video(video_url = _common.args.url):
 				hbitrate = bitrate
  				playpath_url = video_index['uri'].split('mp4:')[1].replace('Level3', '')
 		except:
-			playpath_m3u8 = video_index['uri']
+			playpathm3u8 = video_index['uri']
 	if addon.getSetting('preffered_stream_type') == 'HLS':
 		playpath_url = None
 		lplaypath_url = None
-		m3u8_data = _connection.getURL(playpath_m3u8)
-		m3u8 = _m3u8.parse(m3u8_data)
+		m3u8_data = connection.getURL(playpathm3u8)
+		m3u8 = m3u8.parse(m3u8_data)
 		uri = None
 		for video_index in m3u8.get('playlists'):
 			if int(video_index.get('stream_info')['bandwidth']) > 64000:
@@ -151,15 +152,15 @@ def play_video(video_url = _common.args.url):
 		finalurl = RTMPURL + ' playpath=mp4:' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
 		player._localHTTPServer = False
 	else:
-		play_data = _connection.getURL(playpath_url)
+		play_data = connection.getURL(playpath_url)
 		key_url = re.compile('URI="(.*?)"').findall(play_data)[0]
-		key_data = _connection.getURL(key_url)		
-		key_file = open(_common.KEYFILE, 'wb')
+		key_data = connection.getURL(key_url)		
+		key_file = open(ustvpaths.KEYFILE, 'wb')
 		key_file.write(key_data)
 		key_file.close()
 		relative_urls = re.compile('(.*ts)\n').findall(play_data)
 		name = playpath_url.split('/')[-1]
-		proxy_config = _common.proxyConfig()
+		proxy_config = common.proxyConfig()
 		for i, video_item in enumerate(relative_urls):
 			absolueurl =  playpath_url.replace(name, video_item)
 			if int(addon.getSetting('connectiontype')) > 0:
@@ -171,14 +172,14 @@ def play_video(video_url = _common.args.url):
 				newurl = absolueurl
 			play_data = play_data.replace(video_item,  newurl)
 		localhttpserver = True
-		filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
+		filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
 		xbmc.executebuiltin(filestring)
 		time.sleep(20)
 		play_data = play_data.replace(key_url, 'http://127.0.0.1:12345/play.key')
-		playfile = open(_common.PLAYFILE, 'w')
+		playfile = open(ustvpaths.PLAYFILE, 'w')
 		playfile.write(play_data)
 		playfile.close()
-		finalurl = _common.PLAYFILE
+		finalurl = ustvpaths.PLAYFILE
 	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
 	while player.is_active:
 		player.sleep(250)
@@ -187,36 +188,36 @@ def convert_subtitles(video_guid):
 	try:
 		file = None
 		dialog = xbmcgui.DialogProgress()
-        	dialog.create(_common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39026)))
-		dialog.update(0, _common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39027)))
+        	dialog.create(common.smart_utf8(xbmcaddon.Addon(id = common.ADDONID).getLocalizedString(39026)))
+		dialog.update(0, common.smart_utf8(xbmcaddon.Addon(id = common.ADDONID).getLocalizedString(39027)))
 		str_output = ''
-		subtitle_data = _connection.getURL(CLOSEDCAPTION % video_guid, connectiontype = 0)
+		subtitle_data = connection.getURL(CLOSEDCAPTION % video_guid, connectiontype = 0)
 		subtitle_data = simplejson.loads(subtitle_data)
 		lines_total = len(subtitle_data)
-		dialog.update(0, _common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39028)))
+		dialog.update(0, common.smart_utf8(xbmcaddon.Addon(id = common.ADDONID).getLocalizedString(39028)))
 		for i, subtitle_line in enumerate(subtitle_data):
 			if subtitle_line is not None and 'Text' in subtitle_line['metadata']:
 				if (dialog.iscanceled()):
 					return
 				if i % 10 == 0:
 					percent = int( (float(i*100) / lines_total) )
-					dialog.update(percent, _common.smart_utf8(xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(30929)))
-				sub = _common.smart_utf8(subtitle_line['metadata']['Text'])
-				start_time = _common.smart_utf8(str(subtitle_line['startTime'])).split('.')
+					dialog.update(percent, common.smart_utf8(xbmcaddon.Addon(id = common.ADDONID).getLocalizedString(30929)))
+				sub = common.smart_utf8(subtitle_line['metadata']['Text'])
+				start_time = common.smart_utf8(str(subtitle_line['startTime'])).split('.')
 				start_minutes, start_seconds = divmod(int(start_time[0]), 60)
 				start_hours, start_minutes = divmod(start_minutes, 60)
 				start_time = '%02d:%02d:%02d,%02d' % (start_hours, start_minutes, start_seconds, int(start_time[1][0:2]))
-				end_time = _common.smart_utf8(str(subtitle_line['endTime'])).split('.')
+				end_time = common.smart_utf8(str(subtitle_line['endTime'])).split('.')
 				end_minutes, end_seconds = divmod(int(end_time[0]), 60)
 				end_hours, end_minutes = divmod(end_minutes, 60)
 				end_time = '%02d:%02d:%02d,%02d' % (end_hours, end_minutes, end_seconds, int(end_time[1][0:2]))
 				str_output += str(i + 1) + '\n' + start_time + ' --> ' + end_time + '\n' + sub + '\n\n'
-		file = open(_common.SUBTITLE, 'w')
+		file = open(ustvpaths.SUBTITLE, 'w')
 		file.write(str_output)
 		file.close()
 	except Exception, e:
 		print "Exception: " + unicode(e)
-		_common.show_exception(NAME, xbmcaddon.Addon(id = _common.ADDONID).getLocalizedString(39030))
+		common.show_exception(NAME, xbmcaddon.Addon(id = common.ADDONID).getLocalizedString(39030))
 	finally:
 		if file is not None:
 			file.close()

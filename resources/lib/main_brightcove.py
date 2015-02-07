@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _connection
+import connection
 import pyamf
 from pyamf import remoting
 
@@ -30,7 +30,7 @@ def get_episode_info(video_player_key, video_content_id, video_url, video_player
 	connection_url = "http://c.brightcove.com/services/messagebroker/amf?playerKey=" + video_player_key
 	values = bytes(remoting.encode(envelope).read())
 	header = {'Content-Type' : 'application/x-amf'}
-	response = remoting.decode(_connection.getURL(connection_url, values, header, amf = True)).bodies[0][1].body
+	response = remoting.decode(connection.getURL(connection_url, values, header, amf = True)).bodies[0][1].body
 	return response
 
 def build_amf_request(video_player_key, video_content_id, video_url, video_player_id, const):

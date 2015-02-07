@@ -1,10 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import _common
-import _connection
-import _m3u8
+import common
+import connection
+import m3u8
 import base64
 import os
+import ustvpaths
 import re
 import simplejson
 import sys
@@ -17,7 +18,7 @@ import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
 addon = xbmcaddon.Addon()
-player = _common.XBMCPlayer()
+player = common.XBMCPlayer()
 pluginHandle = int(sys.argv[1])
 
 AUTHURL = 'http://www.tbs.com/processors/cvp/token.jsp'
@@ -29,10 +30,10 @@ def masterlist(NAME, MOVIES, SHOWS, SITE, WEBSHOWS = None ):
 	master_db = []
 	master_dict = {}
 	master_db.append(('--' + NAME + ' Movies',  SITE, 'episodes', 'Movie#' + MOVIES))
-	master_data = _connection.getURL(SHOWS)
+	master_data = connection.getURL(SHOWS)
 	master_menu = simplejson.loads(master_data)
 	for master_item in master_menu:
-		master_name = _common.smart_utf8(master_item['title'])
+		master_name = common.smart_utf8(master_item['title'])
 		if 'ondemandEpisodes' in master_item['excludedSections']:
 			has_full_eps = 'false'
 		else:
@@ -43,31 +44,31 @@ def masterlist(NAME, MOVIES, SHOWS, SITE, WEBSHOWS = None ):
 	return master_db
 
 def seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS, WEBSHOWS = None):
-	show_id = _common.args.url
+	show_id = common.args.url
 	master_name = show_id.split('#')[0]
 	has_full_eps = show_id.split('#')[2]
 	show_id = show_id.split('#')[1]
 	if has_full_eps == 'true':
-		_common.add_directory('Full Episodes',  SITE, 'episodes', master_name + '#' + FULLEPISODES % show_id)
+		common.add_directory('Full Episodes',  SITE, 'episodes', master_name + '#' + FULLEPISODES % show_id)
 	elif WEBSHOWS is not None:
-		webdata = _connection.getURL(WEBSHOWS)
+		webdata = connection.getURL(WEBSHOWS)
 		web_tree =  BeautifulSoup(webdata, 'html.parser', parse_only = SoupStrainer('div', id = 'page-shows'))
 		show = web_tree.find('h2', text = master_name)
 		episodes = show.findNext('p', attrs = {'data-id' : 'num-full-eps-avail'})['data-value']
 		if int(episodes) > 0:
-			_common.add_directory('Full Episodes',  SITE, 'episodes_web', master_name)
-	clips_data = _connection.getURL(CLIPSSEASON % show_id)
+			common.add_directory('Full Episodes',  SITE, 'episodes_web', master_name)
+	clips_data = connection.getURL(CLIPSSEASON % show_id)
 	clips_menu = simplejson.loads(clips_data)
 	for season in clips_menu:
-		clip_name = _common.smart_utf8(season['title'])
-		_common.add_directory(clip_name,  SITE, 'episodes', master_name + '#' + CLIPS % (show_id, season['id']))
-	_common.set_view('seasons')
+		clip_name = common.smart_utf8(season['title'])
+		common.add_directory(clip_name,  SITE, 'episodes', master_name + '#' + CLIPS % (show_id, season['id']))
+	common.set_view('seasons')
 
 def episodes_json(SITE):
-	episode_url = _common.args.url
+	episode_url = common.args.url
 	master_name = episode_url.split('#')[0]
 	episode_url = episode_url.split('#')[1]
-	episode_data = _connection.getURL(episode_url)
+	episode_data = connection.getURL(episode_url)
 	episode_menu = simplejson.loads(episode_data)
 	for episode_item in episode_menu:
 		url = episode_item['episodeID']
@@ -76,7 +77,7 @@ def episodes_json(SITE):
 		except:
 			episode_duration = -1
 		try:
-			episode_airdate = _common.format_date(episode_item['airDate'].split('on ')[1],'%B %d, %Y')
+			episode_airdate = common.format_date(episode_item['airDate'].split('on ')[1],'%B %d, %Y')
 		except:
 			episode_airdate = -1
 		try:
@@ -86,7 +87,7 @@ def episodes_json(SITE):
 		episode_name = episode_item['title']
 		if episode_name == master_name:
 			video_url = EPISODE % url
-			video_data = _connection.getURL(video_url)
+			video_data = connection.getURL(video_url)
 			video_tree = BeautifulSoup(video_data, 'html.parser')
 			episode_name = video_tree.headline.string
 		elif episode_name == "":
@@ -103,7 +104,7 @@ def episodes_json(SITE):
 			except:
 				episode_number = -1
 		if episode_number > 100:
-			episode_number = int(re.compile('episode-(\d*)').findall(_connection.getRedirect(episode_item['shareURL']))[0])
+			episode_number = int(re.compile('episode-(\d*)').findall(connection.getRedirect(episode_item['shareURL']))[0])
 		try:
 			episode_thumb = episode_item['640x360_jpg']
 		except:
@@ -118,16 +119,16 @@ def episodes_json(SITE):
 						'episode' : episode_number,
 						'plot' : episode_plot,
 						'premiered' : episode_airdate }
-		_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	_common.set_view('episodes')
+		common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+	common.set_view('episodes')
 
 def episodes(SITE):
-	episode_url = _common.args.url
+	episode_url = common.args.url
 	try:
 		season_number = int(episode_url.split('filterBySeasonNumber=')[1])
 	except:
 		season_number = 0 
-	episode_data = _connection.getURL(episode_url)
+	episode_data = connection.getURL(episode_url)
 	episode_tree = BeautifulSoup(episode_data, 'html.parser')
 	episode_menu = episode_tree.find_all('episode')
 	for episode_item in episode_menu:
@@ -154,16 +155,16 @@ def episodes(SITE):
 				url = url[1:]
 			try:
 				episode_duration = episode_item['duration']
-				episode_duration = int(_common.format_seconds(episode_duration))
+				episode_duration = int(common.format_seconds(episode_duration))
 			except:
 				episode_duration = 0
 				for segment_duration in segments:
 					episode_duration += float(segment_duration['duration'])
 			try:
-				episode_airdate = _common.format_date(episode_item['originalpremieredate'].split(' ')[0],'%m/%d/%Y')
+				episode_airdate = common.format_date(episode_item['originalpremieredate'].split(' ')[0],'%m/%d/%Y')
 			except:
 				try:
-					episode_airdate = _common.format_date(episode_item['launchdate'].split(' ')[0],'%m/%d/%Y')
+					episode_airdate = common.format_date(episode_item['launchdate'].split(' ')[0],'%m/%d/%Y')
 				except:
 					episode_airdate = -1
 			episode_name = episode_item['title']
@@ -190,17 +191,17 @@ def episodes(SITE):
 							'episode' : episode_number,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate }
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	_common.set_view('episodes')
+			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+	common.set_view('episodes')
 
 def play_video(SITE, EPISODE, HLSPATH = None):
 	localhttpserver = False
 	try:
-		qbitrate = _common.args.quality
+		qbitrate = common.args.quality
 	except:
 		qbitrate = None
 	stack_url = ''
-	for v, video_id in enumerate(_common.args.url.split(',')):
+	for v, video_id in enumerate(common.args.url.split(',')):
 		if 'http' not in video_id:
 			video_url = EPISODE % video_id
 		else:
@@ -208,7 +209,7 @@ def play_video(SITE, EPISODE, HLSPATH = None):
 		hbitrate = -1
 		sbitrate = int(addon.getSetting('quality'))
 		closedcaption = None
-		video_data = _connection.getURL(video_url)
+		video_data = connection.getURL(video_url)
 		video_tree = BeautifulSoup(video_data, 'html.parser')
 		hbitrate = -1
 		lbitrate = -1
@@ -257,8 +258,8 @@ def play_video(SITE, EPISODE, HLSPATH = None):
 		else:
 			video = video_tree.find('file', bitrate = 'androidtablet').string
 			video_url = HLSBASE % HLSPATH + video[1:]
-			m3u8_data = _connection.getURL(video_url)
-			m3u8 = _m3u8.parse(m3u8_data)
+			m3u8_data = connection.getURL(video_url)
+			m3u8 = m3u8.parse(m3u8_data)
 			uri = None
 			for video_index in m3u8.get('playlists'):
 				if int(video_index.get('stream_info')['bandwidth']) > 64000:
@@ -275,10 +276,10 @@ def play_video(SITE, EPISODE, HLSPATH = None):
 			segurl = video_url.replace(master, playpath_url)
 			if int(addon.getSetting('connectiontype')) > 0:
 				localhttpserver = True
-				play_data = _connection.getURL(segurl)
+				play_data = connection.getURL(segurl)
 				relative_urls = re.compile('(.*ts)\n').findall(play_data)
 				relative_k_urls = re.compile('"(.*key)"').findall(play_data)
-				proxy_config = _common.proxyConfig()
+				proxy_config = common.proxyConfig()
 				for i, video_item in enumerate(relative_urls):
 					absolueurl =  video_url.replace(master, video_item)
 					newurl = base64.b64encode(absolueurl)
@@ -288,12 +289,12 @@ def play_video(SITE, EPISODE, HLSPATH = None):
 					play_data = play_data.replace(video_item,  newurl)
 				for i, video_item in enumerate(relative_k_urls):
 					absolueurl =  video_url.replace(master, video_item)
-					key_data = _connection.getURL(absolueurl)		
-					key_file = open(_common.KEYFILE + str(v) + '-' + str(i), 'wb')
+					key_data = connection.getURL(absolueurl)		
+					key_file = open(ustvpaths.KEYFILE + str(v) + '-' + str(i), 'wb')
 					key_file.write(key_data)
 					key_file.close()
 					play_data = play_data.replace(video_item,  'http://127.0.0.1:12345/play.key' + str(v) + '-' + str(i))
-				file_name = _common.PLAYFILE.replace('.m3u8', '_' + str(v) + '.m3u8')
+				file_name = ustvpaths.PLAYFILE.replace('.m3u8', '_' + str(v) + '.m3u8')
 				playfile = open(file_name, 'w')
 				playfile.write(play_data)
 				playfile.close()
@@ -303,27 +304,27 @@ def play_video(SITE, EPISODE, HLSPATH = None):
 		stack_url = 'stack://' + stack_url
 	finalurl = stack_url[:-3]
 	if localhttpserver:
-		filestring = 'XBMC.RunScript(' + os.path.join(_common.LIBPATH,'_proxy.py') + ', 12345)'
+		filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
 		xbmc.executebuiltin(filestring)
 		time.sleep(20)
 	item = xbmcgui.ListItem(path = finalurl)
 	if qbitrate is not None:
-		item.setThumbnailImage(_common.args.thumb)
-		item.setInfo('Video', {	'title' : _common.args.name,
-						'season' : _common.args.season_number,
-						'episode' : _common.args.episode_number,
-						'TVShowTitle' : _common.args.show_title})
+		item.setThumbnailImage(common.args.thumb)
+		item.setInfo('Video', {	'title' : common.args.name,
+						'season' : common.args.season_number,
+						'episode' : common.args.episode_number,
+						'TVShowTitle' : common.args.show_title})
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	if localhttpserver:
 			while player.is_active:
 				player.sleep(250)
 def list_qualities(SITE, EPISODE):
 	try:
-		video_id = _common.args.url.split(',')[0]
+		video_id = common.args.url.split(',')[0]
 	except:
-		video_id = _common.args.url
+		video_id = common.args.url
 	video_url = EPISODE % video_id
-	video_data = _connection.getURL(video_url)
+	video_data = connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	video_menu = video_tree.find_all('file')
 	bitrates = []
@@ -349,5 +350,5 @@ def getAUTH(aifp, window, tokentype, vid, filename, site):
 				'profile' : site,
 				'path' : filename
 				}
-	link = _connection.getURL(AUTHURL, parameters)
+	link = connection.getURL(AUTHURL, parameters)
 	return re.compile('<token>(.+?)</token>').findall(link)[0]

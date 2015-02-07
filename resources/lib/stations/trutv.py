@@ -5,9 +5,9 @@ import sys
 import urllib
 import xbmcgui
 import xbmcplugin
-from .. import _connection
-from .. import _common
-from .. import _main_turner
+from .. import connection
+from .. import common
+from .. import main_turner
 
 pluginHandle = int(sys.argv[1])
 
@@ -22,7 +22,7 @@ HLSPATH ='trutv'
 
 def masterlist():
 	master_db = []
-	master_data = _connection.getURL(SHOWS)
+	master_data = connection.getURL(SHOWS)
 	master_menu = simplejson.loads(master_data)['entries']
 	for master_item in master_menu:
 		master_name = master_item['title']
@@ -34,28 +34,28 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def seasons(season_url = _common.args.url):
+def seasons(season_url = common.args.url):
 	clip_url = season_url.split('#')[0]
 	episode_id = season_url.split('#')[1]
-	clip_data = _connection.getURL(season_url)
-	episode_data = _connection.getURL(FULLEPISODES % episode_id)
+	clip_data = connection.getURL(season_url)
+	episode_data = connection.getURL(FULLEPISODES % episode_id)
 	try:
 		season_menu = int(simplejson.loads(episode_data)['episodes']['totalItems'])
 	except:
 		season_menu = 0
 	if season_menu > 0:
-		_common.add_directory('Episodes',  SITE, 'episodes', FULLEPISODES % episode_id)
+		common.add_directory('Episodes',  SITE, 'episodes', FULLEPISODES % episode_id)
 	try:
 		season_menu = int(simplejson.loads(clip_data)['totalResults'])
 	except:
 		season_menu = 0
 	if season_menu > 0:
-		_common.add_directory('Clips',  SITE, 'episodes', clip_url)
-	_common.set_view('seasons')
+		common.add_directory('Clips',  SITE, 'episodes', clip_url)
+	common.set_view('seasons')
 
-def episodes(episode_url = _common.args.url):
-	episode_data = _connection.getURL(episode_url)
-	if 'clips' in _common.args.name.lower():
+def episodes(episode_url = common.args.url):
+	episode_data = connection.getURL(episode_url)
+	if 'clips' in common.args.name.lower():
 		episode_menu = simplejson.loads(episode_data)['entries']
 		for i, episode_item in enumerate(episode_menu):
 			default_mediacontent = None
@@ -69,7 +69,7 @@ def episodes(episode_url = _common.args.url):
 			url = default_mediacontent['plfile$url']
 			episode_duration = int(episode_item['media$content'][0]['plfile$duration'])
 			episode_plot = episode_item['description']
-			episode_airdate = _common.format_date(epoch = episode_item['pubDate']/1000)
+			episode_airdate = common.format_date(epoch = episode_item['pubDate']/1000)
 			episode_name = episode_item['title']
 			try:
 				season_number = int(episode_item['pl' + str(i + 1) + '$season'][0])
@@ -93,14 +93,14 @@ def episodes(episode_url = _common.args.url):
 							'episode' : episode_number,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate }
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
+			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
 	else:
 		episode_menu = simplejson.loads(episode_data)['episodes']
 		for episode_item in episode_menu['episode']:
 			url = str(episode_item['id'])
-			episode_duration = _common.format_seconds(episode_item['duration'])
+			episode_duration = common.format_seconds(episode_item['duration'])
 			episode_plot = episode_item['description']
-			episode_airdate = _common.format_date(episode_item['publishDate'].replace(' EDT', '').replace(' EST', ''), '%a %b %d %H:%M:%S %Y')
+			episode_airdate = common.format_date(episode_item['publishDate'].replace(' EDT', '').replace(' EST', ''), '%a %b %d %H:%M:%S %Y')
 			episode_name = episode_item['title']
 			try:
 				season_number = int(episode_item['seasonNumber'])
@@ -124,16 +124,16 @@ def episodes(episode_url = _common.args.url):
 							'episode' : episode_number,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate }
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	_common.set_view('episodes')
+			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+	common.set_view('episodes')
 
-def play_video(video_url = _common.args.url):
+def play_video(video_url = common.args.url):
 	if 'mp4' in video_url:
 		finalurl = video_url
 		item = xbmcgui.ListItem(path = finalurl)
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	else:
-		_main_turner.play_video(SITE, EPISODE, HLSPATH)
+		main_turner.play_video(SITE, EPISODE, HLSPATH)
 
 def list_qualities():
-	return _main_turner.list_qualities(SITE, EPISODE)
+	return main_turner.list_qualities(SITE, EPISODE)

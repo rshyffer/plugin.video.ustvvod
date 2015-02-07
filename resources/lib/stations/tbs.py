@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from .. import _main_turner
+from .. import main_turner
 
 SITE = 'tbs'
 NAME = "TBS"
@@ -14,16 +14,16 @@ EPISODE = 'http://www.tbs.com/video/content/services/cvpXML.do?id=%s'
 HLSPATH = 'tbs'
 
 def masterlist():
-	return _main_turner.masterlist(NAME, MOVIES, SHOWS, SITE)
+	return main_turner.masterlist(NAME, MOVIES, SHOWS, SITE)
 
 def seasons():
-	_main_turner.seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS)
+	main_turner.seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS)
 
 def episodes():
-	_main_turner.episodes_json(SITE)
+	main_turner.episodes_json(SITE)
 
 def play_video():
-	_main_turner.play_video(SITE, EPISODE, HLSPATH)
+	main_turner.play_video(SITE, EPISODE, HLSPATH)
 
 def list_qualities():
-	return _main_turner.list_qualities(SITE, EPISODE)
+	return main_turner.list_qualities(SITE, EPISODE)

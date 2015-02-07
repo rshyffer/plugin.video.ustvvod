@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 import sys
 import urllib
-from .. import _common
-from .. import _connection
-from .. import _main_nbcu
+from .. import common
+from .. import connection
+from .. import main_nbcu
 from bs4 import BeautifulSoup
 
 SITE = 'usa'
@@ -18,17 +18,17 @@ FULLEPISODESWEB ='http://www.usanetwork.com/%s/video-categories/full-episodes'
 BASE = 'http://www.usanetwork.com'
 
 def masterlist():
-	return _main_nbcu.masterlist(SITE, SHOWS)
+	return main_nbcu.masterlist(SITE, SHOWS)
 
 def seasons():
-	_main_nbcu.seasons(SITE, FULLEPISODES, CLIPS, FULLEPISODESWEB)
+	main_nbcu.seasons(SITE, FULLEPISODES, CLIPS, FULLEPISODESWEB)
 
 def episodes():
-	_main_nbcu.episodes(SITE)
+	main_nbcu.episodes(SITE)
 
 def webepisodes():
-	episode_url = _common.args.url
-	episode_data = _connection.getURL(episode_url)
+	episode_url = common.args.url
+	episode_data = connection.getURL(episode_url)
 	web_tree = BeautifulSoup(episode_data, 'html.parser')
 	episode_menu = web_tree.find_all('div', class_ = 'view-mode-vid_teaser_show_episode')
 	for i, episode_item in enumerate(episode_menu):
@@ -55,11 +55,11 @@ def webepisodes():
 						 'season' : season_number,
 						 'episode' : episode_number,
 						}
-			_common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	_common.set_view('episodes')
+			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+	common.set_view('episodes')
 
 def list_qualities():
-	return _main_nbcu.list_qualities()
+	return main_nbcu.list_qualities()
 
 def play_video():
-	_main_nbcu.play_video()
+	main_nbcu.play_video()
