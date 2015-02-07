@@ -403,7 +403,7 @@ def convert_subtitles(closedcaption):
 					except:
 						pass
 			j = j + i + 1
-			file = open(os.path.join(_common.CACHEPATH, 'subtitle-%s.srt' % str(count)), 'w')
+			file = open(os.path.join(_common.DATAPATH, 'subtitle-%s.srt' % str(count)), 'w')
 			file.write(str_output)
 			str_output=''
 			file.close()

@@ -21,11 +21,11 @@ addon = xbmcaddon.Addon(id = 'plugin.video.ustvvod')
 
 PLUGINPATH = addon.getAddonInfo('path').decode('utf-8')
 RESOURCESPATH = os.path.join(PLUGINPATH, 'resources')
-CACHEPATH = os.path.join(RESOURCESPATH, 'cache')
-VIDEOPATH = os.path.join(CACHEPATH, 'videos')
-KEYFILE = os.path.join(CACHEPATH, 'play.key')
-PLAYFILE = os.path.join(CACHEPATH, 'play.m3u8')
-COOKIE = os.path.join(CACHEPATH, 'cookie.txt')
+DATAPATH = os.path.join(RESOURCESPATH, 'cache')
+VIDEOPATH = os.path.join(DATAPATH, 'videos')
+KEYFILE = os.path.join(DATAPATH, 'play.key')
+PLAYFILE = os.path.join(DATAPATH, 'play.m3u8')
+COOKIE = os.path.join(DATAPATH, 'cookie.txt')
 
 HOST_NAME = 'localhost'
 TIMEOUT = 50

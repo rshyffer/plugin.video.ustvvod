@@ -18,10 +18,10 @@ addon = xbmcaddon.Addon()
 
 PLUGINPATH = addon.getAddonInfo('path').decode('utf-8')
 RESOURCESPATH = os.path.join(PLUGINPATH,'resources')
-CACHEPATH = os.path.join(RESOURCESPATH,'cache')
-COOKIE = os.path.join(CACHEPATH,'cookie.txt')
+DATAPATH = os.path.join(RESOURCESPATH,'cache')
+COOKIE = os.path.join(DATAPATH,'cookie.txt')
 IPURL = 'http://icanhazip.com'
-IPFILE = os.path.join(CACHEPATH,'ip.txt')
+IPFILE = os.path.join(DATAPATH,'ip.txt')
 DNS_REFESH_DELAY = 10
 TIMEOUT = 80
 

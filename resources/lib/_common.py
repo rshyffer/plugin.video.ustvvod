@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 import _connection
 import _database
-import _importlib
 import base64
+import importlib
 import os
 import re
 import simplejson
@@ -21,17 +21,18 @@ pluginHandle = int(sys.argv[1])
 
 PLUGINPATH = addon.getAddonInfo('path').decode('UTF-8')
 RESOURCESPATH = os.path.join(PLUGINPATH,'resources')
-CACHEPATH = os.path.join(RESOURCESPATH,'cache')
+DATAPATH = os.path.join(RESOURCESPATH,'data')
 IMAGEPATH = os.path.join(RESOURCESPATH,'images')
 LIBPATH = os.path.join(RESOURCESPATH,'lib')
+STATIONPATH = os.path.join(LIBPATH,'stations')
 PLUGINFANART = os.path.join(PLUGINPATH,'fanart.jpg')
-FAVICON = os.path.join(PLUGINPATH,'fav.png')
-ALLICON = os.path.join(PLUGINPATH,'allshows.png')
-PLAYFILE = os.path.join(CACHEPATH,'play.m3u8')
-KEYFILE = os.path.join(CACHEPATH,'play.key')
-SUBTITLE = os.path.join(CACHEPATH,'subtitle.srt')
-SUBTITLESMI = os.path.join(CACHEPATH,'subtitle.smi')
-COOKIE = os.path.join(CACHEPATH,'cookie.txt')
+FAVICON = os.path.join(IMAGEPATH,'fav.png')
+ALLICON = os.path.join(IMAGEPATH,'allshows.png')
+PLAYFILE = os.path.join(DATAPATH,'play.m3u8')
+KEYFILE = os.path.join(DATAPATH,'play.key')
+SUBTITLE = os.path.join(DATAPATH,'subtitle.srt')
+SUBTITLESMI = os.path.join(DATAPATH,'subtitle.smi')
+COOKIE = os.path.join(DATAPATH,'cookie.txt')
 
 ADDONID = 'plugin.video.ustvvod'
 TVDBAPIKEY = '03B8C17597ECBD64'
@@ -75,9 +76,9 @@ class XBMCPlayer( xbmc.Player ):
 		if self._subtitles_Enabled:
 			if self._segments > 1:
 				if self._subtitles_Type == "SRT":
-					self.setSubtitles(os.path.join(CACHEPATH, 'subtitle-%s.srt' % str(self._counter)))
+					self.setSubtitles(os.path.join(DATAPATH, 'subtitle-%s.srt' % str(self._counter)))
 				else:
-					self.setSubtitles(os.path.join(CACHEPATH, 'subtitle-%s.smi' % str(self._counter)))
+					self.setSubtitles(os.path.join(DATAPATH, 'subtitle-%s.smi' % str(self._counter)))
 			else:
 				if self._subtitles_Type == "SRT":
 					self.setSubtitles(SUBTITLE)
@@ -153,7 +154,7 @@ def get_network(module_name):
 		return network_module_cache[module_name]
 	print "!!! plugin loading of site : " + module_name 
 	try:
-		module = _importlib.import_module('resources.lib.%s' % (module_name))
+		module = importlib.import_module('resources.lib.stations.%s' % (module_name))
 		if hasattr(module, 'SITE') and hasattr(module, 'masterlist'):
 			if not hasattr(module, 'NAME'):
 				setattr(module, 'NAME', module_name)
@@ -162,7 +163,7 @@ def get_network(module_name):
 			network_module_cache[module_name] = module
 			return module
 		else:
-			print "error loading site, SITE and materlist must be defined"
+			print "error loading site, SITE and masterlist must be defined!"
 	except Exception, e:
 		print str(e)
 
@@ -171,7 +172,7 @@ def get_networks():
 	Loads all networks using a quick and dirty plugin method
 	"""
 	networks = []
-	for filename in os.listdir(LIBPATH):
+	for filename in os.listdir(STATIONPATH):
 		if filename.endswith('.py') and not filename.startswith('_'):
 			module_name = os.path.splitext(filename)[0]
 			network = get_network(module_name)
