@@ -365,10 +365,61 @@ msgctxt "#39033"
 msgid "\n\n%s account required for locked content."
 msgstr ""
 
+msgctxt "#39034"
+msgid "USTV VoD - Add %s to Library"
+msgstr ""
+
+msgctxt "#39035"
+msgid "USTV VoD - Clear Library Directory"
+msgstr ""
+
+msgctxt "#39036"
+msgid "USTVVOD Library"
+msgstr ""
+
+msgctxt "#39037"
+msgid "Exported %s"
+msgstr ""
 msgctxt "#34000"
 msgid "Logins"
 msgstr ""
 
 msgctxt "#34001"
 msgid "Use login"
+msgstr ""
+
+msgctxt "#35000"
+msgid "Export to Library"
+msgstr ""
+
+msgctxt "#35001"
+msgid "Default Library Folder"
+msgstr ""
+
+msgctxt "#35002"
+msgid "Custom Library Folder"
+msgstr ""
+
+msgctxt "#35003"
+msgid "Update Library"
+msgstr ""
+
+msgctxt "#35004"
+msgid "Export Episode NFO"
+msgstr ""
+
+msgctxt "#35005"
+msgid "Export Movie NFO"
+msgstr ""
+
+msgctxt "#35006"
+msgid "Title suffix"
+msgstr ""
+
+msgctxt "#35007"
+msgid "Export Show NFO"
+msgstr ""
+
+msgctxt "#35008"
+msgid "Clean Library"
 msgstr ""

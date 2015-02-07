@@ -105,6 +105,44 @@ class _Info:
 args = _Info(sys.argv[2][1:].replace('&', ' , '))
 network_module_cache = {}
 
+
+def season_list():
+	network = get_network(args.mode)
+	if network:
+		seasons = getattr(network, args.sitemode)()
+		for season in seasons:
+			section_title,  site, sitemode, url, locked, unlocked = season
+			add_directory(section_title,  site, sitemode, url, locked = locked, unlocked = unlocked)
+	set_view('seasons')
+
+def enrich_infolabels(infolabels, expires_date = None, date_format = None):
+	try:
+		if expires_date is not None and expires_date != '':
+			if date_format:
+				
+				expires_date = format_date(expires_date, date_format, '%d/%m/%Y')
+			plot =  'Expires: ' + smart_utf8(expires_date) + '\n' + smart_utf8(infolabels['plot'])
+			infolabels['plot'] = plot
+	except:
+		pass
+	try:
+		infolabels['mpaa'] = infolabels['mpaa'].upper()
+	except:
+		pass
+	try:
+		infolabels['genre'] = infolabels['genre'].title()
+	except:
+		pass
+	return infolabels
+	
+def episode_list():
+	network = get_network(args.mode)
+	if network:
+		episodes = getattr(network, args.sitemode)()
+		for episode in episodes:
+			u, episode_name, episode_thumb, infoLabels, qmode, HD, media_type = episode
+			add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities', HD = HD)
+	set_view('episodes')
 def root_list(network_name):
 	"""
 	Loads data from master list
@@ -127,7 +165,7 @@ def root_list(network_name):
 			return False
 	for show in showdata:
 		try:
-			add_show(show[0], show[1], show[2], show[3], siteplot = show[4])
+			add_show(show[0], show[1], show[2], show[3], sitedata = show[4])
 		except:
 			add_show(show[0], show[1], show[2], show[3])
 	set_view('root')
@@ -300,11 +338,15 @@ def refresh_db():
 def get_skelton_series(series_title, mode, submode, url):
 	return [series_title, mode,submode, url, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, True, False, False, series_title]
 
-def get_serie(series_title, mode, submode, url, forceRefresh = False):
+def get_serie(series_title, mode, submode, url, forceRefresh = False, sitedata = None):
 	command = 'select * from shows where lower(series_title) = ? and mode = ? and submode = ?;'
 	values = (series_title.lower(), mode, submode)
 	checkdata = database.execute_command(command, values, fetchone = True)
 	empty_values = get_skelton_series(series_title, mode, submode, url)
+	try:
+		siteplot = sitedata['plot']
+	except:
+		siteplot = None
 	try:
 		tvdb_setting = int(addon.getSetting('strict_names'))
 	except:
@@ -313,6 +355,13 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False):
 		if checkdata[3] != url: 
 			command = 'update shows set url = ? where series_title = ? and mode = ? and submode = ?;'
 			values = (url, series_title, mode, submode)
+			database.execute_command(command, values, commit = True)
+			command = 'select * from shows where lower(series_title) = ? and mode = ? and submode = ?;'
+			values = (series_title.lower(), mode, submode)
+			return database.execute_command(command, values, fetchone = True)
+		elif checkdata[15] is None and siteplot  is not None:
+			command = 'update shows set plot = ? where series_title = ? and mode = ? and submode = ?;'
+			values = (siteplot, series_title, mode, submode)
 			database.execute_command(command, values, commit = True)
 			command = 'select * from shows where lower(series_title) = ? and mode = ? and submode = ?;'
 			values = (series_title.lower(), mode, submode)
@@ -590,12 +639,12 @@ def get_plot_by_tvdbid(tvdb_id):
 			prefixplot = smart_unicode(prefixplot) + smart_unicode(replace_signs(plot))
 	return prefixplot
 
-def get_show_data(series_title, mode = '', sitemode = '', url = ''):
+def get_show_data(series_title, mode = '', sitemode = '', url = '', sitedata = None):
 	series_title = replace_signs(smart_unicode(series_title))
 	if not os.path.exists(database.DBFILE):
 		database.create_db()
 	database.check_db_version()
-	showdata = get_serie(series_title, mode, sitemode, url, forceRefresh = False)
+	showdata = get_serie(series_title, mode, sitemode, url, forceRefresh = False, sitedata = sitedata)
 	return showdata
 
 def load_showlist(favored = 0):
@@ -621,7 +670,7 @@ def fetch_showlist(favored = 0):
 	command = "select * from shows  where url <> '' and hide <> 1 and favor = ? order by series_title"
 	return database.execute_command(command, fetchall = True, values = [favored]) 
 
-def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, hide = 0, masterList = False, showdata = None, siteplot = None):
+def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, hide = 0, masterList = False, showdata = None, sitedata = None):
 	infoLabels = {}
 	tvdbfanart = None
 	tvdbbanner = None
@@ -631,8 +680,20 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 	fanart = ''
 	prefixplot = ''
 	actors2 = []
+	try:
+		siteplot = sitedata['plot']
+	except:
+		siteplot = None
+	try:
+		sitethumb = sitedata['thumb']
+	except:
+		sitethumb = None
+	try:
+		sitegenre = sitedata['genre']
+	except:
+		sitegenre = None
 	if showdata is None:
-		showdata = get_show_data(series_title, mode, sitemode, url)
+		showdata = get_show_data(series_title, mode, sitemode, url, siteplot)
 	series_title, mode, sitemode, url, tvdb_id, imdb_id, tvdbbanner, tvdbposter, tvdbfanart, first_aired, date, year, actors, genres, network, plot, runtime, rating, airs_dayofweek, airs_time, status, has_full_episodes, favor, hide, tvdb_series_title = showdata
 	network_module = get_network(mode)
 	if not network_module:
@@ -650,6 +711,8 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 		thumb = tvdbbanner
 	elif tvdbposter is not None:
 		thumb = tvdbposter
+	elif sitethumb is not None:
+		thumb = sitethumb
 	else:
 		thumb = os.path.join(ustvpaths.IMAGEPATH, mode + '.png')
 	orig_series_title = urllib.quote_plus(smart_utf8(series_title))
@@ -701,6 +764,8 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 			infoLabels['cast'] = actors2
 	if genres is not None:
 		infoLabels['genre'] = smart_utf8(genres.replace('|',',').strip(','))
+	elif sitegenre is not None:
+		infoLabels['genre'] = smart_utf8(sitegenre)
 	if network is not None:
 		infoLabels['studio'] = smart_utf8(network)
 	if runtime is not None:
@@ -748,7 +813,7 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 	item.setInfo(type = 'Video', infoLabels = infoLabels)
 	xbmcplugin.addDirectoryItem(pluginHandle, url = u, listitem = item, isFolder = True)
 
-def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = None, fanart = None, description = None, aired = '', genre = '', count = 0, locked = -1, unlocked = -1):
+def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = None, fanart = None, description = None, aired = '', genre = '', count = 0, locked = -1, unlocked = -1, contextmenu = []):
 	if fanart is None:
 		if args.__dict__.has_key('fanart'):
 			fanart = args.fanart
@@ -767,7 +832,7 @@ def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = No
 		showname = ''
 	if description is None:
 		network = get_network(mode)
-		if locked == -1 and unlocked == -1:
+		if (locked == -1 and unlocked == -1) or locked == 0:
 			if args.__dict__.has_key('tvdb_id'):
 				description = get_plot_by_tvdbid(args.tvdb_id)
 			else:
@@ -796,7 +861,6 @@ def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = No
 	item=xbmcgui.ListItem(name, iconImage = thumb, thumbnailImage = thumb)
 	item.setProperty('fanart_image', fanart)
 	item.setInfo(type = 'Video', infoLabels = infoLabels)
-	contextmenu = []
 	refresh_u = sys.argv[0] + '?url="<join>"' + sys.argv[0] + '?url="' + '&mode=contextmenu' + '&sitemode=refresh_db' 
 	contextmenu.append((smart_utf8(addon.getLocalizedString(39021)), 'XBMC.RunPlugin(%s)' % refresh_u))
 	item.addContextMenuItems(contextmenu)
@@ -845,6 +909,8 @@ def add_video(video_url, displayname, thumb = None, fanart = None, infoLabels = 
 		if 'TVShowTitle' in infoLabels.keys():
 			show_title = infoLabels['TVShowTitle']
 		else:
+			show_title = ''
+		if show_title is None:
 			show_title = ''
 		quailty_u = sys.argv[0] + '?url='+ urllib.quote_plus('<join>'.join([show_title, str(season), str(episode), thumb, base64.b64encode(displayname), quality_mode, video_url])) +'&mode=contextmenu' + '&sitemode=select_quality' 
 		contextmenu.append((smart_utf8(addon.getLocalizedString(39022)), 'XBMC.PlayMedia(%s)' % quailty_u))
