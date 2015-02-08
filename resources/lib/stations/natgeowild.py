@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
-from .. import main_natgeo
+import main_natgeo
 
 SITE = 'natgeowild'
 NAME = 'Nat Geo Wild'

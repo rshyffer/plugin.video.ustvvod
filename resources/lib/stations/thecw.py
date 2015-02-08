@@ -1,7 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import base64
+import common
+import connection
+import database
 import glob
+import m3u8
 import os
 import re
 import shutil
@@ -9,15 +13,11 @@ import simplejson
 import sys
 import time
 import urllib
+import ustvpaths
 import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-from .. import common
-from .. import connection
-from .. import database
-from .. import m3u8
-from .. import ustvpaths
 
 addon = xbmcaddon.Addon()
 player = common.XBMCPlayer()

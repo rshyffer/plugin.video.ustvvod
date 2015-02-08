@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
-from .. import main_abcdisney
+import main_abcdisney
 
 BRANDID = '003'
 PARTNERID = '585231'

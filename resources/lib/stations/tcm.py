@@ -1,13 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import connection
+import common
+import main_turner
 import re
 import simplejson
 import sys
 import urllib
-from .. import connection
-from .. import common
-from .. import main_turner
-
 
 SITE = 'tcm'
 NAME = "TCM"

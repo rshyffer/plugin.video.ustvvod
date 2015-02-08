@@ -1,10 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import common
+import connection
+import main_nbcu
 import sys
 import urllib
-from .. import common
-from .. import connection
-from .. import main_nbcu
 from bs4 import BeautifulSoup
 
 SITE = 'usa'

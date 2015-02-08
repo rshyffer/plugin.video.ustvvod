@@ -1,12 +1,12 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
+import common
+import connection
 import simplejson
 import sys
 import urllib
 import xbmcgui
 import xbmcplugin
-from .. import common
-from .. import connection
 from bs4 import BeautifulSoup
 
 pluginHandle = int(sys.argv[1])

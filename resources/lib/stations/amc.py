@@ -1,14 +1,14 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
+import common
+import connection
+import main_brightcove
 import simplejson
 import sys
 import urllib
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-from .. import common
-from .. import connection
-from .. import main_brightcove
 from bs4 import BeautifulSoup
 
 addon = xbmcaddon.Addon()

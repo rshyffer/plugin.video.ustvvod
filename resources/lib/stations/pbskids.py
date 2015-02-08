@@ -1,17 +1,17 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import common
+import connection
+import m3u8
 import re
 import simplejson
 import sys
 import urllib
+import ustvpaths
 import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-from .. import common
-from .. import connection
-from .. import m3u8
-from .. import ustvpaths
 
 addon = xbmcaddon.Addon()
 pluginHandle = int (sys.argv[1])

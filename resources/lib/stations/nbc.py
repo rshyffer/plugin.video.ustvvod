@@ -1,22 +1,22 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import base64
-import os
+import common
+import connection
 import HTMLParser
+import m3u8
+import ordereddict
+import os
 import re
 import simplejson
 import sys
 import time
 import urllib
+import ustvpaths
 import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-from .. import common
-from .. import connection
-from .. import m3u8
-from .. import ordereddict
-from .. import ustvpaths
 from bs4 import BeautifulSoup, SoupStrainer
 
 addon = xbmcaddon.Addon()

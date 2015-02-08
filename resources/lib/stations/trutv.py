@@ -1,13 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import connection
+import common
+import main_turner
 import simplejson
 import sys
 import urllib
 import xbmcgui
 import xbmcplugin
-from .. import connection
-from .. import common
-from .. import main_turner
 
 pluginHandle = int(sys.argv[1])
 

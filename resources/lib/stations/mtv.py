@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from .. import common
-from .. import main_viacom
+import common
+import main_viacom
 
 SITE = 'mtv'
 NAME = 'MTV'

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from .. import main_turner
+import main_turner
 
 SITE = 'tbs'
 NAME = "TBS"

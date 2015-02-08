@@ -10,17 +10,12 @@ import re
 import simplejson
 import socket
 import sys
-import traceback
 import time
 import urllib
 import urllib2
-import xbmc
-import xbmcaddon
 from dns.resolver import Resolver
 
-addon = xbmcaddon.Addon(id = 'plugin.video.ustvvod')
-
-HOST_NAME = 'localhost'
+HOST_NAME = '127.0.0.1'
 TIMEOUT = 50
 PORT_NUMBER = int(sys.argv[1])
 
@@ -112,7 +107,6 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 		else:
 			opener = urllib2.build_opener(httphandler, urllib2.HTTPCookieProcessor(cj))
-		
 		request = urllib2.Request(url = fURL)
 		opener.addheaders = []
 		d = {}
@@ -143,7 +137,7 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				buf = 'INIT'
 				try:
 					while ((buf != None) and (len(buf) > 0)):
-						buf = response.read(8 * 1024)
+						buf = response.read(1024 * 1024)
 						fileout.write(buf)
 						fileout.flush()
 					response.close()
@@ -156,11 +150,11 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 					except Exception, e:
 						return
 				except Exception, e:
-					traceback.print_exc(file = sys.stdout)
+					print 'Exception: ' + e
 					response.close()
 					fileout.close()
 			except:
-				traceback.print_exc()
+				print 'Exception: ' + e
 				fileout.close()
 				return
 		try:

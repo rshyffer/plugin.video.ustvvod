@@ -1,11 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import connection
+import common
 import HTMLParser
+import main_turner
 import urllib
 import sys
-from .. import connection
-from .. import common
-from .. import main_turner
 from bs4 import BeautifulSoup, SoupStrainer
 
 SITE = 'tnt'

@@ -1,6 +1,6 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
-from .. import main_abcdisney
+import main_abcdisney
 
 SITE = 'disneyjunior'
 NAME = 'Disney Junior'

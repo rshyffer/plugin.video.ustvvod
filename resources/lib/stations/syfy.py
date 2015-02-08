@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from .. import main_nbcu
+import main_nbcu
 
 SITE = 'syfy'
 NAME = 'Syfy'

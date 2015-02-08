@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from .. import main_aenetwork
+import main_aenetwork
 
 SITE = 'lifetime'
 NAME = 'Lifetime'

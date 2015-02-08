@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from .. import common
-from .. import connection
-from .. import main_turner
+import common
+import connection
+import main_turner
 from bs4 import BeautifulSoup
 
 SITE = 'cartoon'
