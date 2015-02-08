@@ -20,7 +20,6 @@ from bs4 import BeautifulSoup
 addon = xbmcaddon.Addon()
 pluginHandle = int(sys.argv[1])
 
-ADDONID = 'plugin.video.ustvvod'
 TVDBAPIKEY = '03B8C17597ECBD64'
 TVDBURL = 'http://thetvdb.com'
 TVDBBANNERS = 'http://thetvdb.com/banners/'
@@ -143,6 +142,7 @@ def episode_list():
 			u, episode_name, episode_thumb, infoLabels, qmode, HD, media_type = episode
 			add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities', HD = HD)
 	set_view('episodes')
+
 def root_list(network_name):
 	"""
 	Loads data from master list

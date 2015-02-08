@@ -83,7 +83,7 @@ def masterlist(SITE, BRANDID):
 							'thumb' : thumb,
 							'genre' : genre}
 				if 'Long Form' not in genre:
-					master_db.append((master_name, SITE, 'seasons', season_url, site_data))
+					master_db.append((master_name, SITE, mode, season_url, site_data))
 	return master_db
 
 def seasons(SITE, BRANDID, season_url = common.args.url):
