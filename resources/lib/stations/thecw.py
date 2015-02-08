@@ -78,9 +78,8 @@ def episodes(episode_url = common.args.url):
 			episode_thumb = episode_item['large_thumbnail']
 			thumb_file = episode_thumb.split('/')[-1]
 			thumb_path = os.path.join(ustvpaths.DATAPATH, 'thumbs', thumb_file)
-			dbpath = xbmc.translatePath(database.DBPATH)
 			thumbcount = 0
-			for name in glob.glob(os.path.join(dbpath, 'textures[0-9]*.db')):
+			for name in glob.glob(os.path.join(ustvpaths.DBPATH,'textures[0-9]*.db')):
 				thumbcount = thumbcount+ database.execute_command('select count(1) from texture where url = ?', [thumb_path,], fetchone = True, dbfile = name)[0]
 			if thumbcount == 0:
 				thumb_data = connection.getURL(episode_thumb)

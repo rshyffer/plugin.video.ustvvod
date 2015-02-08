@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 import resources.lib.common as common
 import resources.lib.contextmenu as contextmenu
-import resources.lib.ustvpaths as ustvpaths
 import os
 import sys
+import resources.lib.ustvpaths as ustvpaths
 import xbmcaddon
 import xbmcplugin
 
@@ -21,7 +21,7 @@ def modes():
 		for network in networks:
 			if addon.getSetting(network.SITE) == 'true':
 				if network.NAME.endswith(', The'):
-					name = 'The ' +network.NAME.replace(', The', '')
+					name = 'The ' + network.NAME.replace(', The', '')
 				all_description += network.NAME + ', '
 		count = 0
 		common.add_directory(common.smart_utf8(addon.getLocalizedString(39000)), 'Favorlist', 'NoUrl', thumb = ustvpaths.FAVICON, count = count, description = common.smart_utf8(addon.getLocalizedString(39001)) + '\n' + all_description)

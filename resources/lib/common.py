@@ -294,7 +294,7 @@ def replace_signs(text):
 	return text
 
 def refresh_db():
-	if not os.path.isfile(database.DBFILE):
+	if not os.path.isfile(ustvpaths.DBFILE):
 		database.create_db()
 	networks = get_networks()
 	dialog = xbmcgui.DialogProgress()
@@ -641,7 +641,7 @@ def get_plot_by_tvdbid(tvdb_id):
 
 def get_show_data(series_title, mode = '', sitemode = '', url = '', sitedata = None):
 	series_title = replace_signs(smart_unicode(series_title))
-	if not os.path.exists(database.DBFILE):
+	if not os.path.exists(ustvpaths.DBFILE):
 		database.create_db()
 	database.check_db_version()
 	showdata = get_serie(series_title, mode, sitemode, url, forceRefresh = False, sitedata = sitedata)
@@ -653,7 +653,7 @@ def load_showlist(favored = 0):
 		add_show( masterList = True, showdata = show)
 
 def fetch_showlist(favored = 0):
-	if not os.path.exists(database.DBFILE):
+	if not os.path.exists(ustvpaths.DBFILE):
 		database.create_db()
 		refresh_db()
 	elif not favored:

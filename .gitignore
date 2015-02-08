@@ -1,11 +1,13 @@
 resources/images/Thumbs.db
+resources/data/ip.txt
+resources/data/thumb/*.*
+resources/data/thumb
 Thumbs.db
+cookie.txt
 *.pyo
-*.srt
 *.m3u8
 *.key*
-cookie.txt
+*.srt
 *.smi
-resources/cache/ip.txt
 *.bak
 *.psd

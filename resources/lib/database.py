@@ -3,12 +3,10 @@
 import os
 import sys
 import urllib
-import xbmc
+import ustvpaths
 from sqlite3 import dbapi2 as sqlite
 
 DBVERSION = 1
-DBPATH = 'special://home/addons/script.module.free.cable.database/lib/'
-DBFILE = os.path.join(xbmc.translatePath(DBPATH), 'shows.db')
 
 class _Info:
 	def __init__(self, s):
@@ -22,10 +20,10 @@ class _Info:
 
 args = _Info(sys.argv[2][1:].replace('&', ' , '))
 
-def execute_command(command, values = [], commit = False, fetchone = False, fetchall = False, dbfile = DBFILE):
+def execute_command(command, values = [], commit = False, fetchone = False, fetchall = False, dbfile = ustvpaths.DBFILE):
 	# make sure the database path exists, although the file might not
-	if not os.path.exists(xbmc.translatePath(DBPATH)):
-		os.makedirs(os.path.dirname(DBFILE)) 
+	if not os.path.exists(ustvpaths.DBPATH):
+		os.makedirs(os.path.dirname(dbfile)) 
 	conn = sqlite.connect(dbfile)
 	conn.text_factory = str
 	c = conn.cursor()
@@ -43,10 +41,10 @@ def execute_command(command, values = [], commit = False, fetchone = False, fetc
 	elif fetchall is True:
 		return data.fetchall()
 
-def execute_only(command, values = [], commit = False, fetchone = False, fetchall = False, dbfile = DBFILE):
+def execute_only(command, values = [], commit = False, fetchone = False, fetchall = False, dbfile = ustvpaths.DBFILE):
 	# make sure the database path exists, although the file might not
-	if not os.path.exists(xbmc.translatePath(DBPATH)):
-		os.makedirs(os.path.dirname(DBFILE)) 
+	if not os.path.exists(ustvpaths.DBPATH):
+		os.makedirs(os.path.dirname(dbfile)) 
 	conn = sqlite.connect(dbfile)
 	conn.text_factory = str
 	if values != []:
