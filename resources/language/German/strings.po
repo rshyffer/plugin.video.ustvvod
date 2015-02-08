@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: Kodi-Addons\n"
 "Report-Msgid-Bugs-To: alanwww1@xbmc.org\n"
 "POT-Creation-Date: 2013-08-03 23:41+0000\n"
-"PO-Revision-Date: 2015-01-05 22:00+0000\n"
+"PO-Revision-Date: 2015-02-08 15:00+0000\n"
 "Last-Translator: USTV VOD Team\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -365,10 +365,62 @@ msgctxt "#39033"
 msgid "\n\n%s account required for locked content."
 msgstr "\n\n%s Konto benötigt für gesperrten Inhalt."
 
+msgctxt "#39034"
+msgid "USTV VoD - Add %s to Library"
+msgstr "USTV VoD - %s zur Bibliothek hinzufügen"
+
+msgctxt "#39035"
+msgid "USTV VoD - Clear Library Directory"
+msgstr "USTV VoD - Bibliothek Verzeichnis leeren"
+
+msgctxt "#39036"
+msgid "USTV VoD Library"
+msgstr "USTV VoD Bibliothek"
+
+msgctxt "#39037"
+msgid "Exported %s"
+msgstr "Exportiere %s"
+
 msgctxt "#34000"
-msgid "Anmeldedaten"
-msgstr ""
+msgid "Logins"
+msgstr "Anmeldedaten"
 
 msgctxt "#34001"
 msgid "Use login"
 msgstr "Benutze Anmeldung"
+
+msgctxt "#35000"
+msgid "Export to Library"
+msgstr "Zur Bibliothek exportieren"
+
+msgctxt "#35001"
+msgid "Default Library Folder"
+msgstr "Standard Bibliothek Ordner"
+
+msgctxt "#35002"
+msgid "Custom Library Folder"
+msgstr "Bibliothek Ordner anpassen"
+
+msgctxt "#35003"
+msgid "Update Library"
+msgstr "Bibliothek aktualisieren"
+
+msgctxt "#35004"
+msgid "Export Episode NFO"
+msgstr "Serien NFO exportieren"
+
+msgctxt "#35005"
+msgid "Export Movie NFO"
+msgstr "Film NFO exportieren"
+
+msgctxt "#35006"
+msgid "Title suffix"
+msgstr "Titelendung"
+
+msgctxt "#35007"
+msgid "Export Show NFO"
+msgstr "Staffel NFO exportieren"
+
+msgctxt "#35008"
+msgid "Clean Library"
+msgstr "Bibliothek leeren"
