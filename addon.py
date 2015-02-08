@@ -1,10 +1,12 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
-import resources.lib.common as common
-import resources.lib.contextmenu as contextmenu
 import os
+import site
+site.addsitedir(os.path.abspath(os.path.join(os.path.dirname(__file__),'resources','lib')))
+import common
+import contextmenu
 import sys
-import resources.lib.ustvpaths as ustvpaths
+import ustvpaths
 import xbmcaddon
 import xbmcplugin
 

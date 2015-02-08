@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 import main_abcdisney
 
-BRANDID = '002'
-PARTNERID = '585231'
-SITE = 'abcfamily'
+BRANDID = "002"
+PARTNERID = "585231"
+SITE = "abcfamily"
 NAME = "ABC Family"
 DESCRIPTION = "ABC Family's programming is a combination of network-defining original series and original movies, quality acquired series and blockbuster theatricals. ABC Family features programming reflecting today's families, entertaining and connecting with adults through relatable stories about today's relationships, told with a mix of diversity, passion, humor and heart. Targeting Millennial viewers ages 14-34, ABC Family is advertiser supported."
 

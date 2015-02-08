@@ -178,7 +178,7 @@ def get_network(module_name):
 		return network_module_cache[module_name]
 	print "!!! plugin loading of site : " + module_name 
 	try:
-		module = importlib.import_module('resources.lib.stations.%s' % (module_name))
+		module = importlib.import_module(module_name)
 		if hasattr(module, 'SITE') and hasattr(module, 'masterlist'):
 			if not hasattr(module, 'NAME'):
 				setattr(module, 'NAME', module_name)
@@ -197,7 +197,7 @@ def get_networks():
 	"""
 	networks = []
 	for filename in os.listdir(ustvpaths.STATIONPATH):
-		if filename.endswith('.py') and not filename.startswith('_'):
+		if filename.endswith('.py'):
 			module_name = os.path.splitext(filename)[0]
 			network = get_network(module_name)
 			if network:

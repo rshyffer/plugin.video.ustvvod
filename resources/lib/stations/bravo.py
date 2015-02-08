@@ -19,9 +19,7 @@ def masterlist():
 	master_data = connection.getURL(SHOWS)
 	master_menu = BeautifulSoup(master_data, 'html.parser').find_all('article', class_ = 'all-shows')
 	for master_item in master_menu:
-		print master_item
 		master_name = master_item.a['title']
-		print master_name
 		if master_name not in master_doubles:
 			tvdb_name = common.get_show_data(master_name, SITE, 'seasons')[-1]
 			if tvdb_name not in master_dict.keys():
