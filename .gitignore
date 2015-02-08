@@ -1,7 +1,7 @@
 resources/images/Thumbs.db
 resources/data/ip.txt
-resources/data/thumb/*.*
-resources/data/thumb
+resources/data/thumbs/*.*
+resources/data/thumbs
 Thumbs.db
 cookie.txt
 *.pyo
