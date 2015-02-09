@@ -93,31 +93,34 @@ def seasons(SITE, BRANDID, season_url = common.args.url):
 	season_url2 = VIDEOLIST % BRANDID + '001/-1/' + season_url + '/-1/-1/-1/-1'
 	season_data = connection.getURL(season_url2)
 	season_data2 = simplejson.loads(season_data)['videos']
-	season_count = int(season_data2['@count'])
-	if season_count > 1:
-		season_menu = season_data2['video']
-	elif season_count == 1:
-		season_menu.append(dict(season_data2['video']))
-	for season_item in season_menu:
-		if int(season_item['@accesslevel']) == 0:
-			if season_item['@type'] == 'lf':
-				try:
-					if season_item['season']['@id'] not in season_numbers:
-						season_numbers.append(season_item['season']['@id'])
-						season_name = 'Season ' + season_item['season']['@id']
-						season_url3 = VIDEOLIST % BRANDID + '001/' + season_item['@type'] + '/' + season_url + '/' + season_item['season']['@id'] + '/-1/-1/-1'
-						common.add_directory(season_name, SITE, 'episodes', season_url3)
-				except:
-					pass
-			elif season_item['@type'] == 'sf':
-				try:
-					if season_item['season']['@id'] not in clip_numbers:
-						clip_numbers.append(season_item['season']['@id'])
-						season_name = 'Season Clips ' + season_item['season']['@id']
-						season_url4 = VIDEOLIST % BRANDID + '001/' + season_item['@type'] + '/' + season_url + '/' + season_item['season']['@id'] + '/-1/-1/-1'
-						common.add_directory(season_name, SITE, 'episodes', season_url4)
-				except:
-					pass
+	try:
+		season_count = int(season_data2['@count'])
+		if season_count > 1:
+			season_menu = season_data2['video']
+		elif season_count == 1:
+			season_menu.append(dict(season_data2['video']))
+		for season_item in season_menu:
+			if int(season_item['@accesslevel']) == 0:
+				if season_item['@type'] == 'lf':
+					try:
+						if season_item['season']['@id'] not in season_numbers:
+							season_numbers.append(season_item['season']['@id'])
+							season_name = 'Season ' + season_item['season']['@id']
+							season_url3 = VIDEOLIST % BRANDID + '001/' + season_item['@type'] + '/' + season_url + '/' + season_item['season']['@id'] + '/-1/-1/-1'
+							common.add_directory(season_name, SITE, 'episodes', season_url3)
+					except:
+						pass
+				elif season_item['@type'] == 'sf':
+					try:
+						if season_item['season']['@id'] not in clip_numbers:
+							clip_numbers.append(season_item['season']['@id'])
+							season_name = 'Season Clips ' + season_item['season']['@id']
+							season_url4 = VIDEOLIST % BRANDID + '001/' + season_item['@type'] + '/' + season_url + '/' + season_item['season']['@id'] + '/-1/-1/-1'
+							common.add_directory(season_name, SITE, 'episodes', season_url4)
+					except:
+						pass
+	except:
+		pass
 	common.set_view('seasons')
 
 def episodes(SITE):
