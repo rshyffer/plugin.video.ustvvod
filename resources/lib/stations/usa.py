@@ -7,15 +7,15 @@ import sys
 import urllib
 from bs4 import BeautifulSoup
 
-SITE = 'usa'
-NAME = 'USA Network'
+SITE = "usa"
+NAME = "USA Network"
 DESCRIPTION = "USA Network is cable television's leading provider of original series and feature movies, sports events, off-net television shows, and blockbuster theatrical films. USA Network is seen in over 88 million U.S. homes. The USA Network web site is located at www.usanetwork.com. USA Network is a program service of NBC Universal Cable a division of NBC Universal, one of the world's leading media and entertainment companies in the development, production and marketing of entertainment, news and information to a global audience."
-SHOWS = 'http://feed.theplatform.com/f/OyMl-B/8IyhuVgUXDd_/categories?form=json&sort=order'
-CLIPS = 'http://feed.theplatform.com/f/OyMl-B/8IyhuVgUXDd_?count=true&form=json&byCustomValue={fullEpisode}{false}&byCategories=%s'
-FULLEPISODES = 'http://feed.theplatform.com/f/OyMl-B/8IyhuVgUXDd_?count=true&form=json&byCustomValue={fullEpisode}{true}&byCategories=%s'
-SWFURL = 'http://www.usanetwork.com/videos/pdk/swf/flvPlayer.swf'
-FULLEPISODESWEB ='http://www.usanetwork.com/%s/video-categories/full-episodes'
-BASE = 'http://www.usanetwork.com'
+SHOWS = "http://feed.theplatform.com/f/OyMl-B/8IyhuVgUXDd_/categories?form=json&sort=order"
+CLIPS = "http://feed.theplatform.com/f/OyMl-B/8IyhuVgUXDd_?count=true&form=json&byCustomValue={fullEpisode}{false}&byCategories=%s"
+FULLEPISODES = "http://feed.theplatform.com/f/OyMl-B/8IyhuVgUXDd_?count=true&form=json&byCustomValue={fullEpisode}{true}&byCategories=%s"
+SWFURL = "http://www.usanetwork.com/videos/pdk/swf/flvPlayer.swf"
+FULLEPISODESWEB = "http://www.usanetwork.com/%s/video-categories/full-episodes"
+BASE = "http://www.usanetwork.com"
 
 def masterlist():
 	return main_nbcu.masterlist(SITE, SHOWS)

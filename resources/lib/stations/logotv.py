@@ -3,12 +3,12 @@
 import common
 import main_viacom
 
-SITE = 'logotv'
-NAME = 'LogoTV'
-ALIAS = ['Logo']
+SITE = "logotv"
+NAME = "LogoTV"
+ALIAS = ["Logo"]
 DESCRIPTION = "Logo TV is an American digital cable and satellite television channel that is owned by Viacom Media Networks. The channel focuses on lifestyle programming aimed primarily at lesbian, gay, bisexual, and transgender people."
-API = 'http://api.mtv.com/api/hVqrnHigT6Rq/'
-SHOWS = API + 'promolist/10394912.json'
+API = "http://api.mtv.com/api/hVqrnHigT6Rq/"
+SHOWS = API + "promolist/10394912.json"
 
 def masterlist():
 	return main_viacom.masterlist(SITE, SHOWS)

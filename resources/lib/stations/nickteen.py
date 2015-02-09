@@ -8,15 +8,15 @@ import sys
 import urllib
 from bs4 import BeautifulSoup
 
-SITE = 'nickteen'
-NAME = 'Nick Teen'
-ALIAS = ['TeenNick']
-DESCRIPTION = "Launched in April 2002, TeenNick (formerly named The N) features 24-hours of teen programming. Our award-winning and original programming, including Degrassi: The Next Generation, Beyond the Break, The Best Years and The Assistants, presents sharp and thoughtful content that focuses on the real life issues teens face every day. On our Emmy winning website, www.Teennick.com, fans get complete access to behind-the-scenes interviews, pictures and videos, plus a robust community of 2 million members who interact with message boards, user profiles and blogs. TeenNick'Ûªs broadband channel, The Click, features full-length episodes of the network'Ûªs hit original series along with outtakes, sneak peeks and webisodes of TeenNick series created exclusively for broadband. The Click provides teens with the ability to create video mash-ups and watch, comment on and share content from their favorite TeenNick shows with all of their friends, wherever they go."
-BASE = 'http://www.teennick.com'
-BASE2 = 'http://media.nick.com/'
-SHOWS = 'http://www.teennick.com/ajax/videos/all-videos?sort=date+desc&start=0&page=1&updateDropdown=true&viewType=collectionAll'
-CLIPS = 'http://www.teennick.com/ajax/videos/all-videos/%s?type=videoItem'
-FULLEPISODES = 'http://www.teennick.com/ajax/videos/all-videos/%s?type=fullEpisodeItem'
+SITE = "nickteen"
+NAME = "Nick Teen"
+ALIAS = ["TeenNick"]
+DESCRIPTION = "Launched in April 2002, TeenNick (formerly named The N) features 24-hours of teen programming. Our award-winning and original programming, including Degrassi: The Next Generation, Beyond the Break, The Best Years and The Assistants, presents sharp and thoughtful content that focuses on the real life issues teens face every day. On our Emmy winning website, www.Teennick.com, fans get complete access to behind-the-scenes interviews, pictures and videos, plus a robust community of 2 million members who interact with message boards, user profiles and blogs. TeenNick's broadband channel, The Click, features full-length episodes of the network's hit original series along with outtakes, sneak peeks and webisodes of TeenNick series created exclusively for broadband. The Click provides teens with the ability to create video mash-ups and watch, comment on and share content from their favorite TeenNick shows with all of their friends, wherever they go."
+BASE = "http://www.teennick.com"
+BASE2 = "http://media.nick.com/"
+SHOWS = "http://www.teennick.com/ajax/videos/all-videos?sort=date+desc&start=0&page=1&updateDropdown=true&viewType=collectionAll"
+CLIPS = "http://www.teennick.com/ajax/videos/all-videos/%s?type=videoItem"
+FULLEPISODES = "http://www.teennick.com/ajax/videos/all-videos/%s?type=fullEpisodeItem"
 
 def masterlist():
 	master_db = []

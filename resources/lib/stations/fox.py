@@ -21,12 +21,12 @@ addon = xbmcaddon.Addon()
 player = common.XBMCPlayer()
 pluginHandle = int(sys.argv[1])
 
-SITE = 'fox'
-NAME = 'FOX'
+SITE = "fox"
+NAME = "FOX"
 DESCRIPTION = "Fox Broadcasting Company is a unit of News Corporation and the leading broadcast television network among Adults 18-49. FOX finished the 2010-2011 season at No. 1 in the key adult demographic for the seventh consecutive year ' a feat that has never been achieved in broadcast history ' while continuing to dominate all network competition in the more targeted Adults 18-34 and Teen demographics. FOX airs 15 hours of primetime programming a week as well as late-night entertainment programming, major sports and Sunday morning news."
-SHOWS = 'http://assets.fox.com/apps/FEA/v1.7/allshows.json'
-CLIPS = 'http://feed.theplatform.com/f/fox.com/metadata?count=true&byCustomValue={fullEpisode}{false}&byCategories=Series/%s'
-FULLEPISODES = 'http://feed.theplatform.com/f/fox.com/metadata?count=true&byCustomValue={fullEpisode}{true}&byCategories=Series/%s'
+SHOWS = "http://assets.fox.com/apps/FEA/v1.7/allshows.json"
+CLIPS = "http://feed.theplatform.com/f/fox.com/metadata?count=true&byCustomValue={fullEpisode}{false}&byCategories=Series/%s"
+FULLEPISODES = "http://feed.theplatform.com/f/fox.com/metadata?count=true&byCustomValue={fullEpisode}{true}&byCategories=Series/%s"
 
 # for some shows, the name that needs to be passed to FULLEPISODES is different than the one in SHOWS
 # this dict can be used to manually fix it

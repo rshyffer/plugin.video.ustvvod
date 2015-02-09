@@ -5,14 +5,14 @@ import connection
 import main_turner
 from bs4 import BeautifulSoup
 
-SITE = 'cartoon'
+SITE = "cartoon"
 NAME = "Cartoon Network"
 DESCRIPTION = "Cartoon Network (CartoonNetwork.com), currently seen in more than 97 million U.S. homes and 166 countries around the world, is Turner Broadcasting System, Inc.'s ad-supported cable service now available in HD offering the best in original, acquired and classic entertainment for youth and families.  Nightly from 10 p.m. to 6 a.m. (ET, PT), Cartoon Network shares its channel space with Adult Swim, a late-night destination showcasing original and acquired animated and live-action programming for young adults 18-34 "
-SHOWS = 'http://www.cartoonnetwork.com/video/staged/CN2.mobile.configuration.xml'
-EPISODE = 'http://www.cartoonnetwork.com/video-seo-svc/episodeservices/getCvpPlaylist?networkName=CN2&id=%s'
-CLIPS = 'http://www.cartoonnetwork.com/video-seo-svcepisodeSearch/getAllEpisodes?networkName=CN2&filterByPlatform=mobile&filterByEpisodeType=CLI-CLI&offset=0&sortByDate=DESC&filterByCollectionId=%s&filterBySeasonNumber=%s'
-FULLEPISODES = 'http://www.cartoonnetwork.com/video-seo-svcepisodeSearch/getAllEpisodes?networkName=CN2&filterByPlatform=mobile&filterByEpisodeType=TVE&offset=0&sortByDate=DESC&filterByCollectionId=%s&filterBySeasonNumber=%s'
-HLSPATH = 'toon'
+SHOWS = "http://www.cartoonnetwork.com/video/staged/CN2.mobile.configuration.xml"
+EPISODE = "http://www.cartoonnetwork.com/video-seo-svc/episodeservices/getCvpPlaylist?networkName=CN2&id=%s"
+CLIPS = "http://www.cartoonnetwork.com/video-seo-svcepisodeSearch/getAllEpisodes?networkName=CN2&filterByPlatform=mobile&filterByEpisodeType=CLI-CLI&offset=0&sortByDate=DESC&filterByCollectionId=%s&filterBySeasonNumber=%s"
+FULLEPISODES = "http://www.cartoonnetwork.com/video-seo-svcepisodeSearch/getAllEpisodes?networkName=CN2&filterByPlatform=mobile&filterByEpisodeType=TVE&offset=0&sortByDate=DESC&filterByCollectionId=%s&filterBySeasonNumber=%s"
+HLSPATH = "toon"
 
 def masterlist():
 	master_db = []

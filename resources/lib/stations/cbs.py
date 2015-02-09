@@ -17,21 +17,21 @@ from bs4 import BeautifulSoup, SoupStrainer
 addon = xbmcaddon.Addon()
 pluginHandle = int(sys.argv[1])
 
-SITE = 'cbs'
-NAME = 'CBS'
+SITE = "cbs"
+NAME = "CBS"
 DESCRIPTION = "CBS was established in 1928, when founder William Paley purchased 16 independent radio stations and christened them the Columbia Broadcast System. Today, with more than 200 television stations and affiliates reaching virtually every home in the United States, CBS's total primetime network lineup is watched by more than 130 million people a week during the 2010/2011 season. The Network has the #1 drama/scripted program, NCIS; #1 sitcom, TWO AND A HALF MEN; #1 newsmagazine, 60 MINUTES; and #1 daytime drama, THE YOUNG AND THE RESTLESS. Its programming arms include CBS Entertainment, CBS News and CBS Sports."
 ACCOUNTNAME = "CBS All Access"
 ACCOUNTINFOURL = "www.cbs.com/all-access"
-SHOWS = 'http://www.cbs.com/carousels/showsByCategory/0/offset/0/limit/100'
-ORIGINALS = 'http://www.cbs.com/carousels/showsByCategory/4/offset/0/limit/100'
-MOVIES = 'http://www.cbs.com/carousels/showsByCategory/6/offset/0/limit/100'
-BASE  = 'http://www.cbs.com'
-FULLEPISODES = 'http://www.cbs.com/carousels/videosBySection/%s/offset/0/limit/100/xs/0/'
-FULLEPISODESWITHSEASON = 'http://www.cbs.com/carousels/videosBySection/%s/offset/0/limit/80/xs/0/%s'
-SEASONCLIPS = 'http://www.cbs.com/carousels/videosBySection/%s/offset/0/limit/1/xs/0/'
-EPISODE = 'http://link.theplatform.com/s/dJ5BDC/%s?format=SMIL&Tracking=true&mbr=true'
-SWFURL = 'http://canstatic.cbs.com/chrome/canplayer.swf'
-LOGIN_URL = 'https://www.cbs.com/account/login/'
+SHOWS = "http://www.cbs.com/carousels/showsByCategory/0/offset/0/limit/100"
+ORIGINALS = "http://www.cbs.com/carousels/showsByCategory/4/offset/0/limit/100"
+MOVIES = "http://www.cbs.com/carousels/showsByCategory/6/offset/0/limit/100"
+BASE  = "http://www.cbs.com"
+FULLEPISODES = "http://www.cbs.com/carousels/videosBySection/%s/offset/0/limit/100/xs/0/"
+FULLEPISODESWITHSEASON = "http://www.cbs.com/carousels/videosBySection/%s/offset/0/limit/80/xs/0/%s"
+SEASONCLIPS = "http://www.cbs.com/carousels/videosBySection/%s/offset/0/limit/1/xs/0/"
+EPISODE = "http://link.theplatform.com/s/dJ5BDC/%s?format=SMIL&Tracking=true&mbr=true"
+SWFURL = "http://canstatic.cbs.com/chrome/canplayer.swf"
+LOGIN_URL = "https://www.cbs.com/account/login/"
 
 def masterlist():
 	master_db = []

@@ -11,15 +11,15 @@ from bs4 import BeautifulSoup
 
 addon = xbmcaddon.Addon()
 
-SITE = 'tvland'
-NAME = 'TV Land'
+SITE = "tvland"
+NAME = "TV Land"
 DESCRIPTION = "TV Land is dedicated to presenting the best in entertainment on all platforms for consumers in their 40s. Armed with a slate of original programming, acquired classic shows, hit movies and fullservice website, TV Land is now seen in over 98 million U.S. homes. TV Land PRIME is TV Land's prime time programming destination designed for people in their mid-forties and the exclusive home to the premieres of the network's original programming, contemporary television series acquisitions and movies."
-BASE = 'http://www.tvland.com'
-SHOWS = 'http://www.tvland.com/full-episodes'
-CLIPS = 'http://www.tvland.com/video-clips'
-SEASONURL = 'http://www.tvland.com/fragments/search_results/related_episodes_seasons?showId=%s&seasonId=%s&episodeId=%s'
-VIDEOURL = 'http://www.tvland.com/feeds/mrss/?uri='
-MP4URL = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=0+_pxK=18639/44620/mtvnorigin'
+BASE = "http://www.tvland.com"
+SHOWS = "http://www.tvland.com/full-episodes"
+CLIPS = "http://www.tvland.com/video-clips"
+SEASONURL = "http://www.tvland.com/fragments/search_results/related_episodes_seasons?showId=%s&seasonId=%s&episodeId=%s"
+VIDEOURL = "http://www.tvland.com/feeds/mrss/?uri="
+MP4URL = "http://mtvnmobile.vo.llnwd.net/kip0/_pxn=0+_pxK=18639/44620/mtvnorigin"
 
 def masterlist():
 	master_dict = {}

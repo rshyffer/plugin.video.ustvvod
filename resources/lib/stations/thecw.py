@@ -23,15 +23,15 @@ addon = xbmcaddon.Addon()
 player = common.XBMCPlayer()
 pluginHandle = int(sys.argv[1])
 
-SITE = 'thecw'
-NAME = 'The CW'
+SITE = "thecw"
+NAME = "The CW"
 DESCRIPTION = "The CW Network was formed as a joint venture between Warner Bros. Entertainment and CBS Corporation. The CW is America's fifth broadcast network and the only network targeting women 18-34. The network's primetime schedule includes such popular series as America's Next Top Model, Gossip Girl, Hart of Dixie, 90210, The Secret Circle, Supernatural, Ringer, Nikita, One Tree Hill and The Vampire Diaries"
-SHOWS = 'http://www.cwtv.com/feed/mobileapp/shows?pagesize=100&api_version=3'
-VIDEOLIST = 'http://www.cwtv.com/feed/mobileapp/videos?show=%s&api_version=3'
-VIDEOURL = 'http://metaframe.digitalsmiths.tv/v2/CWtv/assets/%s/partner/132?format=json'
-RTMPURL = 'rtmpe://wbworldtv.fcod.llnwd.net/a2246/o23/'
-SWFURL = 'http://pdl.warnerbros.com/cwtv/digital-smiths/production_player/vsplayer.swf'
-CLOSEDCAPTION = 'http://api.digitalsmiths.tv/metaframe/200f2a4d/asset/%s/filter'
+SHOWS = "http://www.cwtv.com/feed/mobileapp/shows?pagesize=100&api_version=3"
+VIDEOLIST = "http://www.cwtv.com/feed/mobileapp/videos?show=%s&api_version=3"
+VIDEOURL = "http://metaframe.digitalsmiths.tv/v2/CWtv/assets/%s/partner/132?format=json"
+RTMPURL = "rtmpe://wbworldtv.fcod.llnwd.net/a2246/o23/"
+SWFURL = "http://pdl.warnerbros.com/cwtv/digital-smiths/production_player/vsplayer.swf"
+CLOSEDCAPTION = "http://api.digitalsmiths.tv/metaframe/200f2a4d/asset/%s/filter"
 
 def masterlist():
 	master_db = []

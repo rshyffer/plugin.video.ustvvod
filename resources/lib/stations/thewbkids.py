@@ -11,12 +11,12 @@ from bs4 import BeautifulSoup
 
 pluginHandle = int(sys.argv[1])
 
-SITE = 'thewbkids'
-NAME = 'WB Kids, The'
+SITE = "thewbkids"
+NAME = "WB Kids, The"
 DESCRIPTION = "The KidsWB Collection of Scooby-Doo, Looney Toons, Batman: The Brave and the Bold, Hanna-Barbera, DC and Warner stars under one roof."
-SHOWS = 'http://www.kidswb.com/video'
-EPISODES = 'http://www.kidswb.com/video/playlists?pid=channel&chan='
-VIDEOURL = 'http://metaframe.digitalsmiths.tv/v2/WBtv/assets/%s/partner/11?format=json'
+SHOWS = "http://www.kidswb.com/video"
+EPISODES = "http://www.kidswb.com/video/playlists?pid=channel&chan="
+VIDEOURL = "http://metaframe.digitalsmiths.tv/v2/WBtv/assets/%s/partner/11?format=json"
 
 def masterlist():
 	master_db = []

@@ -4,6 +4,7 @@ import common
 import connection
 import main_viacom
 import re
+import simplejson
 import sys
 import urllib
 import xbmcaddon
@@ -11,12 +12,12 @@ from bs4 import BeautifulSoup
 
 addon = xbmcaddon.Addon()
 
-SITE = 'spike'
-NAME = 'Spike TV'
+SITE = "spike"
+NAME = "Spike TV"
 DESCRIPTION = "Spike TV knows what guys like. The brand speaks to the bold, adventuresome side of men with action-packed entertainment, including a mix of comedy, blockbuster movies, sports, innovative originals and live events. Popular shows like The Ultimate Fighter, TNA iMPACT!, Video Game Awards, DEA, MANswers, MXC, and CSI: Crime Scene Investigation, plus the Star Wars and James Bond movie franchises, position Spike TV as the leader in entertainment for men."
-BASE = 'http://www.spike.com'
-SHOWS = 'http://www.spike.com/shows/'
-MP4URL = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=0+_pxK=18639/44620/mtvnorigin'
+BASE = "http://www.spike.com"
+SHOWS = "http://www.spike.com/shows/"
+MP4URL = "http://mtvnmobile.vo.llnwd.net/kip0/_pxn=0+_pxK=18639/44620/mtvnorigin"
 
 def masterlist():
 	master_dict = {}
@@ -38,6 +39,23 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
+def _get_manifest(page_url):
+	""" Try to get the manifest Javascript object for the current page. Input URL can be any kind of page
+	    Returns the manifest feed as a JSON object if found, else return False """
+	triforceManifestFeed = None
+	page_data = connection.getURL(page_url)
+	page_tree = BeautifulSoup(page_data, 'html.parser')
+	scripts = page_tree.find_all('script')
+	try:
+		for script in scripts:
+			if ('triforceManifestFeed') in script.string:
+				triforceManifestFeed = script.string.split(' = ')[1]
+				triforceManifestFeed = triforceManifestFeed.strip()[:-1] # remove last ; from string
+				triforceManifestFeed = simplejson.loads(triforceManifestFeed)
+				return triforceManifestFeed
+	except:
+		return False
+
 def seasons(season_url = common.args.url):
 	if ',' in season_url:
 		multiSeason = True
@@ -54,14 +72,19 @@ def seasons(season_url = common.args.url):
 				season_data2 = connection.getURL(season_item['href'])
 			season_tree = BeautifulSoup(season_data2, 'html5lib')
 			try:
-				season_menu2 = season_tree.find('ul', class_ = 'season_navigation').find_all('a')
-				for season_item2 in season_menu2:
-					season_name = season_item2.text
-					season_url2 = season_item2['href']
-					common.add_directory(season_name, SITE, 'episodes', season_url2)
-			except:
+				season_menu2 = re.compile("\":(.*?)\};").findall(season_tree.head.script.text)[0]
+				season_tree2 = simplejson.loads(season_menu2)
+				print season_tree2['['t4_lc_promo1']['feed']
+#				print season_menu2
+#				season_menu2 = season_tree.find('ul', class_ = 'filter_list').find_all('a')
+#				for season_item2 in season_menu2:
+#					season_name = season_item2.text
+#					season_url2 = season_item2['href']
+#					common.add_directory(season_name, SITE, 'episodes', season_url2)
+			except Exception, e:
+				print e
 				pass	
-		season_item = season_tree.find('a', text = 'Video Clips')	
+		season_item = season_tree.find('a', text = 'Videos')	
 		if season_item is not None:
 			season_name2 = season_item.text
 			if BASE not in season_item['href']:
@@ -78,7 +101,7 @@ def seasons(season_url = common.args.url):
 def episodes(episode_url = common.args.url):
 	episode_data = connection.getURL(episode_url)
 	episode_tree = BeautifulSoup(episode_data, 'html5lib')
-	if 'Video Clips' in common.args.name :
+	if 'Video' in common.args.name :
 		episode_url2 = episode_tree.find('div', class_ = 'v_content')['data-url']
 		if episode_tree.find('div', class_ = 'pagination') is not None:
 			episode_count = int(episode_tree.find('div', class_ = 'result').text.rsplit(' ', 1)[1].strip())
@@ -180,10 +203,10 @@ def add_clips(episode_tree):
 
 def play_video(video_uri = common.args.url):
 	video_data = connection.getURL(video_uri)
-	video_url = BeautifulSoup(video_data, 'html5lib').find('div', id = 'video_player_box')['data-mgid']
+	video_url = BeautifulSoup(video_data, 'html5lib').find('div', class_ = 'video_player')['data-mgid']
 	main_viacom.play_video(BASE, video_url)	
 
 def list_qualities(video_url = common.args.url):
 	video_data = connection.getURL(video_url)
-	video_url = BeautifulSoup(video_data, 'html5lib').find('div', id = 'video_player_box')['data-mgid']
+	video_url = BeautifulSoup(video_data, 'html5lib').find('div', class_ = 'video_player')['data-mgid']
 	return main_viacom.list_qualities(BASE, video_url)

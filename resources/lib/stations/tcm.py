@@ -8,16 +8,16 @@ import simplejson
 import sys
 import urllib
 
-SITE = 'tcm'
+SITE = "tcm"
 NAME = "TCM"
 DESCRIPTION = "Turner Classic Movies (TCM) is an American movie-oriented basic cable and satellite television network that is owned by the Turner Broadcasting System subsidiary of Time Warner. TCM is headquartered at the Techwood Campus in Atlanta, Georgia's Midtown business district. Historically, the channel's programming consisted mainly of featured classic theatrically released feature films from the Turner Entertainment film library – which comprises films from Warner Bros. Pictures (covering films released before 1950) and Metro-Goldwyn-Mayer (covering films released before May 1986). However, TCM now has licensing deals with other Hollywood film studios as well as its Time Warner sister company Warner Bros. (which now controls the Turner Entertainment library and its own later films), and occasionally shows somewhat more recent films."
-SHOWS = ''
-MOVIES = 'http://api.tcm.com//tcmws/v1/vod/tablet/catalog/orderBy/title.jsonp'
-CLIPSSEASON = ''
-CLIPS = ''
-FULLEPISODES = ''
-EPISODE = 'http://www.tcm.com/tveverywhere/services/videoXML.do?id=%s'
-HLSPATH = 'tcm'
+SHOWS = ""
+MOVIES = "http://api.tcm.com//tcmws/v1/vod/tablet/catalog/orderBy/title.jsonp"
+CLIPSSEASON = ""
+CLIPS = ""
+FULLEPISODES = ""
+EPISODE = "http://www.tcm.com/tveverywhere/services/videoXML.do?id=%s"
+HLSPATH = "tcm"
 
 def masterlist():
 	master_db = []

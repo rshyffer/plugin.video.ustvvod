@@ -16,15 +16,15 @@ import xbmcplugin
 addon = xbmcaddon.Addon()
 pluginHandle = int (sys.argv[1])
 
-SITE = 'pbskids'
-NAME = 'PBS Kids'
-DESCRIPTION = 'PBS Kids is the brand for children\'s programming aired by the Public Broadcasting Service (PBS) in the United States founded in 1993. It is aimed at children ages 2 to 13.'
-SHOWS = 'http://pbskids.org/pbsk/video/api/getShows'
-SWFURL = 'http://www-tc.pbs.org/video/media/swf/PBSPlayer.swf?video=%s&player=viral'
-TYPES = ['Episode', 'Segment', 'Clip', 'Promotion', 'Interstitial', 'Other']
-SEASON = 'http://pbskids.org/pbsk/video/api/getVideos/?program=%s&endindex=1&encoding=&orderby=-airdate&status=available&category=&type=%s'
-EPISODES = 'http://pbskids.org/pbsk/video/api/getVideos/?program=%s&endindex=100&encoding=&orderby=-airdate&status=available&category=&type=%s&return=type,airdate,images'
-VIDEO = 'http://pbskids.org/pbsk/video/api/getVideos/?guid=%s&endindex=1&encoding=&return=captions'
+SITE = "pbskids"
+NAME = "PBS Kids"
+DESCRIPTION = "PBS Kids is the brand for children's programming aired by the Public Broadcasting Service (PBS) in the United States founded in 1993. It is aimed at children ages 2 to 13."
+SHOWS = "http://pbskids.org/pbsk/video/api/getShows"
+SWFURL = "http://www-tc.pbs.org/video/media/swf/PBSPlayer.swf?video=%s&player=viral"
+TYPES = ["Episode", "Segment", "Clip", "Promotion", "Interstitial", "Other"]
+SEASON = "http://pbskids.org/pbsk/video/api/getVideos/?program=%s&endindex=1&encoding=&orderby=-airdate&status=available&category=&type=%s"
+EPISODES = "http://pbskids.org/pbsk/video/api/getVideos/?program=%s&endindex=100&encoding=&orderby=-airdate&status=available&category=&type=%s&return=type,airdate,images"
+VIDEO = "http://pbskids.org/pbsk/video/api/getVideos/?guid=%s&endindex=1&encoding=&return=captions"
 
 def masterlist():
 	master_db = []

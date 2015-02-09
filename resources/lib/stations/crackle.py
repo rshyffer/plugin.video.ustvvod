@@ -16,16 +16,16 @@ from bs4 import BeautifulSoup, SoupStrainer
 addon = xbmcaddon.Addon()
 pluginHandle = int(sys.argv[1])
 
-SITE = 'crackle'
-NAME = 'Crackle'
-ALIAS = ['Sony Entertainment Television']
+SITE = "crackle"
+NAME = "Crackle"
+ALIAS = ["Sony Entertainment Television"]
 DESCRIPTION = "Crackle, Inc. is a multi-platform video entertainment network and studio that distributes full length, uncut, movies, TV shows and original programming in our users favorite genres like comedy, action, crime, horror, Sci-Fi, and thriller. Crackles channels and shows reach a global audience across the Internet, in the living room, and on devices including a broad range of Sony electronics."
-SHOWS = 'http://api.crackle.com/Service.svc/browse/shows/all/all/alpha/us?format=json'
-MOVIES = 'http://api.crackle.com/Service.svc/browse/movies/all/all/alpha/us?format=json'
-BASE  = 'http://media-us-am.crackle.com/'
-FULLEPISODES = 'http://api.crackle.com/Service.svc/channel/%s/folders/us?format=json'
-EPISODE = 'http://www.crackle.com/app/vidwallcache.aspx?flags=-1&o=12&fpl=%s&fm=%s&partner=20'
-QUALITIES = [(360, '360p.mp4'), (480, '480p_1mbps.mp4')]
+SHOWS = "http://api.crackle.com/Service.svc/browse/shows/all/all/alpha/us?format=json"
+MOVIES = "http://api.crackle.com/Service.svc/browse/movies/all/all/alpha/us?format=json"
+BASE  = "http://media-us-am.crackle.com/"
+FULLEPISODES = "http://api.crackle.com/Service.svc/channel/%s/folders/us?format=json"
+EPISODE = "http://www.crackle.com/app/vidwallcache.aspx?flags=-1&o=12&fpl=%s&fm=%s&partner=20"
+QUALITIES = [(360, "360p.mp4"), (480, "480p_1mbps.mp4")]
 
 def masterlist():
 	master_db = []

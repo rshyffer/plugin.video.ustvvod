@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 import main_abcdisney
 
-SITE = 'disneyjunior'
-NAME = 'Disney Junior'
+SITE = "disneyjunior"
+NAME = "Disney Junior"
 DESCRIPTION = "Disney Junior, part of Disney Channels Worldwide, is a global television and online brand expressly for kids age 2-7. Disney Junior invites mom and dad to join their child in the Disney experience of magical, musical and heartfelt stories and characters, both classic and new, while incorporating specific learning and development themes designed for young children"
-BRANDID = '008'
-PARTNERID = '585231'
+BRANDID = "008"
+PARTNERID = "585231"
 
 def masterlist():
 	return main_abcdisney.masterlist(SITE, BRANDID)

@@ -19,15 +19,15 @@ from bs4 import BeautifulSoup, SoupStrainer
 addon = xbmcaddon.Addon()
 pluginHandle = int (sys.argv[1])
 
-SITE = 'pbs'
-NAME = 'PBS'
-DESCRIPTION = "PBS and our member stations are America\'s largest classroom, the nation\'s largest stage for the arts and a trusted window to the world. In addition, PBS's educational media helps prepare children for success in school and opens up the world to them in an age-appropriate way."
-SHOWS = 'http://video.pbs.org/programs/list'
-SWFURL = 'http://www-tc.pbs.org/video/media/swf/PBSPlayer.swf?video=%s&player=viral'
-CLOSEDCAPTION = 'http://video.pbs.org/videoInfo/%s/?format=jsonp&callback=video_info'
-KEY = 'RnJlZUNhYmxlLTgxMzQyMmE5LTg0YWMtNDdjYy1iYzVhLTliMDZhY2NlM2I2YQ=='
-SECRET = 'MDEyYzcxMDgtNWJiNS00YmFlLWI1MWYtMDRkMTIzNGZjZWRk'
-TYPES = ['Episode', 'Segment', 'Clip', 'Promotion', 'Interstitial', 'Other']
+SITE = "pbs"
+NAME = "PBS"
+DESCRIPTION = "PBS and our member stations are America's largest classroom, the nation's largest stage for the arts and a trusted window to the world. In addition, PBS's educational media helps prepare children for success in school and opens up the world to them in an age-appropriate way."
+SHOWS = "http://video.pbs.org/programs/list"
+SWFURL = "http://www-tc.pbs.org/video/media/swf/PBSPlayer.swf?video=%s&player=viral"
+CLOSEDCAPTION = "http://video.pbs.org/videoInfo/%s/?format=jsonp&callback=video_info"
+KEY = "RnJlZUNhYmxlLTgxMzQyMmE5LTg0YWMtNDdjYy1iYzVhLTliMDZhY2NlM2I2YQ=="
+SECRET = "MDEyYzcxMDgtNWJiNS00YmFlLWI1MWYtMDRkMTIzNGZjZWRk"
+TYPES = ["Episode", "Segment", "Clip", "Promotion", "Interstitial", "Other"]
 
 cove = coveapi.connect(base64.b64decode(KEY), base64.b64decode(SECRET))
 

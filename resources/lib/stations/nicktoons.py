@@ -8,15 +8,15 @@ import sys
 import urllib
 from bs4 import BeautifulSoup
 
-SITE = 'nicktoons'
-NAME = 'Nick Toons'
-ALIAS = ['NickToons Network', 'Nicktoons']
+SITE = "nicktoons"
+NAME = "Nick Toons"
+ALIAS = ["NickToons Network", "Nicktoons"]
 DESCRIPTION = "Nicktoons offers 24 hours of animated programming that includes Wolverine and the X-Men, Iron Man: Armored Adventures, Fantastic Four: World's Greatest Heroes, Speed Racer: The Next Generation, Kappa Mikey and the Nickelodeon Animation Festival, as well as a roster of hits that have defined kids' and animation lovers' TV, including Avatar: The Last Airbender, Danny Phantom, SpongeBob SquarePants, The Fairly OddParents and The Adventures of Jimmy Neutron, Boy Genius.  It currently reaches 54 million homes via cable, digital cable and satellite, and can be seen on Cablevision, Charter Communications, Comcast Cable, Cox Communications, DirecTV, DISH Network and Time Warner Cable.  Nicktoons is part of the MTV Networks expanded suite of channels available for digital distribution."
-BASE = 'http://nicktoons.nick.com'
-BASE2 = 'http://media.nick.com/'
-SHOWS = 'http://nicktoons.nick.com/ajax/videos/all-videos?sort=date+desc&start=0&page=1&updateDropdown=true&viewType=collectionAll'
-CLIPS = 'http://nicktoons.nick.com/ajax/videos/all-videos/%s?type=videoItem'
-FULLEPISODES = 'http://nicktoons.nick.com/ajax/videos/all-videos/%s?type=fullEpisodeItem'
+BASE = "http://nicktoons.nick.com"
+BASE2 = "http://media.nick.com/"
+SHOWS = "http://nicktoons.nick.com/ajax/videos/all-videos?sort=date+desc&start=0&page=1&updateDropdown=true&viewType=collectionAll"
+CLIPS = "http://nicktoons.nick.com/ajax/videos/all-videos/%s?type=videoItem"
+FULLEPISODES = "http://nicktoons.nick.com/ajax/videos/all-videos/%s?type=fullEpisodeItem"
 
 def masterlist():
 	master_db = []

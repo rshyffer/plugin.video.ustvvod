@@ -8,15 +8,15 @@ import simplejson
 import sys
 import urllib
 
-SITE = 'nick'
-NAME = 'Nickelodeon'
+SITE = "nick"
+NAME = "Nickelodeon"
 DESCRIPTION = "Nickelodeon, now in its 31st year, is the number-one entertainment brand for kids. It has built a diverse, global business by putting kids first in everything it does. The company includes television programming and production in the United States and around the world, plus consumer products, online, recreation, books and feature films. Nickelodeon's U.S. television network is seen in more than 100 million households and has been the number-one-rated basic cable network for 16 consecutive years."
-BASE = 'http://nick.com'
-FULLEPISODES = 'http://www.nick.com/apps/api/v2/content-collection?apiKey=gve7v8ti&rows=40&series=%s&start=0&types=episodes'
-SHOWS = 'http://www.nick.com/apps/api/v2/editorial-content-categories/stars?apiKey=gve7v8ti'
-CLIPS = 'http://www.nick.com/apps/api/v2/content-collection?apiKey=gve7v8ti&killDBSequenceNumber=&rows=40&series=%s&start=0&types=video'
-FEED = 'http://udat.mtvnservices.com/service1/dispatch.htm?feed=nick_arc_player_prime&plugin.stage=live&mgid=%s'
-EPISODE_URL ='http://legacy.nick.com/videos/clip/%s.html'
+BASE = "http://nick.com"
+FULLEPISODES = "http://www.nick.com/apps/api/v2/content-collection?apiKey=gve7v8ti&rows=40&series=%s&start=0&types=episodes"
+SHOWS = "http://www.nick.com/apps/api/v2/editorial-content-categories/stars?apiKey=gve7v8ti"
+CLIPS = "http://www.nick.com/apps/api/v2/content-collection?apiKey=gve7v8ti&killDBSequenceNumber=&rows=40&series=%s&start=0&types=video"
+FEED = "http://udat.mtvnservices.com/service1/dispatch.htm?feed=nick_arc_player_prime&plugin.stage=live&mgid=%s"
+EPISODE_URL ="http://legacy.nick.com/videos/clip/%s.html"
 
 def masterlist():
 	master_db = []
