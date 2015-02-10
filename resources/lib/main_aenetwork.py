@@ -30,8 +30,8 @@ def masterlist(SITE, SHOWS):
 			master_db.append((master_name, SITE, 'seasons', urllib.quote_plus(master_item['showID'])))
 	return master_db
 
-def seasons(SITE, SEASONSEPISODE, SEASONSCLIPS, EPISODES, CLIPS):
-	season_url = common.args.url
+def seasons(SITE, SEASONSEPISODE, SEASONSCLIPS, EPISODES, CLIPS, season_url = common.args.url):
+	
 	season_data = connection.getURL(SEASONSEPISODE % season_url)
 	season_tree = simplejson.loads(season_data)['season']
 	for season_item in season_tree:
@@ -45,8 +45,8 @@ def seasons(SITE, SEASONSEPISODE, SEASONSCLIPS, EPISODES, CLIPS):
 		common.add_directory(season_name,  SITE, 'episodes', CLIPS % (season_url, season_item))
 	common.set_view('seasons')
 
-def episodes(SITE):
-	episode_url = common.args.url
+def episodes(SITE, episode_url = common.args.url):
+	
 	episode_data = connection.getURL(episode_url)
 	episode_tree = simplejson.loads(episode_data)['Items']
 	for episode_item in episode_tree:
