@@ -3,7 +3,6 @@
 import connection
 import database
 import base64
-import importlib
 import os
 import ustvpaths
 import re
@@ -178,7 +177,7 @@ def get_network(module_name):
 		return network_module_cache[module_name]
 	print "!!! plugin loading of site : " + module_name 
 	try:
-		module = importlib.import_module(module_name)
+		module = __import__(module_name)
 		if hasattr(module, 'SITE') and hasattr(module, 'masterlist'):
 			if not hasattr(module, 'NAME'):
 				setattr(module, 'NAME', module_name)
