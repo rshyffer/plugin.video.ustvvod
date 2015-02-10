@@ -64,7 +64,7 @@ class Main:
 			else:
 				xbmc.executebuiltin('XBMC.Notification("%s", "%s", %s, "%s")' % ( heading, message, duration, image) )
 
-				def SaveFile(self, filename, data, dir):
+	def SaveFile(self, filename, data, dir):
 		path = os.path.join(dir, filename)
 		file = open(path, 'w')
 		data = _common.smart_utf8(data)
