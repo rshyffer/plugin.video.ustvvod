@@ -17,7 +17,7 @@ pluginHandle = int(sys.argv[1])
 if (addon.getSetting('enablelibraryfolder') == 'true'):
 	MOVIE_PATH = os.path.join(xbmc.translatePath('special://profile/addon_data/plugin.video.ustvvod'),'Movies')
 	TV_SHOWS_PATH = os.path.join(xbmc.translatePath('special://profile/addon_data/plugin.video.ustvvod/'),'TV')
-elif (_common.settings['customlibraryfolder'] <> ''):
+elif (common.settings['customlibraryfolder'] <> ''):
 	MOVIE_PATH = os.path.join(xbmc.translatePath(addon.getSetting('customlibraryfolder')),'Movies')
 	TV_SHOWS_PATH = os.path.join(xbmc.translatePath(addon.getSetting('customlibraryfolder')),'TV')    
 	
@@ -33,23 +33,23 @@ class Main:
 		else:
 			return
 
-		if _common.args.mode.startswith('Clear'):
+		if common.args.mode.startswith('Clear'):
 			dialog = xbmcgui.Dialog()
 			if dialog.yesno('Clear Exported Items', 'Are you sure you want to delete all exported items?'):
 				shutil.rmtree(MOVIE_PATH)
 				shutil.rmtree(TV_SHOWS_PATH)
 			return
 		
-		if _common.args.mode.startswith('Force'):
+		if common.args.mode.startswith('Force'):
 			self.EnableNotifications = True
 		else:
 			self.EnableNotifications = False
 
-		if _common.args.mode.endswith('FavoriteEpisodesLibrary'):
+		if common.args.mode.endswith('FavoriteEpisodesLibrary'):
 			self.GetFavoriteEpisodes()
-		elif _common.args.mode.endswith('NetworkLibrary'):
-			self.GetNetworkShows( _common.args.submode)
-		elif _common.args.mode.endswith('AllShowsLibrary'):
+		elif common.args.mode.endswith('NetworkLibrary'):
+			self.GetNetworkShows( common.args.submode)
+		elif common.args.mode.endswith('AllShowsLibrary'):
 			self.GetAllShows()
 		if (addon.getSetting('updatelibrary') == 'true'):
 			self.UpdateLibrary()
@@ -67,7 +67,7 @@ class Main:
 	def SaveFile(self, filename, data, dir):
 		path = os.path.join(dir, filename)
 		file = open(path, 'w')
-		data = _common.smart_utf8(data)
+		data = common.smart_utf8(data)
 		file.write(data)
 		file.close()
 
@@ -81,12 +81,12 @@ class Main:
 		return ''.join(c for c in name if c in valid_chars).strip()
 
 	def GetFavoriteEpisodes(self):
-		shows = _common.fetch_showlist(1)
+		shows = common.fetch_showlist(1)
 		self.ExportShowList(shows, 750)
-		self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % addon.getLocalizedString(39000), image = _common.FAVICON)
+		self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % addon.getLocalizedString(39000), image = common.FAVICON)
 			
 	def GetNetworkShows(self, site):
-		network = _common.get_network(site)
+		network = common.get_network(site)
 		if network:
 			networkshows = getattr(network, 'masterlist')()
 			shows = []
@@ -96,10 +96,10 @@ class Main:
 					siteplot = None
 				except:
 					series_title, mode, sitemode, url, siteplot = show
-				showdata = _common.get_show_data(series_title, mode, sitemode, url, siteplot)
+				showdata = common.get_show_data(series_title, mode, sitemode, url, siteplot)
 				shows.append(showdata)
 			self.ExportShowList(shows, 2500)
-			image =  os.path.join(_common.IMAGEPATH, network.SITE + '.png')
+			image =  os.path.join(common.IMAGEPATH, network.SITE + '.png')
 			self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % network.NAME, image = image)
 
 	def ExportShowList(self, shows, delay = 0): 
@@ -112,12 +112,12 @@ class Main:
 
 	def ExportShow(self, show):
 		series_title, mode, sitemode, url, tvdb_id, imdb_id, tvdbbanner, tvdbposter, tvdbfanart, first_aired, date, year, actors, genres, studio, plot, runtime, rating, airs_dayofweek, airs_time, status, has_full_episodes, favor, hide, show_name = show
-		network = _common.get_network(mode)
+		network = common.get_network(mode)
 		allepisodes = []
 		has_episodes = False
 		has_movies = False
 		if network:
-			setattr(_common.args, 'url', url)
+			setattr(common.args, 'url', url)
 			if '--' not in series_title:
 				seasons = getattr(network, sitemode)(url)
 				for season in seasons:
@@ -147,7 +147,7 @@ class Main:
 				directory = os.path.join(TV_SHOWS_PATH, self.cleanfilename(show_name))
 				self.CreateDirectory(directory)
 				if addon.getSetting('shownfo') == 'true':
-					plot = _common.replace_signs(plot)
+					plot = common.replace_signs(plot)
 					tvshowDetails  = '<tvshow>'
 					tvshowDetails += '<title>'+ show_name + '</title>'
 					tvshowDetails += '<showtitle>' + show_name + '</showtitle>'
@@ -171,7 +171,7 @@ class Main:
 					except:
 						pass
 					try:
-						epguide = _common.TVDBURL + ('/api/%s/series/%s/all/en.zip' % (_common.TVDBAPIKEY, TVDB_ID))
+						epguide = common.TVDBURL + ('/api/%s/series/%s/all/en.zip' % (common.TVDBAPIKEY, TVDB_ID))
 						tvshowDetails += '<episodeguide>'
 						tvshowDetails += '<url cache="' + TVDB_ID + '.xml">'+ epguide +'</url>'
 						tvshowDetails += '</episodeguide>'
@@ -199,7 +199,7 @@ class Main:
 					try:
 						for actor in actors.split('|'):
 							if actor:
-								tvshowDetails += '<actor><name>' + _common.smart_unicode(actor) + '</name></actor>'
+								tvshowDetails += '<actor><name>' + common.smart_unicode(actor) + '</name></actor>'
 					except:
 						pass
 					tvshowDetails +='<dateadded>' + time.strftime("%Y-%m-%d %H:%M:%S") + '</dateadded>'
@@ -243,7 +243,7 @@ class Main:
 					episodeDetails += '<season>' + str(season) + '</season>'
 					episodeDetails += '<episode>' + str(episode) + '</episode>'
 					plot = data['plot']
-					episodeDetails += '<plot>' + _common.smart_unicode(plot) + '</plot>'
+					episodeDetails += '<plot>' + common.smart_unicode(plot) + '</plot>'
 					try:
 						episodeDetails += '<thumb>' + episode_thumb +'</thumb>'
 					except:
@@ -294,7 +294,7 @@ class Main:
 					movie += '<rating>' + data['rating'] + '</rating>'
 				except:
 					pass
-				movie += '<plot>' + _common.smart_unicode(data['plot']) + '</plot>'
+				movie += '<plot>' + common.smart_unicode(data['plot']) + '</plot>'
 				try:
 					movie += '<thumb>' + episode_thumb + '</thumb>'
 				except:
