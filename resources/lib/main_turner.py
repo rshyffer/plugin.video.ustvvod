@@ -43,24 +43,20 @@ def masterlist(NAME, MOVIES, SHOWS, SITE, WEBSHOWS = None ):
 			master_db.append((master_name,  SITE, 'seasons', season_url))
 	return master_db
 
-def seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS, WEBSHOWS = None, show_id = common.args.url):
-	
-	seasons = []
+def seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS, WEBSHOWS = None):
+	show_id = common.args.url
 	master_name = show_id.split('#')[0]
 	has_full_eps = show_id.split('#')[2]
 	show_id = show_id.split('#')[1]
 	if has_full_eps == 'true':
 		common.add_directory('Full Episodes',  SITE, 'episodes', master_name + '#' + FULLEPISODES % show_id)
 	elif WEBSHOWS is not None:
-	try:
 		webdata = connection.getURL(WEBSHOWS)
 		web_tree =  BeautifulSoup(webdata, 'html.parser', parse_only = SoupStrainer('div', id = 'page-shows'))
 		show = web_tree.find('h2', text = master_name)
 		episodes = show.findNext('p', attrs = {'data-id' : 'num-full-eps-avail'})['data-value']
 		if int(episodes) > 0:
 			common.add_directory('Full Episodes',  SITE, 'episodes_web', master_name)
-	except:
-		pass
 	clips_data = connection.getURL(CLIPSSEASON % show_id)
 	clips_menu = simplejson.loads(clips_data)
 	for season in clips_menu:

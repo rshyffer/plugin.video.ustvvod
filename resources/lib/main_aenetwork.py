@@ -32,22 +32,21 @@ def masterlist(SITE, SHOWS):
 
 def seasons(SITE, SEASONSEPISODE, SEASONSCLIPS, EPISODES, CLIPS, season_url = common.args.url):
 	
-	seasons = []
 	season_data = connection.getURL(SEASONSEPISODE % season_url)
 	season_tree = simplejson.loads(season_data)['season']
 	for season_item in season_tree:
 		season_name = 'Season ' + str(season_item)
-		seasons.append((season_name,  SITE, 'episodes', EPISODES % (season_url, season_item), -1, -1))
+		common.add_directory(season_name,  SITE, 'episodes', EPISODES % (season_url, season_item))
 	season_url = common.args.url
 	season_data = connection.getURL(SEASONSCLIPS % season_url)
 	season_tree = simplejson.loads(season_data)['season']
 	for season_item in season_tree:
 		season_name = 'Season Clips ' + str(season_item)
-		seasons.append((season_name,  SITE, 'episodes', CLIPS % (season_url, season_item), -1, -1))
+		common.add_directory(season_name,  SITE, 'episodes', CLIPS % (season_url, season_item))
 	common.set_view('seasons')
 
 def episodes(SITE, episode_url = common.args.url):
-	episodes = []
+	
 	episode_data = connection.getURL(episode_url)
 	episode_tree = simplejson.loads(episode_data)['Items']
 	for episode_item in episode_tree:
@@ -79,25 +78,7 @@ def episodes(SITE, episode_url = common.args.url):
 						episode_thumb = None
 			episode_plot = episode_item['description']
 			episode_showtitle = episode_item['seriesName']
-		try:
-				episode_mpaa = episode_item['rating']
-			except:
-				episode_mpaa = None
-			try:
-				episode_expires = episode_item['expirationDate'].split('T')[0]
-			except:
-				episode_expires = None
-			if episode_item['mrssLengthType'] == 'Episode':
-				episode_type = 'Full Episode'
-			else:
-				episode_type = 'Clips'
-			try:
-				if  episode_item['isHD'] == 'true':
-					episode_HD = True
-				else:
-					episode_HD = False
-			except:
-				episode_HD = False
+			episode_mpaa = episode_item['rating']
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'
 			u += '&mode="' + SITE + '"'
@@ -108,9 +89,10 @@ def episodes(SITE, episode_url = common.args.url):
 							'episode' : episode_number,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate,
-							'TVShowTitle' : episode_showtitle'mpaa' : episode_mpaa }
-			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', episode_HD, episode_type))
-	return episodes
+							'TVShowTitle' : episode_showtitle,
+							'MPAA' : episode_mpaa }
+			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode = 'list_qualities')
+	common.set_view('episodes')
 
 def list_qualities():
 	video_url = common.args.url
@@ -179,17 +161,12 @@ def play_video():
 	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 		convert_subtitles(closedcaption)
 	item = xbmcgui.ListItem(path = finalurl)
-	try:
+	if qbitrate is not None:
 		item.setThumbnailImage(common.args.thumb)
-	except:
-		pass
-	try:
 		item.setInfo('Video', {	'title' : common.args.name,
 						'season' : common.args.season_number,
 						'episode' : common.args.episode_number,
 						'TVShowTitle' : common.args.show_title})
-	except:
-		pass
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	if ((addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None))  or localhttpserver is True:
 		while not xbmc.Player().isPlaying():
