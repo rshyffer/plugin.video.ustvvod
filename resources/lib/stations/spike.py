@@ -74,8 +74,8 @@ def seasons(season_url = common.args.url):
 			try:
 				season_menu2 = re.compile("\":(.*?)\};").findall(season_tree.head.script.text)[0]
 				season_tree2 = simplejson.loads(season_menu2)
-				print season_tree2['['t4_lc_promo1']['feed']
-#				print season_menu2
+				#print season_tree2['['t4_lc_promo1']['feed']
+#				#print season_menu2
 #				season_menu2 = season_tree.find('ul', class_ = 'filter_list').find_all('a')
 #				for season_item2 in season_menu2:
 #					season_name = season_item2.text
