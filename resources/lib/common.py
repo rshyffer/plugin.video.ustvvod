@@ -812,7 +812,7 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 	item.setInfo(type = 'Video', infoLabels = infoLabels)
 	xbmcplugin.addDirectoryItem(pluginHandle, url = u, listitem = item, isFolder = True)
 
-def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = None, fanart = None, description = None, aired = '', genre = '', count = 0, locked = -1, unlocked = -1, contextmenu = []):
+def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = None, fanart = None, description = None, aired = '', genre = '', count = 0, locked = -1, unlocked = -1, contextmenu = None):
 	if fanart is None:
 		if args.__dict__.has_key('fanart'):
 			fanart = args.fanart
@@ -861,8 +861,10 @@ def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = No
 	item.setProperty('fanart_image', fanart)
 	item.setInfo(type = 'Video', infoLabels = infoLabels)
 	refresh_u = sys.argv[0] + '?url="<join>"' + sys.argv[0] + '?url="' + '&mode=contextmenu' + '&sitemode=refresh_db' 
+	if contextmenu is None:
+		contextmenu = []
 	contextmenu.append((smart_utf8(addon.getLocalizedString(39021)), 'XBMC.RunPlugin(%s)' % refresh_u))
-	item.addContextMenuItems(contextmenu)
+	item.addContextMenuItems(contextmenu, False)
 	xbmcplugin.addDirectoryItem(pluginHandle, url = u, listitem = item, isFolder = True)
 
 def add_video(video_url, displayname, thumb = None, fanart = None, infoLabels = False, HD = False, quality_mode = False):
