@@ -36,26 +36,31 @@ LOGIN_URL = "https://www.cbs.com/account/login/"
 def masterlist():
 	master_db = []
 	master_dict = {}
+	dupes = []
 	for master_url in (SHOWS, ORIGINALS, MOVIES):
 		master_data = connection.getURL(master_url)
 		master_menu = simplejson.loads(master_data)['result']['data']
 		for master_item in master_menu:
-			master_name = master_item['title']
-			if master_item['navigationItemLink'] and 'video' not in master_item['navigationItemLink'][0]['link'] and master_item['navigationItemLink'][0]['title'] == 'Watch':
-				season_url = master_item['navigationItemLink'][0]['link']
-			else:
-				if master_item['link'][-1:] == '/':
-					season_url = master_item['link'] + 'video'
+			show_id = master_item['show_id']
+			if show_id not in dupes:
+				dupes.append(show_id)
+				master_name = master_item['title']
+				if master_item['navigationItemLink'] and 'video' not in master_item['navigationItemLink'][0]['link'] and master_item['navigationItemLink'][0]['title'] == 'Watch':
+					season_url = master_item['navigationItemLink'][0]['link']
 				else:
-					season_url =  master_item['link'] + '/video'
-			if BASE not in season_url:
-				season_url = BASE + season_url
-			master_dict[master_name] = season_url
+					if master_item['link'][-1:] == '/':
+						season_url = master_item['link'] + 'video'
+					else:
+						season_url =  master_item['link'] + '/video'
+				if BASE not in season_url:
+					season_url = BASE + season_url
+				master_dict[master_name] = season_url
 	for master_name, season_url in master_dict.iteritems():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
 def seasons(season_urls = common.args.url):
+	seasons = []
 	root_url = season_urls
 	season_data = connection.getURL(season_urls)
 	show_id = re.compile('video.settings.show_id = (.*);').findall(season_data)[0]
