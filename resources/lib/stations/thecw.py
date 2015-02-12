@@ -187,20 +187,20 @@ def convert_subtitles(video_guid):
 	try:
 		file = None
 		dialog = xbmcgui.DialogProgress()
-        	dialog.create(common.smart_utf8(xbmcaddon.Addon(id = common.ADDONID).getLocalizedString(39026)))
-		dialog.update(0, common.smart_utf8(xbmcaddon.Addon(id = common.ADDONID).getLocalizedString(39027)))
+        	dialog.create(common.smart_utf8(addon.getLocalizedString(39026)))
+		dialog.update(0, common.smart_utf8(addon.getLocalizedString(39027)))
 		str_output = ''
 		subtitle_data = connection.getURL(CLOSEDCAPTION % video_guid, connectiontype = 0)
 		subtitle_data = simplejson.loads(subtitle_data)
 		lines_total = len(subtitle_data)
-		dialog.update(0, common.smart_utf8(xbmcaddon.Addon(id = common.ADDONID).getLocalizedString(39028)))
+		dialog.update(0, common.smart_utf8(addon.getLocalizedString(39028)))
 		for i, subtitle_line in enumerate(subtitle_data):
 			if subtitle_line is not None and 'Text' in subtitle_line['metadata']:
 				if (dialog.iscanceled()):
 					return
 				if i % 10 == 0:
 					percent = int( (float(i*100) / lines_total) )
-					dialog.update(percent, common.smart_utf8(xbmcaddon.Addon(id = common.ADDONID).getLocalizedString(30929)))
+					dialog.update(percent, common.smart_utf8(addon.getLocalizedString(30929)))
 				sub = common.smart_utf8(subtitle_line['metadata']['Text'])
 				start_time = common.smart_utf8(str(subtitle_line['startTime'])).split('.')
 				start_minutes, start_seconds = divmod(int(start_time[0]), 60)
@@ -216,7 +216,7 @@ def convert_subtitles(video_guid):
 		file.close()
 	except Exception, e:
 		print "Exception: " + unicode(e)
-		common.show_exception(NAME, xbmcaddon.Addon(id = common.ADDONID).getLocalizedString(39030))
+		common.show_exception(NAME, addon.getLocalizedString(39030))
 	finally:
 		if file is not None:
 			file.close()
