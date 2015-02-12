@@ -1,3 +1,11 @@
+version 1.1.9
+
+  * fix SpikeTV
+  * fix common issues
+  * fix library problem on Android Devices
+  * fix context menu bug
+  * fix ABC logo
+
 version 1.1.8
 
   * added missing USA full episodes
