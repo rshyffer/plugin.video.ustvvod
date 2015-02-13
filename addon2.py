@@ -15,7 +15,7 @@ addonPath           = xbmcaddon.Addon().getAddonInfo("path")
 addonLibs           = os.path.join(addonPath,'resources/lib')
 addonImages         = os.path.join(addonPath,'resources/images')
 addonStations       = os.path.join(addonLibs,'stations')
-
+pluginHandle        = int(sys.argv[1])
 '''
 add addon specific paths to sys.path
 '''
@@ -63,8 +63,8 @@ class main:
 class root():
     def get(self):
         rootList = []
-        rootList.append({'name': 39000, 'image': 'fav.png', 'action': 'masterliste'})
-        rootList.append({'name': 39002, 'image': 'allshows.png', 'action': 'favorlist'})
+        rootList.append({'name': 39000, 'image': 'fav.png', 'action': 'favorlist'})
+        rootList.append({'name': 39002, 'image': 'allshows.png', 'action': 'masterliste'})
         for channel in station().getList():
             if getSetting(channel) == 'true':
                 stationModule = __import__(channel)
@@ -77,13 +77,13 @@ class root():
         if subclass == None:
             common.root_list(channel)
 
-    def masterliste():
+    def masterliste(self):
         xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_LABEL)
         common.load_showlist()
         common.set_view('tvshows')
         xbmcplugin.endOfDirectory(pluginHandle)
 
-    def favorlist():   
+    def favorlist(self):   
         xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_LABEL)
         common.load_showlist(favored = 1)
         common.set_view('tvshows')
@@ -141,7 +141,7 @@ class index():
                 item = xbmcgui.ListItem(name, iconImage='DefaultFolder.png', thumbnailImage=image)
                 item.setInfo(type='video', infoLabels={'label': name, 'title': name, 'plotoutline': desc})
                 item.setProperty('Fanart_Image', addonFanart)
-                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=u, listitem=item, isFolder=True, totalItems=total)
+                xbmcplugin.addDirectoryItem(handle=pluginHandle, url=u, listitem=item, isFolder=True, totalItems=total)
             except:
                 pass
         xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=True)
