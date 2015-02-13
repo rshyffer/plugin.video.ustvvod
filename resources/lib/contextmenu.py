@@ -83,8 +83,8 @@ def refresh_menu(mode, submode, url):
 def select_quality():
 	show_title, season, episode, thumb, displayname, qmode, url = args.url.split('<join>')
 	common.args = _Info(url.split('?')[1].replace('&', ' , '))
-	exec 'import resources.lib.%s as sitemodule' % common.args.mode 
-	exec 'resultlist = sitemodule.%s()' % qmode
+	network = common.get_network(common.args.mode)
+	resultlist = getattr(network, qmode)()
 	select = xbmcgui.Dialog()
 	title = addon.getLocalizedString(39022)
 	resultset = set(resultlist)
@@ -98,4 +98,4 @@ def select_quality():
 	setattr(common.args, 'episode_number', int(episode))
 	setattr(common.args, 'season_number', int(season))
 	setattr(common.args, 'show_title', show_title)
-	exec 'sitemodule.%s()' % common.args.sitemode
+	getattr(network, common.args.sitemode)()
