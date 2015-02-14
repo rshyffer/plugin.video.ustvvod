@@ -7,6 +7,7 @@ import sys
 import urllib
 import shutil
 import time
+import ustvpaths
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -46,7 +47,10 @@ class Main:
 			self.EnableNotifications = False
 
 		if common.args.mode.endswith('FavoriteEpisodesLibrary'):
-			self.GetFavoriteEpisodes()
+			try:
+				self.GetFavoriteEpisodes()
+			except Exception as e:
+				print "Error exporting " , e
 		elif common.args.mode.endswith('NetworkLibrary'):
 			self.GetNetworkShows( common.args.submode)
 		elif common.args.mode.endswith('AllShowsLibrary'):
@@ -83,7 +87,7 @@ class Main:
 	def GetFavoriteEpisodes(self):
 		shows = common.fetch_showlist(1)
 		self.ExportShowList(shows, 750)
-		self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % addon.getLocalizedString(39000), image = common.FAVICON)
+		self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % addon.getLocalizedString(39000), image = ustvpaths.FAVICON)
 			
 	def GetNetworkShows(self, site):
 		network = common.get_network(site)
@@ -108,7 +112,10 @@ class Main:
 			xbmc.sleep(delay)
 			
 	def ExportShowMovie(self, item):
-		self.ExportShow(item)
+		try:
+			self.ExportShow(item)
+		except Exception as e:
+			print e
 
 	def ExportShow(self, show):
 		series_title, mode, sitemode, url, tvdb_id, imdb_id, tvdbbanner, tvdbposter, tvdbfanart, first_aired, date, year, actors, genres, studio, plot, runtime, rating, airs_dayofweek, airs_time, status, has_full_episodes, favor, hide, show_name = show
@@ -117,22 +124,22 @@ class Main:
 		has_episodes = False
 		has_movies = False
 		if network:
-			setattr(common.args, 'url', url)
 			if '--' not in series_title:
 				seasons = getattr(network, sitemode)(url)
 				for season in seasons:
 					section_title,  site, subsitemode, suburl, locked, unlocked = season
-					episodes = getattr(network, subsitemode)(suburl)
-					allepisodes.extend(episodes)
-					for episode in allepisodes:
-						type = episode[-1]
-						info = episode[3]
-						try:
-							number = info['episode']
-						except:
-							number = -1
-						if type == 'Full Episode' and number > -1:
-							has_episodes = True
+					if 'Clips' not in section_title:
+						episodes = getattr(network, subsitemode)(suburl)
+						allepisodes.extend(episodes)
+						for episode in allepisodes:
+							type = episode[-1]
+							info = episode[3]
+							try:
+								number = info['episode']
+							except:
+								number = -1
+							if type == 'Full Episode' and number > -1:
+								has_episodes = True
 			else:
 				episodes = getattr(network, sitemode)(url)
 				allepisodes = episodes
@@ -206,8 +213,16 @@ class Main:
 					tvshowDetails +='</tvshow>'					
 					self.SaveFile( 'tvshow.nfo', tvshowDetails, directory)
 				for episode in allepisodes:
-					self.ExportVideo(episode, directory, studio = studio)
+					try:
+						self.ExportVideo(episode, directory, studio = studio)
+					except:
+						print "Can't export video"
 				self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % show_name, image = tvdbposter)
+	
+			else:
+				print "No episodes found "
+		else:
+			print "Network error"
 
 	def ExportVideo(self, episode, directory, studio = None):
 		strm, title, episode_thumb, data, qmode, ishd, media_type = episode
