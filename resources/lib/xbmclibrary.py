@@ -52,7 +52,10 @@ class Main:
 			except Exception as e:
 				print "Error exporting " , e
 		elif common.args.mode.endswith('NetworkLibrary'):
-			self.GetNetworkShows( common.args.submode)
+			try:
+				self.GetNetworkShows(common.args.submode)
+			except Exception as e:
+				print "Error exporting site ", e
 		elif common.args.mode.endswith('AllShowsLibrary'):
 			self.GetAllShows()
 		if (addon.getSetting('updatelibrary') == 'true'):
@@ -103,7 +106,7 @@ class Main:
 				showdata = common.get_show_data(series_title, mode, sitemode, url, siteplot)
 				shows.append(showdata)
 			self.ExportShowList(shows, 2500)
-			image =  os.path.join(common.IMAGEPATH, network.SITE + '.png')
+			image =  os.path.join(ustvpaths.IMAGEPATH, network.SITE + '.png')
 			self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % network.NAME, image = image)
 
 	def ExportShowList(self, shows, delay = 0): 
