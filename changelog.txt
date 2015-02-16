@@ -1,3 +1,9 @@
+version 1.2.0
+
+  * fix CW
+  * fix common problems
+  * update CBS
+
 version 1.1.9
 
   * fix SpikeTV
