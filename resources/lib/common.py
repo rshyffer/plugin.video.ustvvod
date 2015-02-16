@@ -113,14 +113,17 @@ def season_list():
 			add_directory(section_title,  site, sitemode, url, locked = locked, unlocked = unlocked)
 	set_view('seasons')
 
-def enrich_infolabels(infolabels, expires_date = None, date_format = None):
+def enrich_infolabels(infolabels, expires_date = None, date_format = None, epoch = False):
 	try:
-		if expires_date is not None and expires_date != '':
+		if (expires_date is not None and expires_date != '') or epoch:
 			if date_format:
-				
 				expires_date = format_date(expires_date, date_format, '%d/%m/%Y')
+			elif epoch:
+				expires_date = format_date(epoch = epoch)
 			plot =  'Expires: ' + smart_utf8(expires_date) + '\n' + smart_utf8(infolabels['plot'])
 			infolabels['plot'] = plot
+			
+			
 	except:
 		pass
 	try:
@@ -136,7 +139,11 @@ def enrich_infolabels(infolabels, expires_date = None, date_format = None):
 def episode_list():
 	network = get_network(args.mode)
 	if network:
-		episodes = getattr(network, args.sitemode)()
+		try:
+			print "Getting episodes", args.mode, args.sitemode
+			episodes = getattr(network, args.sitemode)()
+		except Exception as e:
+			print "Error in episodes_list::" + e
 		for episode in episodes:
 			u, episode_name, episode_thumb, infoLabels, qmode, HD, media_type = episode
 			add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities', HD = HD)
