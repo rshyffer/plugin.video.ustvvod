@@ -2,76 +2,80 @@
 # -*- coding: utf-8 -*-
 import common
 import connection
-import main_brightcove
+import simplejson
 import re
 import sys
 import urllib
 import xbmcgui
 import xbmcplugin
+import xbmcaddon
 from bs4 import BeautifulSoup
 
 pluginHandle = int (sys.argv[1])
-
+addon = xbmcaddon.Addon()
 SITE = "marvelkids"
 NAME = "Marvel Kids"
 DESCRIPTION = "Marvel started in 1939 as Timely Publications, and by the early 1950s had generally become known as Atlas Comics. Marvel's modern incarnation dates from 1961, the year that the company launched Fantastic Four and other superhero titles created by Stan Lee, Jack Kirby, Steve Ditko, and others. Marvel counts among its characters such well-known properties as Spider-Man, the X-Men, the Fantastic Four, Iron Man, the Hulk, Thor, Captain America and Daredevil; antagonists such as the Green Goblin, Magneto, Doctor Doom, Galactus, and the Red Skull. Most of Marvel's fictional characters operate in a single reality known as the Marvel Universe, with locations that mirror real-life cities such as New York, Los Angeles and Chicago."
-BASE = "http://marvelkids.marvel.com"
-SHOWS = "http://marvelkids.marvel.com/shows"
-CONST = "4c1b306cc23230173e7dfc04e68329d3c0c354cb"
+SHOWS = "http://www.marvelkids.com/videos"
 
 def masterlist():
 	master_db = []
 	master_data = connection.getURL(SHOWS)
-	master_menu = BeautifulSoup(master_data, 'html.parser').find_all(href = re.compile('/shows/'))
+	master_menu = BeautifulSoup(master_data, 'html.parser').find_all('h2', text = re.compile('"'))
 	for master_item in master_menu:
-		master_name = master_item['title']
-		season_url = BASE + master_item['href']
+		master_name = master_item.text.replace('"', '').replace(' Videos', '')
+		season_url = master_item.text
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
 def seasons(season_url = common.args.url):
-	season_data = connection.getURL(season_url)
-	season_tree = BeautifulSoup(season_data, 'html.parser')
-	season_menu = season_tree.find_all('div', class_ = 'tab-wrap')
-	for season_item in season_menu:
-		season_name = season_item.h2.text
-		common.add_directory(season_name, SITE, 'episodes', season_url)
-	common.set_view('seasons')
+	seasons = []
+	seasons.append(('Clips',  SITE, 'episodes', season_url, -1, -1))
+	print seasons
+	return seasons
 
 def episodes(episode_url = common.args.url):
-	episode_data = connection.getURL(episode_url)
+	episodes = []
+	episode_data = connection.getURL(SHOWS)
 	episode_tree = BeautifulSoup(episode_data, 'html.parser')
-	episode_carousel = episode_tree.find_all('div', class_ = 'tab-wrap')
-	for episode in episode_carousel:
-		if common.args.name == episode.h2.text:
-			episode_menu = episode.find_all('li', class_ = 'result-item')
-			for episode_item in episode_menu:
-				episode_name = episode_item.img['title']
-				episode_thumb = episode_item.img['src']
-				episode_exp_id = episode_item.a['data-video']
-				episode_plot = episode_item.find('p', class_ = 'description').text.strip()
-				url = episode_url
-				u = sys.argv[0]
-				u += '?url="' + urllib.quote_plus(url) + '#' + urllib.quote_plus(episode_exp_id) + '"'
-				u += '&mode="' + SITE + '"'
-				u += '&sitemode="play_video"'
-				infoLabels={	'title' : episode_name,
-								'plot' : episode_plot }
-				common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
-	common.set_view('episodes')
+	episode_carousel = episode_tree.find('h2', text = re.compile(episode_url)).parent.parent
+	for episode_item in episode_carousel.find_all('span', class_ = 'col'):
+		try:
+			episode_name = re.compile('"(.*)"').findall(episode_item.h3.string)[0]
+		except:
+			episode_name = episode_item.h3.string
+		print episode_name
+		episode_thumb = episode_item.img['src']
+		try:
+			episode_url = episode_item.a['href']
+		except:
+			episode_url = ''
+		url = episode_url
+		u = sys.argv[0]
+		u += '?url="' + urllib.quote_plus(episode_url)  + '"'
+		u += '&mode="' + SITE + '"'
+		u += '&sitemode="play_video"'
+		infoLabels={'title' : episode_name }
+		episodes.append((u, episode_name, episode_thumb, infoLabels, None, False, 'Clip'))
+	print episodes
+	return episodes
 
 def play_video(video_url = common.args.url):
 	stored_size = 0
-	video_url, video_content_id = video_url.split('#')
 	video_data = connection.getURL(video_url)
-	video_tree = BeautifulSoup(video_data, 'html.parser')
-	video_player_key = video_tree.find('param', attrs = {'name' : 'playerKey'})['value']
-	video_player_id = video_tree.find('param', attrs = {'name' : 'publisherID'})['value']
-	renditions = main_brightcove.get_episode_info(video_player_key, video_content_id, video_url, video_player_id, CONST)
-	finalurl = renditions['programmedContent']['videoPlayer']['mediaDTO']['FLVFullLengthURL']
-	for item in sorted(renditions['programmedContent']['videoPlayer']['mediaDTO']['renditions'], key = lambda item:item['frameHeight'], reverse = False):
-		stream_size = item['size']
-		if (int(stream_size) > stored_size):
-			finalurl = item['defaultURL']
-			stored_size = stream_size
+	video_model = re.compile('model: *(\[.*\]),\s*videoPlayer: _player,', re.DOTALL).findall(video_data)[0]
+	video_model = simplejson.loads(video_model)
+	try:
+		sbitrate = long(addon.getSetting('quality')) * 1000
+	except Exception as e:
+		print "Bitrate error", e
+	hbitrate = -1
+	print sbitrate
+	for item in video_model[0]['flavors']:
+		if item['format'] == 'mp4' and item['security_profile'][0] == 'progressive':
+			bitrate = item['bitrate']
+			if bitrate > hbitrate and bitrate <= sbitrate:
+				hbitrate = bitrate
+				url = item['url']
+	finalurl = url
 	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
