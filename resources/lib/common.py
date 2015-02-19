@@ -146,7 +146,7 @@ def episode_list():
 			print "Error in episodes_list::" + e
 		for episode in episodes:
 			u, episode_name, episode_thumb, infoLabels, qmode, HD, media_type = episode
-			add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities', HD = HD)
+			add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = qmode, HD = HD)
 	set_view('episodes')
 
 def root_list(network_name):
