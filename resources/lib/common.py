@@ -110,7 +110,7 @@ def season_list():
 		seasons = getattr(network, args.sitemode)()
 		for season in seasons:
 			section_title,  site, sitemode, url, locked, unlocked = season
-			add_directory(section_title,  site, sitemode, url, locked = locked, unlocked = unlocked)
+			add_directory(smart_utf8(section_title),  site, sitemode, url, locked = locked, unlocked = unlocked)
 	set_view('seasons')
 
 def enrich_infolabels(infolabels, expires_date = None, date_format = None, epoch = False):
