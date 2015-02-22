@@ -29,7 +29,7 @@ class MyHTTPConnection(httplib.HTTPConnection):
 		resolver.nameservers = self._dnsproxy
 		answer = resolver.query(self.host, 'A')
 		self.host = answer.rrset.items[0].address
-		self.sock = socket.createconnection((self.host, self.port))
+		self.sock = socket.create_connection((self.host, self.port))
 
 class MyHTTPHandler(urllib2.HTTPHandler):
 	_dnsproxy = []
@@ -258,6 +258,8 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 	except urllib2.HTTPError, error:
 		print 'HTTP Error reason: ', error
 		return error.read()
+	except Exception as e:
+		print "Error", e
 	else:
 		return link
 
