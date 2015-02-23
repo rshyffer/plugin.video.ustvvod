@@ -16,10 +16,10 @@ STATIONPATH = os.path.join(LIBPATH,'stations')
 
 PLUGINFANART = os.path.join(PLUGINPATH,'fanart.jpg')
 PLAYFILE = os.path.join(DATAPATH,'play.m3u8')
-KEYFILE = os.path.join(DATAPATH,'play.key')
+KEYFILE = os.path.join(DATAPATH,'play%s.key')
 SUBTITLE = os.path.join(DATAPATH,'subtitle.srt')
 SUBTITLESMI = os.path.join(DATAPATH,'subtitle.smi')
-COOKIE = os.path.join(DATAPATH,'cookie.txt')
+COOKIE = os.path.join(DATAPATH,'cookie%s.txt')
 FAVICON = os.path.join(IMAGEPATH,'fav.png')
 ALLICON = os.path.join(IMAGEPATH,'allshows.png')
 

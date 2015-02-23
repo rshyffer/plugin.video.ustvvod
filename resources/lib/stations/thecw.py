@@ -154,7 +154,7 @@ def play_video(video_url = common.args.url):
 		play_data = connection.getURL(playpath_url)
 		key_url = re.compile('URI="(.*?)"').findall(play_data)[0]
 		key_data = connection.getURL(key_url)		
-		key_file = open(ustvpaths.KEYFILE, 'wb')
+		key_file = open(ustvpaths.KEYFILE % '0', 'wb')
 		key_file.write(key_data)
 		key_file.close()
 		relative_urls = re.compile('(.*ts)\n').findall(play_data)
@@ -174,7 +174,7 @@ def play_video(video_url = common.args.url):
 		filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
 		xbmc.executebuiltin(filestring)
 		time.sleep(20)
-		play_data = play_data.replace(key_url, 'http://127.0.0.1:12345/play.key')
+		play_data = play_data.replace(key_url, 'http://127.0.0.1:12345/play0.key')
 		playfile = open(ustvpaths.PLAYFILE, 'w')
 		playfile.write(play_data)
 		playfile.close()

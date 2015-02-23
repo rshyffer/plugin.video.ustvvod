@@ -142,15 +142,15 @@ def play_video(video_url = common.args.url):
 	video_data4 = connection.getURL(video_url4, loadcookie = True)
 	key_url = re.compile('URI="(.*?)"').findall(video_data4)[0]
 	key_data = connection.getURL(key_url, loadcookie = True)
-	key_file = open(ustvpaths.KEYFILE, 'wb')
+	key_file = open(ustvpaths.KEYFILE % '0', 'wb')
 	key_file.write(key_data)
 	key_file.close()
 	video_url5 = re.compile('(http:.*?)\n').findall(video_data4)
 	for i, video_item in enumerate(video_url5):
 		newurl = base64.b64encode(video_item)
 		newurl = urllib.quote_plus(newurl)
-		video_data4 = video_data4.replace(video_item, 'http://127.0.0.1:12345/foxstation/' + newurl)
-	video_data4 = video_data4.replace(key_url, 'http://127.0.0.1:12345/play.key')
+		video_data4 = video_data4.replace(video_item, 'http://127.0.0.1:12345/0/foxstation/' + newurl)
+	video_data4 = video_data4.replace(key_url, 'http://127.0.0.1:12345/play0.key')
 	localhttpserver = True
 	filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
 	xbmc.executebuiltin(filestring)

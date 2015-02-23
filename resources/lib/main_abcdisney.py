@@ -326,14 +326,14 @@ def play_video(SITE, BRANDID, PARTNERID):
 		video_data4 = re.sub(r"\#EXT-X-DISCONTINUITY\n","", connection.getURL(video_url4))
 		key_url = re.compile('URI="(.*?)"').findall(video_data4)[0]
 		key_data = connection.getURL(key_url)		
-		key_file = open(ustvpaths.KEYFILE, 'wb')
+		key_file = open(ustvpaths.KEYFILE % '0', 'wb')
 		key_file.write(key_data)
 		key_file.close()
 		localhttpserver = True
 		filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
 		xbmc.executebuiltin(filestring)
 		time.sleep(20)
-		video_data4 = video_data4.replace(key_url, 'http://127.0.0.1:12345/play.key')
+		video_data4 = video_data4.replace(key_url, 'http://127.0.0.1:12345/play0.key')
 		playfile = open(ustvpaths.PLAYFILE, 'w')
 		playfile.write(video_data4)
 		playfile.close()

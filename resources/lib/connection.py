@@ -200,76 +200,80 @@ def prepare_tor_proxy(cookie_handler):
 	opener = urllib2.build_opener(socks_handler, cookie_handler)
 	return opener	
 
-def getURL(url, values = None, header = {}, amf = False, savecookie = False, loadcookie = False, connectiontype = addon.getSetting('connectiontype'), cookiefile = None):
-	try:
+def getURL(url, values = None, header = {}, amf = False, savecookie = False, loadcookie = False, connectiontype = addon.getSetting('connectiontype'), cookiefile = 0):
+	success = True
+	while success:
+		success = False;
 		old_opener = urllib2._opener
-		cj = cookielib.LWPCookieJar(ustvpaths.COOKIE)
-		cookie_handler = urllib2.HTTPCookieProcessor(cj)
-		if int(connectiontype) == 0:
-			urllib2.install_opener(urllib2.build_opener(cookie_handler))
-		if int(connectiontype) == 1:
-			urllib2.install_opener(prepare_dns_proxy(cookie_handler))
-		elif int(connectiontype) == 2:
-			urllib2.install_opener(prepare_us_proxy(cookie_handler))
-		elif int(connectiontype) == 3:
-			handler = TorHandler()
-			if ((addon.getSetting('tor_use_local') == 'true') and addon.getSetting('tor_as_service') == 'false'):
-				if not handler.start_tor():
-					print 'Error launching Tor. It may already be running.\n'
-			urllib2.install_opener(prepare_tor_proxy(cookie_handler))
-		print 'connection :: getURL :: url = ' + url
-		if values is None:
-			req = urllib2.Request(bytes(url))
+		try:
+			cj = cookielib.LWPCookieJar(ustvpaths.COOKIE % str(cookiefile))
+			cookie_handler = urllib2.HTTPCookieProcessor(cj)
+			if int(connectiontype) == 0:
+				urllib2.install_opener(urllib2.build_opener(cookie_handler))
+			if int(connectiontype) == 1:
+				urllib2.install_opener(prepare_dns_proxy(cookie_handler))
+			elif int(connectiontype) == 2:
+				urllib2.install_opener(prepare_us_proxy(cookie_handler))
+			elif int(connectiontype) == 3:
+				handler = TorHandler()
+				if ((addon.getSetting('tor_use_local') == 'true') and addon.getSetting('tor_as_service') == 'false'):
+					if not handler.start_tor():
+						print 'Error launching Tor. It may already be running.\n'
+				urllib2.install_opener(prepare_tor_proxy(cookie_handler))
+			print 'connection :: getURL :: url = ' + url
+			if values is None:
+				req = urllib2.Request(bytes(url))
+			else:
+				if amf == False:
+					data = urllib.urlencode(values)
+				elif amf == True:
+					data = values
+				req = urllib2.Request(bytes(url), data)
+			header.update({'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0'})
+			if connectiontype == 2:
+				header.update({'X-Forwarded-For' : addon.getSetting('us_proxy')})
+			elif int(connectiontype) == 1:
+				header.update({'X-Forwarded-For' : addon.getSetting('dns_proxy')})
+			for key, value in header.iteritems():
+				req.add_header(key, value)
+			if loadcookie is True:
+				try:
+					cj.load(ignore_discard = True)
+					cj.add_cookie_header(req)
+				except:
+					print 'Cookie Loading Error'
+					pass
+			response = urllib2.urlopen(req, timeout = TIMEOUT)
+			link = response.read()
+			if (savecookie is True) and (len(cj) > 0):
+				try:
+					cj.save(ignore_discard = True)
+				except:
+					print 'Cookie Saving Error'
+					success = True
+					pass
+			elif (savecookie is True) and (len(cj) == 0):
+				success = True
+			response.close()
+			if ((int(connectiontype) == 3) and (addon.getSetting('tor_use_local') == 'true') and (addon.getSetting('tor_as_service') == 'false')):
+				if not handler.kill_tor(): 
+					print 'Error killing Tor process! It may still be running.\n' 
+				else: 
+					print 'Tor instance killed!\n'
+		except urllib2.HTTPError, error:
+			success = True
+			print 'HTTP Error reason: ', error
+			return error.read()
+		except Exception, e:
+			print "Error: ", e
 		else:
-			if amf == False:
-				data = urllib.urlencode(values)
-			elif amf == True:
-				data = values
-			req = urllib2.Request(bytes(url), data)
-		header.update({'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0'})
-		if connectiontype == 2:
-			header.update({'X-Forwarded-For' : addon.getSetting('us_proxy')})
-		elif int(connectiontype) == 1:
-			header.update({'X-Forwarded-For' : addon.getSetting('dns_proxy')})
-		for key, value in header.iteritems():
-			req.add_header(key, value)
-		if loadcookie is True:
-			try:
-				cj.load(ignore_discard = True)
-				cj.add_cookie_header(req)
-			except:
-				print 'Cookie Loading Error'
-				pass
-		response = urllib2.urlopen(req, timeout = TIMEOUT)
-		link = response.read()
-		if savecookie is True:
-			try:
-				cj.save(ignore_discard = True)
-			except:
-				print 'Cookie Saving Error'
-				pass	
-		response.close()
-		if ((int(connectiontype) == 3) and (addon.getSetting('tor_use_local') == 'true') and (addon.getSetting('tor_as_service') == 'false')):
-			if not handler.kill_tor(): 
-				print 'Error killing Tor process! It may still be running.\n' 
-			else: 
-				print 'Tor instance killed!\n'
-		urllib2.install_opener(old_opener)
-	except urllib2.HTTPError, error:
-		print 'HTTP Error reason: ', error
-		return error.read()
-	except Exception as e:
-		print "Error", e
-	else:
-		return link
+			urllib2.install_opener(old_opener)
+	return link
 
-def getRedirect(url, values = None , header = {}, connectiontype = addon.getSetting('connectiontype'), cookiefile = None):
+def getRedirect(url, values = None , header = {}, connectiontype = addon.getSetting('connectiontype')):
+	old_opener = urllib2._opener
 	try:
-		old_opener = urllib2._opener
-		if cookiefile is not None:
-			cj = cookielib.LWPCookieJar(ustvpaths.COOKIE)
-		else:
-			cj = cookielib.LWPCookieJar(ustvpaths.COOKIE + str(cookiefile))
+		cj = cookielib.LWPCookieJar(ustvpaths.COOKIE)
 		cookie_handler = urllib2.HTTPCookieProcessor(cj)
 		if int(connectiontype) == 1:
 			urllib2.install_opener(prepare_dns_proxy(cookie_handler))
@@ -302,9 +306,11 @@ def getRedirect(url, values = None , header = {}, connectiontype = addon.getSett
 				print 'Error killing Tor process! It may still be running.\n' 
 			else: 
 				print 'Tor instance killed!\n'
-		urllib2.install_opener(old_opener)
 	except urllib2.HTTPError, error:
 		print 'HTTP Error reason: ', error
 		return error.read()
+	except Exception, e:
+		print "Error: ", e
 	else:
+		urllib2.install_opener(old_opener)
 		return finalurl

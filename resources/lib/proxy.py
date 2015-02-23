@@ -4,7 +4,7 @@ import base64
 import BaseHTTPServer
 import cookielib
 import httplib
-import os.path
+import os
 import ustvpaths
 import re
 import simplejson
@@ -26,7 +26,7 @@ class MyHTTPConnection(httplib.HTTPConnection):
 		resolver.nameservers = self._dnsproxy
 		answer = resolver.query(self.host, 'A')
 		self.host = answer.rrset.items[0].address
-		self.sock = socket.createconnection((self.host, self.port))
+		self.sock = socket.create_connection((self.host, self.port))
 
 class MyHTTPHandler(urllib2.HTTPHandler):
 	_dnsproxy = []
@@ -59,10 +59,10 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			self._writeheaders()
 			self.server.stop = True
 			print 'Server stopped'
-		elif 'play.key' in self.path:
+		elif 'key' in self.path:
 			try:
 				self._writeheaders()
-				file = open(ustvpaths.KEYFILE.replace('play.key', request_path), 'r')
+				file = open(ustvpaths.KEYFILE.replace('play%s.key', request_path), 'r')
 				data = file.read()
 				self.wfile.write(data)
 				file.close()
@@ -80,11 +80,11 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				self.send_error(404, 'File Not Found: %s' % self.path)
 			return
 		elif 'foxstation' in self.path:
+			i, request_path = request_path.split('/', 1)
 			realpath = urllib.unquote_plus(request_path[11:])
 			fURL = base64.b64decode(realpath)
-			self.serveFile(fURL, sendData)
+			self.serveFile(fURL, sendData, cookienum = i)
 		elif 'proxy' in self.path:
-			print urllib.unquote_plus(request_path) 
 			realpath = urllib.unquote_plus(request_path)[6:]
 			proxyconfig = realpath.split('/')[-1]
 			proxy_object = simplejson.loads(proxyconfig)
@@ -101,8 +101,8 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			fURL = base64.b64decode(realpath)
 			self.serveFile(fURL, sendData, handler)
 
-	def serveFile(self, fURL, sendData, httphandler = None):
-		cj = cookielib.LWPCookieJar(ustvpaths.COOKIE) 
+	def serveFile(self, fURL, sendData, httphandler = None, cookienum = 0):
+		cj = cookielib.LWPCookieJar(ustvpaths.COOKIE % str(cookienum))
 		if httphandler is None:
 			opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 		else:
@@ -117,7 +117,7 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				opener.addheaders = [(key, sheaders[key])]
 			if (key == 'User-Agent'):
 				opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0')]
-		if os.path.isfile(ustvpaths.COOKIE):
+		if os.path.isfile(ustvpaths.COOKIE % str(cookienum)):
 			cj.load(ignore_discard = True)
 			cj.add_cookie_header(request)
 		response = opener.open(request, timeout = TIMEOUT)
@@ -173,8 +173,7 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				pass
 		return di
 
-def runserver(server_class = StoppableHTTPServer,
-		handler_class = StoppableHttpRequestHandler):
+def runserver(server_class = StoppableHTTPServer, handler_class = StoppableHttpRequestHandler):
 	server_address = (HOST_NAME, PORT_NUMBER)
 	httpd = server_class(server_address, handler_class)
 	httpd.serve_forever()

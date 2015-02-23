@@ -10,6 +10,7 @@ import ustvpaths
 import re
 import simplejson
 import sys
+import threading
 import time
 import urllib
 import xbmc
@@ -18,7 +19,6 @@ import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 from Queue import PriorityQueue
-from threading import Thread, BoundedSemaphore
 
 addon = xbmcaddon.Addon()
 player = common.XBMCPlayer()
@@ -29,6 +29,16 @@ VIDEOURLAPI = 'http://media-utils.mtvnservices.com/services/MediaGenerator/%s?de
 TYPES = [('fullEpisodes' , 'Full Episodes'), ('bonusClips,afterShowsClips,recapsClips,sneakPeeksClips,dailies,showClips' , 'Extras')]
 DEVICE = 'Xbox'
 BITRATERANGE = 10
+TIMEOUT = 50
+
+class Thread(threading.Thread): 
+	def __init__(self, target, *args):
+		self._target = target
+		self._args = args
+		threading.Thread.__init__(self)
+		
+	def run(self):
+		self._target(*self._args)
 
 def masterlist(SITE, SHOWS):
 	master_db = []
@@ -124,14 +134,12 @@ def videos(SITE):
 	common.set_view('episodes')
 
 def play_video(BASE, video_uri = common.args.url, media_base = VIDEOURL):
-	#if media_base not in video_url:
 	video_url = media_base + video_uri
 	try:
 		qbitrate = common.args.quality
 	except:
 		qbitrate = None
 	video_url2 = 'stack://'
-	threads = []
 	closedcaption = []
 	exception = False
 	queue = PriorityQueue()
@@ -155,7 +163,6 @@ def play_video(BASE, video_uri = common.args.url, media_base = VIDEOURL):
 				if error_text[1] == 'loc':
 					params = dict(item.split("=") for item in config_url.split('?')[-1].split('&'))
 					common.show_exception('Geo', params['geo'])
-
 	if not exception:
 		feed_data = connection.getURL(feed_url,  header = {'X-Forwarded-For' : '12.13.14.15'})
 		video_tree = BeautifulSoup(feed_data, 'html.parser', parse_only = SoupStrainer('media:group'))
@@ -164,12 +171,14 @@ def play_video(BASE, video_uri = common.args.url, media_base = VIDEOURL):
 			video_tree = BeautifulSoup(feed_data, 'html.parser')
 			common.show_exception(video_tree.find('meta', property = "og:site_name")['content'], video_tree.find('meta', property = "og:url")['content'])
 			exception = True
+		threads = []
 		for i, video_item in enumerate(video_segments):
-			worker = Thread(target = get_videos, args = (queue, i, video_item, qbitrate))
-			worker.setDaemon(True)
-			worker.start()
-			threads.append(worker)
-		[x.join() for x in threads]
+			try:
+				threads.append(Thread(get_videos, queue, i, video_item, qbitrate))
+			except Exception, e:
+				print e
+		[i.start() for i in threads]
+		[i.join() for i in threads]
 		while not queue.empty():
 			video_data2 = queue.get()
 			video_url2 += video_data2[1] + ' , '
@@ -185,7 +194,6 @@ def play_video(BASE, video_uri = common.args.url, media_base = VIDEOURL):
 			convert_subtitles(closedcaption)
 			player._subtitles_Enabled = True
 		item = xbmcgui.ListItem(path = finalurl)
-
 		queue.task_done()
 		if qbitrate is not None:
 			item.setThumbnailImage(common.args.thumb)
@@ -209,12 +217,14 @@ def play_video2(API, video_url = common.args.url):
 	queue = PriorityQueue()
 	video_data = connection.getURL(API + 'playlists/%s/videos.json' % video_url)
 	video_tree = simplejson.loads(video_data)
-	for i, video_item in enumerate(video_tree['playlist']['videos']):
-		worker = Thread(target = get_videos, args = (queue, i, video_item, qbitrate))
-		worker.setDaemon(True)
-		worker.start()
-		threads.append(worker)
-	[x.join() for x in threads]
+	video_item = video_tree['playlist']['videos']
+	for i in range(0, len(video_item)):
+		try:
+			threads.append(Thread(get_videos, queue, i, video_item[i], qbitrate))
+		except Exception, e:
+			print e
+	[i.start() for i in threads]
+	[i.join() for i in threads]
 	while not queue.empty():
 		video_data2 = queue.get()
 		video_url2 += video_data2[1] + ' , '
@@ -257,22 +267,18 @@ def get_videos(queue, i, video_item, qbitrate):
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	try:
 		duration = video_tree.find('rendition')['duration']
-		closedcaption = video_tree.find('typographic', format = 'ttml')
 	except:
 		duration = 0
+	try:
+		closedcaption = video_tree.find('typographic', format = 'ttml')
+	except:
 		closedcaption = None
 	try:
 		video_menu = video_tree.src.string
 		hbitrate = -1
 		lbitrate = -1
 		m3u8_url = None
-		semaphore = BoundedSemaphore(1)
-		semaphore.acquire()
-		#if i == 0:
 		m3u8_master_data = connection.getURL(video_menu, savecookie = True, cookiefile = i)
-		#else:
-		#	m3u8_master_data = connection.getURL(video_menu, savecookie = False)
-		semaphore.release()
 		m3u8_master = m3u8.parse(m3u8_master_data)
 		sbitrate = int(addon.getSetting('quality')) * 1024
 		for video_index in m3u8_master.get('playlists'):
@@ -288,22 +294,19 @@ def get_videos(queue, i, video_item, qbitrate):
 				m3u8_url = video_index.get('uri')
 		if 	((m3u8_url is None) and (qbitrate is None)):
 			m3u8_url = lm3u8_url
-		semaphore2 = BoundedSemaphore(1)
-		semaphore2.acquire()
 		m3u8_data = connection.getURL(m3u8_url, loadcookie = True, cookiefile = i)
 		key_url = re.compile('URI="(.*?)"').findall(m3u8_data)[0]
 		key_data = connection.getURL(key_url, loadcookie = True, cookiefile = i)
-		key_file = open(ustvpaths.KEYFILE + str(i), 'wb')
+		key_file = open(ustvpaths.KEYFILE % str(i), 'wb')
 		key_file.write(key_data)
 		key_file.close()
-		semaphore2.release()
 		video_url = re.compile('(http:.*?)\n').findall(m3u8_data)
 		for video_item in video_url:
 			newurl = base64.b64encode(video_item)
 			newurl = urllib.quote_plus(newurl)
-			m3u8_data = m3u8_data.replace(video_item, 'http://127.0.0.1:12345/foxstation/' + newurl)
-		m3u8_data = m3u8_data.replace(key_url, 'http://127.0.0.1:12345/play.key' + str(i))
-		file_name = ustvpaths.PLAYFILE.replace('.m3u8', '_' + str(i) + '.m3u8')
+			m3u8_data = m3u8_data.replace(video_item, 'http://127.0.0.1:12345/' + str(i) + '/foxstation/' + newurl)
+		m3u8_data = m3u8_data.replace(key_url, 'http://127.0.0.1:12345/play%s.key' % str(i))
+		file_name = ustvpaths.PLAYFILE.replace('.m3u8', str(i) + '.m3u8')
 		playfile = open(file_name, 'w')
 		playfile.write(m3u8_data)
 		playfile.close()
