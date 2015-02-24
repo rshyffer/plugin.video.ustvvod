@@ -134,9 +134,9 @@ def play_video(video_url = common.args.url):
 		playpath_url = None
 		lplaypath_url = None
 		m3u8_data = connection.getURL(playpathm3u8)
-		m3u8 = m3u8.parse(m3u8_data)
+		m3u8_obj = m3u8.parse(m3u8_data)
 		uri = None
-		for video_index in m3u8.get('playlists'):
+		for video_index in m3u8_obj.get('playlists'):
 			if int(video_index.get('stream_info')['bandwidth']) > 64000:
 				bitrate = int(video_index.get('stream_info')['bandwidth']) /1024
 				if bitrate < lbitrate or lbitrate == -1:
