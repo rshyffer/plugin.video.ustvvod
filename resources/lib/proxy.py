@@ -15,7 +15,7 @@ import urllib
 import urllib2
 from dns.resolver import Resolver
 
-HOST_NAME = '127.0.0.1'
+HOST_NAME = 'localhost'
 TIMEOUT = 50
 PORT_NUMBER = int(sys.argv[1])
 
@@ -39,67 +39,84 @@ class StoppableHTTPServer(BaseHTTPServer.HTTPServer):
 		self.stop = False
 		while not self.stop:
 			self.handle_request()
+		print 'Server stopped'
 
 class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
-	def _writeheaders(self):
-		self.send_response(200)
-		self.send_header('Content-type', 'text/html')
-		self.end_headers()
-
 	def do_HEAD(self):
-		self._writeheaders()
+		self.writeHeaders()
 
 	def do_GET(self):
 		self.answer_request(1)
+
+	def writeHeaders(self):
+		self.send_response(200, "OK")
+		self.send_header("Content-type", "text/plain")
+		self.end_headers()
+
+	def sendPage( self, type, body ):
+		self.send_response(200, "OK")
+		self.send_header("Content-type", type)
+		self.send_header("Content-length", str(len(body)))
+		self.end_headers()
+		self.wfile.write(body)
 
 	def answer_request(self, sendData):
 		request_path = self.path[1:]
 		request_path = re.sub(r'\?.*', '', request_path)
 		if 'stop' in self.path:
-			self._writeheaders()
+			self.writeHeaders()
 			self.server.stop = True
-			print 'Server stopped'
 		elif 'key' in self.path:
-			try:
-				self._writeheaders()
-				file = open(ustvpaths.KEYFILE.replace('play%s.key', request_path), 'r')
-				data = file.read()
-				self.wfile.write(data)
-				file.close()
-			except IOError:
-				self.send_error(404, 'File Not Found: %s' % self.path)
-			return
+			self.serveKey(request_path)
 		elif 'm3u8' in self.path:
-			try:
-				self._writeheaders()
-				file = open(ustvpaths.PLAYFILE.replace('play.m3u8', request_path), 'r')
-				data = file.read()
-				self.wfile.write(data)
-				file.close()
-			except IOError:
-				self.send_error(404, 'File Not Found: %s' % self.path)
-			return
+			self.serveM3U8(request_path)
 		elif 'foxstation' in self.path:
-			i, request_path = request_path.split('/', 1)
-			realpath = urllib.unquote_plus(request_path[11:])
-			fURL = base64.b64decode(realpath)
-			self.serveFile(fURL, sendData, cookienum = i)
+			self.serveFoxStation(request_path, sendData)
 		elif 'proxy' in self.path:
-			realpath = urllib.unquote_plus(request_path)[6:]
-			proxyconfig = realpath.split('/')[-1]
-			proxy_object = simplejson.loads(proxyconfig)
-			if int(proxy_object['connectiontype']) == 1:
-				proxies = proxy_object['dns_proxy']
-				MyHTTPHandler._dnsproxy = proxies
-				handler = MyHTTPHandler
-			elif int(proxy_object['connectiontype']) == 2:
-				proxy = proxy_object['proxy']
-				us_proxy = 'http://' + proxy['us_proxy'] + ':' + proxy['us_proxy_port']
-				proxy_handler = urllib2.ProxyHandler({'http' : us_proxy})
-				handler = proxy_handler
-			realpath = realpath.replace('/' + proxyconfig, '')
-			fURL = base64.b64decode(realpath)
-			self.serveFile(fURL, sendData, handler)
+			self.serveProxy(request_path, sendData)
+
+	def serveKey(self, filename):
+		try:
+			file = open(ustvpaths.KEYFILE.replace('play%s.key', filename), 'r')
+			data = file.read()
+			file.close()
+			self.sendPage("application/x-mpegURL", data)
+		except IOError:
+			self.send_error(404, 'File Not Found')
+		return
+
+	def serveM3U8(self, filename):
+		try:
+			file = open(ustvpaths.PLAYFILE.replace('play.m3u8', filename), 'r')
+			data = file.read()
+			file.close()
+			self.sendPage("application/x-mpegURL", data)
+		except IOError:
+			self.send_error(404, 'File Not Found')
+		return
+
+	def serveFoxStation(self, path, data):
+		i, path = path.split('/', 1)
+		realpath = urllib.unquote_plus(path[11:])
+		fURL = base64.b64decode(realpath)
+		self.serveFile(fURL, data, cookienum = i)
+
+	def serveProxy(self, path, data):
+		realpath = urllib.unquote_plus(path)[6:]
+		proxyconfig = realpath.split('/')[-1]
+		proxy_object = simplejson.loads(proxyconfig)
+		if int(proxy_object['connectiontype']) == 1:
+			proxies = proxy_object['dns_proxy']
+			MyHTTPHandler._dnsproxy = proxies
+			handler = MyHTTPHandler
+		elif int(proxy_object['connectiontype']) == 2:
+			proxy = proxy_object['proxy']
+			us_proxy = 'http://' + proxy['us_proxy'] + ':' + proxy['us_proxy_port']
+			proxy_handler = urllib2.ProxyHandler({'http' : us_proxy})
+			handler = proxy_handler
+		realpath = realpath.replace('/' + proxyconfig, '')
+		fURL = base64.b64decode(realpath)
+		self.serveFile(fURL, data, handler)
 
 	def serveFile(self, fURL, sendData, httphandler = None, cookienum = 0):
 		cj = cookielib.LWPCookieJar(ustvpaths.COOKIE % str(cookienum))
@@ -108,12 +125,12 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		else:
 			opener = urllib2.build_opener(httphandler, urllib2.HTTPCookieProcessor(cj))
 		request = urllib2.Request(url = fURL)
-		opener.addheaders = []
-		d = {}
+#		opener.addheaders = []
+#		d = {}
 		sheaders = self.decodeHeaderString(''.join(self.headers.headers))
 		for key in sheaders:
-			d[key] = sheaders[key]
-			if (key != 'Host'):
+#			d[key] = sheaders[key]
+			if (key != 'Host') and (key != 'User-Agent'):
 				opener.addheaders = [(key, sheaders[key])]
 			if (key == 'User-Agent'):
 				opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0')]
