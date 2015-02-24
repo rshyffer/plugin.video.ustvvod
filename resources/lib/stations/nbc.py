@@ -235,75 +235,53 @@ def play_video(video_url = common.args.url, tonightshow = False):
 			closedcaption = smil_tree.textstream['src']
 		except:
 			pass
-		clip_id = smil_tree.video.find('param', attrs = {'name' : 'clipId'})
-		if clip_id is not None:
-			clip_id = clip_id['value']
-			video_url = VIDEOPAGE % clip_id
-			video_data = connection.getURL(video_url)
-			video_tree = BeautifulSoup(video_data, 'html.parser')
-			clip_url = SMIL_BASE + video_tree.clipurl.string
-			smil_data = connection.getURL(clip_url)
-			smil_tree = BeautifulSoup(smil_data, 'html.parser')
-			base_url = get_rtmp()
-			hbitrate = -1
-			sbitrate = int(addon.getSetting('quality')) * 1024
+	
+		m3u_master_data = connection.getURL(video_url2, savecookie = True)
+		m3u_master = m3u8.parse(m3u_master_data)
+		hbitrate = -1
+		sbitrate = int(addon.getSetting('quality')) * 1024
+		for video_index in m3u_master.get('playlists'):
+			bitrate = int(video_index.get('stream_info')['bandwidth'])
 			if qbitrate is None:
-				video_url2 = smil_tree.find_all('video')
-				for video_index in video_url2:
-					bitrate = int(video_index['system-bitrate'])
-					if bitrate > hbitrate and bitrate <= sbitrate:
-						hbitrate = bitrate
-						playpath_url = video_index['src']
-			else:
-				playpath_url = smil_tree.switch.find('video', attrs = {'system-bitrate' : qbitrate})['src']
-			if '.mp4' in playpath_url:
-				playpath_url = 'mp4:' + playpath_url
-			else:
-				playpath_url = playpath_url.replace('.flv', '')
-			finalurl = base_url + ' playpath=' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
-		else:
-			m3u_master_data = connection.getURL(video_url2, savecookie = True)
-			m3u_master = m3u8.parse(m3u_master_data)
-			hbitrate = -1
-			sbitrate = int(addon.getSetting('quality')) * 1024
-			for video_index in m3u_master.get('playlists'):
-				bitrate = int(video_index.get('stream_info')['bandwidth'])
-				if qbitrate is None:
-					if bitrate > hbitrate and bitrate <= sbitrate:
-						hbitrate = bitrate
-						m3u8_url =  video_index.get('uri')
-				elif  bitrate == qbitrate:
+				if bitrate > hbitrate and bitrate <= sbitrate:
+					hbitrate = bitrate
 					m3u8_url =  video_index.get('uri')
-			m3u_data = connection.getURL(m3u8_url, loadcookie = True)
-			key_url = re.compile('URI="(.*?)"').findall(m3u_data)[0]
-			key_data = connection.getURL(key_url, loadcookie = True)		
-			key_file = open(ustvpaths.KEYFILE % '0', 'wb')
-			key_file.write(key_data)
-			key_file.close()
-			video_url5 = re.compile('(http:.*?)\n').findall(m3u_data)
-			for i, video_item in enumerate(video_url5):
-				newurl = base64.b64encode(video_item)
-				newurl = urllib.quote_plus(newurl)
-				m3u_data = m3u_data.replace(video_item, 'http://127.0.0.1:12345/0/foxstation/' + newurl)
-			localhttpserver = True
-			filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
-			xbmc.executebuiltin(filestring)
-			time.sleep(20)
-			m3u_data = m3u_data.replace(key_url, 'http://127.0.0.1:12345/play0.key')
-			playfile = open(ustvpaths.PLAYFILE, 'w')
-			playfile.write(m3u_data)
-			playfile.close()
-			finalurl = ustvpaths.PLAYFILE
+			elif  bitrate == qbitrate:
+				m3u8_url =  video_index.get('uri')
+		m3u_data = connection.getURL(m3u8_url, loadcookie = True)
+		key_url = re.compile('URI="(.*?)"').findall(m3u_data)[0]
+		key_data = connection.getURL(key_url, loadcookie = True)		
+		key_file = open(ustvpaths.KEYFILE % '0', 'wb')
+		key_file.write(key_data)
+		key_file.close()
+		video_url5 = re.compile('(http:.*?)\n').findall(m3u_data)
+		for i, video_item in enumerate(video_url5):
+			newurl = base64.b64encode(video_item)
+			newurl = urllib.quote_plus(newurl)
+			m3u_data = m3u_data.replace(video_item, 'http://127.0.0.1:12345/0/foxstation/' + newurl)
+		localhttpserver = True
+		filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
+		xbmc.executebuiltin(filestring)
+		time.sleep(20)
+		m3u_data = m3u_data.replace(key_url, 'http://127.0.0.1:12345/play0.key')
+		playfile = open(ustvpaths.PLAYFILE, 'w')
+		playfile.write(m3u_data)
+		playfile.close()
+		finalurl = ustvpaths.PLAYFILE
 		if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 			convert_subtitles(closedcaption)
 			player._subtitles_Enabled = True
 		item = xbmcgui.ListItem(path = finalurl)
-		if qbitrate is not None:
+		try:
 			item.setThumbnailImage(common.args.thumb)
+		except:
+		try:
 			item.setInfo('Video', {	'title' : common.args.name,
 							'season' : common.args.season_number,
 							'episode' : common.args.episode_number,
 							'TVShowTitle' : common.args.show_title})
+		except:
+			pass
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 		while player.is_active:
 				player.sleep(250)
