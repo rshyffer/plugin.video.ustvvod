@@ -275,6 +275,7 @@ def play_video(video_url = common.args.url, tonightshow = False):
 		try:
 			item.setThumbnailImage(common.args.thumb)
 		except:
+			pass
 		try:
 			item.setInfo('Video', {	'title' : common.args.name,
 							'season' : common.args.season_number,
@@ -284,7 +285,7 @@ def play_video(video_url = common.args.url, tonightshow = False):
 			pass
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 		while player.is_active:
-				player.sleep(250)
+			player.sleep(250)
 	else:
 		common.show_exception(smil_tree.ref['title'], smil_tree.ref['abstract'])
 
