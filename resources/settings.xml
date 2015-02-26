@@ -48,6 +48,7 @@
 		<setting id="disneyjunior" type="bool" label="Disney Junior" default="true"/>
 		<setting id="disneyxd" type="bool" label="Disney XD" default="true"/>
 		<setting id="fox" type="bool" label="FOX" default="true"/>
+		<setting id="fx" type="bool" label="FX" default="false"/>
 		<setting id="history" type="bool" label="History" default="true"/>
 		<setting id="lifetime" type="bool" label="Lifetime" default="true"/>
 		<setting id="logotv" type="bool" label="LogoTV" default="true"/>

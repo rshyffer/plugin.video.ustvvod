@@ -21,85 +21,78 @@ addon = xbmcaddon.Addon()
 player = common.XBMCPlayer()
 pluginHandle = int(sys.argv[1])
 
-SITE = "fox"
-NAME = "FOX"
-DESCRIPTION = "Fox Broadcasting Company is a unit of News Corporation and the leading broadcast television network among Adults 18-49. FOX finished the 2010-2011 season at No. 1 in the key adult demographic for the seventh consecutive year ' a feat that has never been achieved in broadcast history ' while continuing to dominate all network competition in the more targeted Adults 18-34 and Teen demographics. FOX airs 15 hours of primetime programming a week as well as late-night entertainment programming, major sports and Sunday morning news."
-SHOWS = "http://assets.fox.com/apps/FEA/v1.8/allshows.json"
-CLIPS = "http://feed.theplatform.com/f/fox.com/metadata?count=true&byCustomValue={fullEpisode}{false}&byCategories=Series/%s"
-FULLEPISODES = "http://feed.theplatform.com/f/fox.com/metadata?count=true&byCustomValue={fullEpisode}{true}&byCategories=Series/%s"
-
-# for some shows, the name that needs to be passed to FULLEPISODES is different than the one in SHOWS
-# this dict can be used to manually fix it
-different_show_name = {
-	'Cosmos - A Spacetime Odyssey': 'cosmos',
-}
+SITE = "fx"
+NAME = "FX"
+ALIAS = ["FXX", "FOX"]
+DESCRIPTION = "FX (originally an initialism of \"Fox extended\", suggesting \"effects\", and stylized as fX from 1994 to 1997) is an American basic cable and satellite television channel that is owned by the Fox Entertainment Group division of 21st Century Fox. FX's programming primarily includes original drama and comedy series (which aspire to the standards of premium cable channels like HBO and Showtime, in regard to adult themes and more unique, higher-quality writing/directing/acting), and reruns of theatrically released feature films and \"broadcast network\" sitcoms."
+SHOWS = "http://fapi.fxnetworks.com/fx1_1/shows?filter%5B%5D=broadcast:1&nojoins=1&per_page=all"
+FULLEPISODES = "http://fapi.fxnetworks.com/fx/videos?fields=airDate%2Cios_video_url%2Cduration%2Cdescription%2Cname%2Cseason%2Cepisode%2Cimg_url&filter%5B%5D=fullEpisode%3A1&nojoins=1&per_page=all&filter%5B%5D=requiresAuth%3A&filter%5B%5D=fapi_show_id%3A"
+CLIPS = "http://fapi.fxnetworks.com/fx/videos?fields=airDate%2Cios_video_url%2Cduration%2Cdescription%2Cname%2Cseason%2Cepisode%2Cimg_url&filter%5B%5D=fullEpisode%3A0&nojoins=1&per_page=all&filter%5B%5D=requiresAuth%3A&filter%5B%5D=fapi_show_id%3A"
+AUTH = {'Authentication' : '5a90127750a5907e5d0964785474b33a43d65fa0'}
 
 def masterlist():
 	master_db = []
-	master_data = connection.getURL(SHOWS)
+	master_data = connection.getURL(SHOWS, header = AUTH)
 	master_menu = simplejson.loads(master_data)['shows']
 	for master_item in master_menu:
-		if master_item['external_link'] == '' and (master_item['fullepisodes'] == 'true' or addon.getSetting('hide_clip_only') == 'false'):
-			master_name = master_item['title']
-			master_db.append((master_name, SITE, 'seasons', master_name))
+		if (int(master_item['playable_episodes']) > 0) or (addon.getSetting('hide_clip_only') == 'false'):
+			master_name = master_item['name']
+			master_id = master_item['id']
+			master_db.append((master_name, SITE, 'seasons', master_id))
 	return master_db
 
 def seasons(season_url = common.args.url):
-	if season_url in different_show_name:
-		season_url = different_show_name[season_url]
-	season_data = connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
+	season_data = connection.getURL(FULLEPISODES)# + season_url, header = AUTH)
+	print season_data
 	try:
-		season_menu = int(simplejson.loads(season_data)['total_count'])
+		season_menu = len(simplejson.loads(season_data)['videos'])
 	except:
 		season_menu = 0
 	if season_menu > 0:
-		season_url2 = FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu)
+		season_url2 = FULLEPISODES + season_url
 		common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
-	season_data2 = connection.getURL(CLIPS % urllib.quote_plus(season_url) + '&range=0-1')
+	season_data2 = connection.getURL(CLIPS + season_url, header = AUTH)
 	try:
-		season_menu2 = int(simplejson.loads(season_data2)['total_count'])
+		season_menu2 = len(simplejson.loads(season_data2)['videos'])
 	except:
 		season_menu2 = 0
 	if season_menu2 > 0:
-		season_url3 = CLIPS % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu2)
+		season_url3 = CLIPS + season_url
 		common.add_directory('Clips',  SITE, 'episodes', season_url3)
 	common.set_view('seasons')
 
 def episodes(episode_url = common.args.url):
-	episode_data = connection.getURL(episode_url)
-	episode_menu = simplejson.loads(episode_data.replace('}{', '},{'))['results']
+	episode_data = connection.getURL(episode_url, header = AUTH)
+	episode_menu = simplejson.loads(episode_data)['videos']
 	for episode_item in episode_menu:
-		episode_airdate = common.format_date(episode_item['airdate'],'%Y-%m-%d', '%d.%m.%Y')
-		if (episode_item['authEndDate'] is None or time.time() >= long(episode_item['authEndDate'])/1000) or (common.args.name == 'Clips'):
-			show_name = common.args.name
-			url = episode_item['videoURL']
-			episode_duration = int(episode_item['length'])
-			episode_plot = episode_item['shortDescription']
-			episode_name = episode_item['name']
-			try:
-				season_number = episode_item['season']
-			except:
-				season_number = -1
-			try:
-				episode_number = episode_item['episode']
-			except:
-				episode_number = -1
-			try:
-				episode_thumb = episode_item['videoStillURL']
-			except:
-				episode_thumb = None
-			u = sys.argv[0]
-			u += '?url="' + urllib.quote_plus(url) + '"'
-			u += '&mode="' + SITE + '"'
-			u += '&sitemode="play_video"'
-			infoLabels={	'title' : episode_name,
-							'durationinseconds' : episode_duration,
-							'season' : season_number,
-							'episode' : episode_number,
-							'plot' : episode_plot,
-							'premiered' : episode_airdate,
-							'tvshowtitle': show_name }
-			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels,  quality_mode  = 'list_qualities')
+		episode_airdate = common.format_date(episode_item['airDate'],'%Y-%m-%d', '%d.%m.%Y')
+		url = episode_item['ios_video_url']
+		episode_duration = int(episode_item['duration'])
+		episode_plot = episode_item['description']
+		episode_name = episode_item['name']
+		try:
+			season_number = episode_item['season']
+		except:
+			season_number = -1
+		try:
+			episode_number = episode_item['episode']
+		except:
+			episode_number = -1
+		try:
+			episode_thumb = episode_item['img_url'].replace(' ', '%20')
+		except:
+			episode_thumb = None
+		u = sys.argv[0]
+		u += '?url="' + urllib.quote_plus(url) + '"'
+		u += '&mode="' + SITE + '"'
+		u += '&sitemode="play_video"'
+		infoLabels={	'title' 			: episode_name,
+						'durationinseconds' : episode_duration,
+						'season' 			: season_number,
+						'episode' 			: episode_number,
+						'plot' 				: episode_plot,
+						'premiered' 		: episode_airdate }
+		common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels,  quality_mode  = 'list_qualities')
 	common.set_view('episodes')
 
 def play_video(video_url = common.args.url):
@@ -111,7 +104,8 @@ def play_video(video_url = common.args.url):
 	lbitrate = -1
 	sbitrate = int(addon.getSetting('quality')) * 1000
 	finalurl = ''
-	video_data = connection.getURL(video_url + '&manifest=m3u')
+	key_included = False
+	video_data = connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	if (addon.getSetting('enablesubtitles') == 'true'):
 		try:
@@ -140,17 +134,22 @@ def play_video(video_url = common.args.url):
 			if qbitrate == bitrate:
 				video_url4 = video_index.get('uri')
 	video_data4 = connection.getURL(video_url4, loadcookie = True)
-	key_url = re.compile('URI="(.*?)"').findall(video_data4)[0]
-	key_data = connection.getURL(key_url, loadcookie = True)
-	key_file = open(ustvpaths.KEYFILE % '0', 'wb')
-	key_file.write(key_data)
-	key_file.close()
+	try:
+		key_url = re.compile('URI="(.*?)"').findall(video_data4)[0]
+		key_data = connection.getURL(key_url, loadcookie = True)
+		key_file = open(ustvpaths.KEYFILE % '0', 'wb')
+		key_file.write(key_data)
+		key_file.close()
+		key_included = True
+	except:
+		pass
 	video_url5 = re.compile('(http:.*?)\n').findall(video_data4)
 	for i, video_item in enumerate(video_url5):
 		newurl = base64.b64encode(video_item)
 		newurl = urllib.quote_plus(newurl)
 		video_data4 = video_data4.replace(video_item, 'http://127.0.0.1:12345/0/foxstation/' + newurl)
-	video_data4 = video_data4.replace(key_url, 'http://127.0.0.1:12345/play0.key')
+	if key_included == True:
+		video_data4 = video_data4.replace(key_url, 'http://127.0.0.1:12345/play0.key')
 	localhttpserver = True
 	filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
 	xbmc.executebuiltin(filestring)
