@@ -80,7 +80,7 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			file = open(ustvpaths.KEYFILE.replace('play%s.key', filename), 'r')
 			data = file.read()
 			file.close()
-			self.sendPage("application/x-mpegURL", data)
+			self.sendPage("html/plain", data)
 		except IOError:
 			self.send_error(404, 'File Not Found')
 		return
@@ -123,17 +123,13 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		if httphandler is None:
 			opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 		else:
-			opener = urllib2.build_opener(httphandler, urllib2.HTTPCookieProcessor(cj))
+			opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), httphandler)
 		request = urllib2.Request(url = fURL)
-#		opener.addheaders = []
-#		d = {}
-		sheaders = self.decodeHeaderString(''.join(self.headers.headers))
+		sheaders = self.decodeHeaderString(self.headers.headers)
+		del sheaders['Host']
+		sheaders['User-Agent'] = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0'
 		for key in sheaders:
-#			d[key] = sheaders[key]
-			if (key != 'Host') and (key != 'User-Agent'):
-				opener.addheaders = [(key, sheaders[key])]
-			if (key == 'User-Agent'):
-				opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:25.0) Gecko/20100101 Firefox/25.0')]
+			opener.addheaders = [(key, sheaders[key])]
 		if os.path.isfile(ustvpaths.COOKIE % str(cookienum)):
 			cj.load(ignore_discard = True)
 			cj.add_cookie_header(request)
@@ -142,8 +138,7 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		headers = response.info()
 		for key in headers:
 			try:
-				val = headers[key]
-				self.send_header(key, val)
+				self.send_header(key, headers[key])
 			except Exception, e:
 				print e
 				pass
@@ -151,28 +146,18 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		if (sendData):
 			fileout = self.wfile
 			try:
-				buf = 'INIT'
 				try:
-					while ((buf != None) and (len(buf) > 0)):
-						buf = response.read(1024 * 1024)
-						fileout.write(buf)
-						fileout.flush()
-					response.close()
+					buf = response.read(int(headers['content-length']))
+					fileout.write(buf)
 					fileout.close()
-				except socket.error, e:
-					print time.asctime(), 'Client closed the connection.'
-					try:
-						response.close()
-						fileout.close()
-					except Exception, e:
-						return
+					response.close()
 				except Exception, e:
-					print 'Exception: ' + e
-					response.close()
 					fileout.close()
-			except:
-				print 'Exception: ' + e
+					response.close()
+					print e
+			except Exception, e:
 				fileout.close()
+				print e
 				return
 		try:
 			fileout.close()
@@ -181,7 +166,7 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 	def decodeHeaderString(self, hs):
 		di = {}
-		hss = hs.replace('\r', '').split('\n')
+		hss = [item.rstrip() for item in hs]
 		for line in hss:
 			u = line.split(': ')
 			try:

@@ -218,10 +218,10 @@ def play_video(SITE, EPISODE, HLSPATH = None):
         lbitrate = -1
         file_url = None
         if video_tree.find('file', text = re.compile('mp4:')) is not None:
-            hasRTMP = True
-        else:
             hasRTMP = False
-        if (getSetting('preffered_stream_type') == 'RTMP' and int(getSetting('connectiontype')) == 0) or not hasRTMP:
+        else:
+            hasRTMP = True
+        if (getSetting('preffered_stream_type') == 'RTMP' and int(getSetting('connectiontype')) == 0) or hasRTMP:
             if qbitrate is  None:
                 video_menu = video_tree.find_all('file')
                 for video_index in video_menu:
@@ -321,6 +321,7 @@ def play_video(SITE, EPISODE, HLSPATH = None):
     if localhttpserver:
             while player.is_active:
                 player.sleep(250)
+
 def list_qualities(SITE, EPISODE):
     try:
         video_id = common.args.url.split(',')[0]
