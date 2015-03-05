@@ -1,3 +1,13 @@
+version 1.2.1
+
+  * fix Marvel Kids for library export
+  * fix for quality selections
+  * fix DNS connection issue
+  * stabilize proxy connection
+  * fix CW
+  * fix NBC Classics
+  * fix common problems
+
 version 1.2.0
 
   * fix CW
