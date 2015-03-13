@@ -31,7 +31,6 @@ def masterlist(SITE, SHOWS):
 	return master_db
 
 def seasons(SITE, SEASONSEPISODE, SEASONSCLIPS, EPISODES, CLIPS, season_url = common.args.url):
-
 	seasons = []
 	season_data = connection.getURL(SEASONSEPISODE % season_url)
 	season_tree = simplejson.loads(season_data)['season']
@@ -44,11 +43,9 @@ def seasons(SITE, SEASONSEPISODE, SEASONSCLIPS, EPISODES, CLIPS, season_url = co
 	for season_item in season_tree:
 		season_name = 'Season Clips ' + str(season_item)
 		seasons.append((season_name,  SITE, 'episodes', CLIPS % (season_url, season_item), -1, -1))
-
 	return seasons
 
 def episodes(SITE, episode_url = common.args.url):
-
 	episodes = []
 	episode_data = connection.getURL(episode_url)
 	episode_tree = simplejson.loads(episode_data)['Items']

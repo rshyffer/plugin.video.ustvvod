@@ -16,6 +16,11 @@ import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup
 
+try:
+	import StorageServer
+except:
+	import storageserverdummy as StorageServer
+
 addon = xbmcaddon.Addon()
 pluginHandle = int(sys.argv[1])
 
@@ -23,6 +28,8 @@ TVDBAPIKEY = '03B8C17597ECBD64'
 TVDBURL = 'http://thetvdb.com'
 TVDBBANNERS = 'http://thetvdb.com/banners/'
 TVDBSERIESLOOKUP = 'http://www.thetvdb.com/api/GetSeries.php?seriesname='
+
+cache = StorageServer.StorageServer("ustvvod", 24) 
 
 class XBMCPlayer( xbmc.Player ):
 	_counter = 0
@@ -105,14 +112,17 @@ network_module_cache = {}
 
 
 def season_list():
-	network = get_network(args.mode)
-	if network:
-		seasons = getattr(network, args.sitemode)()
-		for season in seasons:
-			section_title,  site, sitemode, url, locked, unlocked = season
-			add_directory(smart_utf8(section_title),  site, sitemode, url, locked = locked, unlocked = unlocked)
+	seasons = get_seasons(args.mode, args.sitemode)
+	for season in seasons:
+		section_title,  site, sitemode, url, locked, unlocked = season
+		add_directory(smart_utf8(section_title),  site, sitemode, url, locked = locked, unlocked = unlocked)
 	set_view('seasons')
 
+def get_seasons(network_name, site_mode, url = args.url):
+	network = get_network(network_name)
+	seasons = cache.cacheFunction(getattr(network, site_mode) , url)
+	return seasons
+	
 def enrich_infolabels(infolabels, expires_date = None, date_format = None, epoch = False):
 	try:
 		if (expires_date is not None and expires_date != '') or epoch:

@@ -23,11 +23,6 @@ pluginHandle = int(sys.argv[1])
 
 CATERGORIES = ['Series', 'Shows']
 
-try:
-	import StorageServer
-except:
-	import storageserverdummy as StorageServer
-cache = StorageServer.StorageServer("ustvvod", 24) # (Your plugin name, Cache time in hours)
  
 def masterlist(SITE, SHOWS):
 	master_db = []
@@ -55,7 +50,7 @@ def seasons(SITE, FULLEPISODES, CLIPS, FULLEPISODESWEB = None, season_urls = com
 		elif FULLEPISODESWEB:
 			try:
 				show = season_url.split('/')[-1].replace(' ', '')
-				web_data = cache.cacheFunction(connection.getURL, FULLEPISODESWEB % show)
+				web_data = connection.getURL(FULLEPISODESWEB % show)
 				web_tree = BeautifulSoup(web_data, 'html.parser')
 				all = len(web_tree.find_all('div', class_ = 'view-mode-vid_teaser_show_episode'))
 				auth = len(web_tree.find_all('div', class_ = 'tve-video-auth'))

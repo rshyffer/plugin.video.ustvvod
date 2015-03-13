@@ -128,7 +128,7 @@ class Main:
 		has_movies = False
 		if network:
 			if '--' not in series_title:
-				seasons = getattr(network, sitemode)(url)
+				seasons = common.get_seasons(mode, sitemode, url)
 				for season in seasons:
 					section_title,  site, subsitemode, suburl, locked, unlocked = season
 					if 'Clips' not in section_title:

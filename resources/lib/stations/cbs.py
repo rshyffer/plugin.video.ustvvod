@@ -128,7 +128,6 @@ def episodes(episode_url = common.args.url):
 			show_title = episode_item['series_title']
 			episode_expires = episode_item['expiry_date']
 			episode_type = episode_item['type']
-			print url
 			if url is not None:
 				u = sys.argv[0]
 				u += '?url="' + urllib.quote_plus(url) + '"'
@@ -146,7 +145,6 @@ def episodes(episode_url = common.args.url):
 				episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', HD, episode_type))
 			else:
 				pass
-	print episodes
 	return episodes
 
 def lookup_meta(url):
@@ -174,7 +172,6 @@ def list_qualities(video_url = common.args.url):
 			bitrate = video['system-bitrate']
 			display = int(bitrate) / 1024
 			bitrates.append((display, bitrate))
-		print bitrates
 		return bitrates
 	else:
 		common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
