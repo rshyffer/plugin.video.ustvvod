@@ -18,7 +18,7 @@ pluginHandle = int(sys.argv[1])
 
 SITE = "crackle"
 NAME = "Crackle"
-ALIAS = ["Sony Entertainment Television"]
+ALIAS = ["Sony Entertainment Television", "PlayStation Network"]
 DESCRIPTION = "Crackle, Inc. is a multi-platform video entertainment network and studio that distributes full length, uncut, movies, TV shows and original programming in our users favorite genres like comedy, action, crime, horror, Sci-Fi, and thriller. Crackles channels and shows reach a global audience across the Internet, in the living room, and on devices including a broad range of Sony electronics."
 SHOWS = "http://api.crackle.com/Service.svc/browse/shows/all/all/alpha/us?format=json"
 MOVIES = "http://api.crackle.com/Service.svc/browse/movies/all/all/alpha/us?format=json"
