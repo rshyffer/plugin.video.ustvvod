@@ -157,13 +157,17 @@ class Main:
 				directory = os.path.join(TV_SHOWS_PATH, self.cleanfilename(show_name))
 				self.CreateDirectory(directory)
 				if addon.getSetting('shownfo') == 'true':
-					plot = common.replace_signs(plot)
+					
 					tvshowDetails  = '<tvshow>'
 					tvshowDetails += '<title>'+ show_name + '</title>'
 					tvshowDetails += '<showtitle>' + show_name + '</showtitle>'
 					tvshowDetails +=  '<rating>' + str(rating) + '</rating>'
 					tvshowDetails +=  '<year>' + str(year) + '</year>'
-					tvshowDetails +=  '<plot>' + plot + '</plot>'
+					try:
+						plot = common.replace_signs(plot)
+						tvshowDetails +=  '<plot>' + plot + '</plot>'
+					except:
+						pass
 					try:
 						tvshowDetails += '<runtime>' + runtime +'</runtime>'
 					except:
@@ -218,8 +222,8 @@ class Main:
 				for episode in allepisodes:
 					try:
 						self.ExportVideo(episode, directory, studio = studio)
-					except:
-						print "Can't export video"
+					except Exception, e:
+						print "Can't export video", e
 				self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % show_name, image = tvdbposter)
 	
 			else:
@@ -260,8 +264,11 @@ class Main:
 					episodeDetails += '<rating>' + rating + '</rating>'
 					episodeDetails += '<season>' + str(season) + '</season>'
 					episodeDetails += '<episode>' + str(episode) + '</episode>'
-					plot = data['plot']
-					episodeDetails += '<plot>' + common.smart_unicode(plot) + '</plot>'
+					try:
+						plot = data['plot']
+						episodeDetails += '<plot>' + common.smart_unicode(plot) + '</plot>'
+					except:
+						pass
 					try:
 						episodeDetails += '<thumb>' + episode_thumb +'</thumb>'
 					except:
@@ -312,7 +319,10 @@ class Main:
 					movie += '<rating>' + data['rating'] + '</rating>'
 				except:
 					pass
-				movie += '<plot>' + common.smart_unicode(data['plot']) + '</plot>'
+				try:
+					movie += '<plot>' + common.smart_unicode(data['plot']) + '</plot>'
+				except:
+					pass
 				try:
 					movie += '<thumb>' + episode_thumb + '</thumb>'
 				except:

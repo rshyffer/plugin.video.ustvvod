@@ -82,16 +82,17 @@ def seasons(season_urls = common.args.url):
 							unlocked_episodes = int(season_item['total_count']) - int(season_item['premiumCount'])
 							locked_episodes = season_item['premiumCount']
 							season_url = FULLEPISODESWITHSEASON % (section_id, season_number)
-							common.add_directory(section_title + ' ' + season_title,  SITE, 'episodes', season_url, locked = locked_episodes, unlocked = unlocked_episodes )
+							seasons.append((section_title + ' ' + season_title,  SITE, 'episodes', season_url, locked_episodes, unlocked_episodes ))
 				else:
-					common.add_directory(section_title,  SITE, 'episodes', FULLEPISODES % section_id)
+					seasons.append((section_title,  SITE, 'episodes', FULLEPISODES % section_id, -1, -1))
 		except:
 			pass
 	except:
 		pass
-	common.set_view('seasons')
+	return seasons
 
 def episodes(episode_url = common.args.url):
+	episodes = []
 	episode_data = connection.getURL(episode_url)
 	episode_json = simplejson.loads(episode_data)['result']
 	episode_menu = episode_json['data']
@@ -99,10 +100,7 @@ def episodes(episode_url = common.args.url):
 	for episode_item in episode_menu:
 		if episode_item['status'] == 'AVAILABLE' or (addon.getSetting('cbs_use_login') == 'true' and episode_item['status'] == 'PREMIUM'):
 			videourl = episode_item['streaming_url']
-			if '_hd_' in videourl:
-				HD = True
-			else:
-				HD = False
+			HD = False
 			url = BASE + episode_item['url']
 			episode_duration = int(common.format_seconds(episode_item['duration']))
 			episode_airdate = common.format_date(episode_item['airdate'], '%m/%d/%y')
@@ -123,6 +121,14 @@ def episodes(episode_url = common.args.url):
 			except:
 				episode_thumb = None
 			episode_plot = episode_item['description']
+			try:
+				episode_mpaa = re.compile('\((.*)\)$').findall(episode_plot)[0]
+			except:
+				episode_mpaa = None
+			show_title = episode_item['series_title']
+			episode_expires = episode_item['expiry_date']
+			episode_type = episode_item['type']
+			print url
 			if url is not None:
 				u = sys.argv[0]
 				u += '?url="' + urllib.quote_plus(url) + '"'
@@ -133,57 +139,25 @@ def episodes(episode_url = common.args.url):
 								'season' : season_number,
 								'episode' : episode_number,
 								'plot' : episode_plot,
-								'premiered' : episode_airdate }
-				common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities', HD = HD)
+								'premiered' : episode_airdate,
+								'mpaa' : episode_mpaa,
+								'TVShowTitle': show_title}
+				infoLabels = common.enrich_infolabels(infoLabels, episode_expires)
+				episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', HD, episode_type))
 			else:
 				pass
-	common.set_view('episodes')
+	print episodes
+	return episodes
 
 def lookup_meta(url):
-	data = connection.getURL(url, loadcookie = True)
+	if addon.getSetting('cbs_use_login') == 'true':
+		loadcookie = True
+	else:
+		loadcookie = False
+	data = connection.getURL(url, loadcookie = loadcookie)
 	episode_pid = re.compile("\.pid\s?=\s?'?(.*?)'?[&;]").findall(data)[0]
 	return episode_pid
 
-def episodesClassic(episode_url = common.args.url):
-	episode_data = connection.getURL(episode_url)
-	episode_html = simplejson.loads(episode_data)['html']
-	tree = BeautifulSoup(episode_html, 'html.parser')
-	episode_menu = tree.find_all('div', class_ = 'video-content-wrapper')
-	for episode_item in episode_menu:
-		url = episode_item.find('a')['href']
-		episode_duration = episode_item.find('div', class_ = 'video-content-duration').contents[1].replace('(', '').replace(')', '').strip()
-		episode_duration = int(common.format_seconds(episode_duration))
-		episode_airdate = episode_item.find('div', class_ = 'video-content-air-date').contents[0].split(':')[1].strip()
-		episode_airdate = common.format_date(episode_airdate, '%m.%d.%Y')
-		show_name = url.split('/')[2]
-		episode_name = url.split('/')[-1].replace(show_name.replace('_', '-'), '').replace('-', ' ').title().replace(' T ', '\'t ')
-		url = BASE + url
-		episode_info = episode_item.find('div', class_ = 'video-content-season-info').text
-		try:
-			season_number = int(episode_info.split(',')[0].split(' ')[1].strip())
-		except:
-			season_number = -1
-		try:
-			episode_number = int(episode_info.split(',')[1].strip().split(' ')[1])
-		except:
-			episode_number = -1
-		try:
-			episode_thumb = episode_item.find('img')['src']
-		except:
-			episode_thumb = None
-		episode_plot = episode_item.find('div', class_ = 'video-content-description').string
-		u = sys.argv[0]
-		u += '?url="' + urllib.quote_plus(url) + '"'
-		u += '&mode="' + SITE + '"'
-		u += '&sitemode="play_video"'
-		infoLabels={	'title' : episode_name,
-						'durationinseconds' : episode_duration,
-						'season' : season_number,
-						'episode' : episode_number,
-						'plot' : episode_plot,
-						'premiered' : episode_airdate }
-		common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	common.set_view('episodes')
 
 def list_qualities(video_url = common.args.url):
 	bitrates = []
@@ -200,6 +174,7 @@ def list_qualities(video_url = common.args.url):
 			bitrate = video['system-bitrate']
 			display = int(bitrate) / 1024
 			bitrates.append((display, bitrate))
+		print bitrates
 		return bitrates
 	else:
 		common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
@@ -262,11 +237,17 @@ def play_video(video_url = common.args.url):
 					convert_subtitles(closedcaption)
 			finalurl = base_url + ' playpath=' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
 		item = xbmcgui.ListItem( path = finalurl)
-		if qbitrate is not None:
+		
+		try:
 			item.setThumbnailImage(common.args.thumb)
+		except:
+			pass
+		try:
 			item.setInfo('Video', {	'title' : common.args.name,
 							'season' : common.args.season_number,
 							'episode' : common.args.episode_number})
+		except:
+			pass
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 		if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 			while not xbmc.Player().isPlaying():

@@ -29,6 +29,7 @@ def masterlist():
 	return master_db
 
 def seasons(season_url = common.args.url):
+	seasons = []
 	season_data = connection.getURL(FULLEPISODES % season_url, header = {'X-Forwarded-For' : '12.13.14.15'})
 	try:
 		count = int(simplejson.loads(season_data)['meta']['count'])
@@ -36,16 +37,21 @@ def seasons(season_url = common.args.url):
 		count = 0
 	if count > 0:
 		season_url2 = FULLEPISODES % season_url + '&start=0&rows=' + str(count)
-		common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
+		seasons.append(('Full Episodes',  SITE, 'episodes', season_url2, -1, -1))
 	season_data2 = connection.getURL(CLIPS % season_url, header = {'X-Forwarded-For' : '12.13.14.15'})
-	try: count = int(simplejson.loads(season_data2)['meta']['count'])
-	except: count = 0
+	try: 
+		count = int(simplejson.loads(season_data2)['meta']['count'])
+
+	except: 
+		count = 0
 	if count > 0:
 		season_url3 = CLIPS % season_url + '&start=0&rows=' + str(count)
-		common.add_directory('Clips',  SITE, 'episodes', season_url3)
-	common.set_view('seasons')
+		seasons.append(('Clips',  SITE, 'episodes', season_url3, -1, -1))
+
+	return seasons
 
 def episodes(episode_url = common.args.url):
+	episodes  = []
 	episode_data = connection.getURL(episode_url, header = {'X-Forwarded-For' : '12.13.14.15'})
 	episode_menu = simplejson.loads(episode_data)['results']
 	for episode_item in episode_menu:
@@ -71,6 +77,29 @@ def episodes(episode_url = common.args.url):
 			episode_duration = common.format_seconds(episode_item['duration'])
 		except:
 			episode_duration = -1
+		episode_type = ' '.join(episode_item['urlKey'].split('-')[-2:]).title()
+		try:
+			episode_number = episode_item['episodeNumber'][1:]
+		except:
+			episode_number = -1
+		try:
+			episode_season = episode_item['episodeNumber'][0]
+		except:
+			episode_season = -1
+		try:
+			episode_mpaa = episode_item['rating']
+		except:
+			episode_mpaa = None
+		try:
+			episode_airdate = episode_item['airDate']
+			episode_airdate = common.format_date(episode_airdate.split('.')[0], '%Y-%m-%dT%H:%M:%S')
+		except:
+			episode_airdate = -1
+		try:
+			episode_expires = episode_item['availableUntil']
+			episode_expires = episode_expires.split('.')[0]
+		except:
+			episode_expires = -1
 		u = sys.argv[0]
 		u += '?url="' + urllib.quote_plus(url) + '"'
 		u += '&mode="' + SITE + '"'
@@ -78,9 +107,14 @@ def episodes(episode_url = common.args.url):
 		infoLabels = {	'title' : episode_name,
 						'plot' : episode_plot,
 						'durationinseconds' : episode_duration,
-						'tvshowtitle' : show_name }
-		common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	common.set_view('episodes')
+						'TVShowTitle' : show_name,
+						'episode' : episode_number,
+						'season' : episode_season,
+						'mpaa' : episode_mpaa,
+						'premiered' : episode_airdate}
+		episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, episode_type))
+
+	return episodes
 
 def play_video(video_url = common.args.url):
 	video_data = connection.getURL(video_url, header = {'X-Forwarded-For' : '12.13.14.15'})

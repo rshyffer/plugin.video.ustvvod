@@ -32,14 +32,17 @@ def masterlist():
 		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
 
-def seasons():
-	main_nbcu.seasons(SITE, FULLEPISODES, CLIPS)
+def seasons(url = common.args.url):
+	return main_nbcu.seasons(SITE, FULLEPISODES, CLIPS, None, url)
 
-def episodes():
-	main_nbcu.episodes(SITE)
+def episodes(url = common.args.url):
+	return main_nbcu.episodes(SITE, url)
 
 def list_qualities():
 	return main_nbcu.list_qualities()
 
 def play_video():
-	main_nbcu.play_video()
+	try:
+		main_nbcu.play_video()
+	except Exception, e:
+		print "Exception", e

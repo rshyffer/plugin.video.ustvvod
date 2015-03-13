@@ -37,6 +37,7 @@ def masterlist():
 	return master_db
 
 def seasons(collection_ids = common.args.url):
+	seasons = []
 	for collection_id in collection_ids.split(','):
 		if ',' not in collection_ids:
 			season_url = SEASONSEPISODES
@@ -50,7 +51,7 @@ def seasons(collection_ids = common.args.url):
 				display = 'Episodes'
 			else:
 				display = 'Episodes - %s' % season_tree.episode['collectiontitle']
-			common.add_directory(display,  SITE, 'episodes', FULLEPISODES % collection_id)
+			seasons.append((display,  SITE, 'episodes', FULLEPISODES % collection_id, -1, -1))
 	for collection_id in collection_ids.split(','):
 		if ',' not in collection_ids:
 			seasonclips_url = SEASONSCLIPS
@@ -64,11 +65,12 @@ def seasons(collection_ids = common.args.url):
 				display = 'Clips'
 			else:
 				display = 'Clips - %s' % season_tree2.episode['collectiontitle']
-			common.add_directory(display,  SITE, 'episodes', CLIPS % collection_id)
-	common.set_view('seasons')
+			seasons.append((display,  SITE, 'episodes', CLIPS % collection_id, -1, -1))
 
-def episodes():
-	main_turner.episodes(SITE)
+	return seasons
+
+def episodes(url = common.args.url):
+	return main_turner.episodes(SITE, url)
 
 def play_video():
 	main_turner.play_video(SITE, EPISODE, HLSPATH)

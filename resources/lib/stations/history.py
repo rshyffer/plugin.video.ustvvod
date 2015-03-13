@@ -1,5 +1,6 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-#
+import common
 import main_aenetwork
 
 SITE = "history"
@@ -15,11 +16,11 @@ CLIPS = "https://mobileservices-a.akamaihd.net/jservice/wombattpservice/show_tit
 def masterlist():
 	return main_aenetwork.masterlist(SITE, SHOWS)
 
-def seasons():
-	main_aenetwork.seasons(SITE, SEASONSEPISODE, SEASONSCLIPS, EPISODES, CLIPS)
+def seasons(url = common.args.url):
+	return main_aenetwork.seasons(SITE, SEASONSEPISODE, SEASONSCLIPS, EPISODES, CLIPS, url)
 
-def episodes():
-	main_aenetwork.episodes(SITE)
+def episodes(url = common.args.url):
+	return main_aenetwork.episodes(SITE, url)
 
 def play_video():
 	main_aenetwork.play_video()

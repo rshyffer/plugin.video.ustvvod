@@ -54,8 +54,9 @@ def masterlist(SITE, SHOWS):
 			pass
 	return master_db
 
-def seasons(SITE, API):
-	season_id = common.args.url
+def seasons(SITE, API, season_id = common.args.url):
+
+	seasons = []
 	count = 0
 	for type in TYPES:
 		season_url = API + 'series/' + season_id + '/playlists.json?page=0&pageSize=500&type=' + type[0]
@@ -72,13 +73,14 @@ def seasons(SITE, API):
 				else:
 					count = count
 			if count > 0:
-				common.add_directory(type[1], SITE, 'videos', season_url)
+				seasons.append((type[1], SITE, 'episodes', season_url, -1, -1))
 		except:
 			pass
-	common.set_view('seasons')
 
-def videos(SITE):
-	episode_url = common.args.url
+	return seasons
+
+def episodes(SITE, episode_url = common.args.url):
+	episodes = []
 	episode_data = connection.getURL(episode_url)
 	episode_tree = simplejson.loads(episode_data)
 	for episode_item in episode_tree['series']['playlists']:
@@ -113,6 +115,8 @@ def videos(SITE):
 			episode_duration = common.format_seconds(episode_item['duration']['timecode'])
 		except:
 			continue
+		episode_type = episode_item['contentType'][:-1]
+		episode_airdate = common.format_date(epoch = episode_item['postedDate']['timestamp'])
 		u = sys.argv[0]
 		u += '?url="' + urllib.quote_plus(url) + '"'
 		u += '&mode="' + SITE + '"'
@@ -120,18 +124,19 @@ def videos(SITE):
 		infoLabels = {	'title' : episode_name,
 						'plot' : episode_plot,
 						'durationinseconds' : episode_duration,
-						'tvshowtitle' : show_name,
+						'TVShowTitle' : show_name,
 						'season' : episode_season,
-						'episode' : episode_number }
+						'episode' : episode_number,
+						'premiered' : episode_airdate}
 		try:
 			if (episode_item['distributionPolicies'][0]['distributionPolicy']['policyType'] == 'playable'):
-				common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode = 'list_qualities')
+				episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, episode_type))
 		except:
 			if (episode_item['distributionPolicies'][0]['policyType'] == 'playable'):
-				common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode = 'list_qualities')
+				episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, episode_type))
 		else:
 			pass
-	common.set_view('episodes')
+	return episodes
 
 def play_video(BASE, video_uri = common.args.url, media_base = VIDEOURL):
 	video_url = media_base + video_uri
@@ -195,12 +200,17 @@ def play_video(BASE, video_uri = common.args.url, media_base = VIDEOURL):
 			player._subtitles_Enabled = True
 		item = xbmcgui.ListItem(path = finalurl)
 		queue.task_done()
-		if qbitrate is not None:
+		try:
 			item.setThumbnailImage(common.args.thumb)
+		except:
+			pass
+		try:
 			item.setInfo('Video', {	'title' : common.args.name,
 									'season' : common.args.season_number,
 									'episode' : common.args.episode_number,
 									'TVShowTitle' : common.args.show_title })
+		except:
+			pass
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 		while player.is_active:
 			player.sleep(250)
@@ -241,12 +251,17 @@ def play_video2(API, video_url = common.args.url):
 		player._subtitles_Enabled = True
 	item = xbmcgui.ListItem(path = finalurl)
 	queue.task_done()
-	if qbitrate is not None:
+	try:
 		item.setThumbnailImage(common.args.thumb)
+	except:
+		pass
+	try:
 		item.setInfo('Video', {	'title' : common.args.name,
 								'season' : common.args.season_number,
 								'episode' : common.args.episode_number,
 								'TVShowTitle' : common.args.show_title })
+	except:
+		pass
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	while player.is_active:
 		player.sleep(250)

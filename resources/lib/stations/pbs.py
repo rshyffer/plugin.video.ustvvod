@@ -66,6 +66,7 @@ def masterlist():
 	return master_db
 
 def seasons(season_urls = common.args.url):
+	seasons = []
 	for season_url in season_urls.split(','):
 		name = season_url.split('#')[0]
 		season_url = season_url.split('#')[1]
@@ -77,12 +78,13 @@ def seasons(season_urls = common.args.url):
 				season_menu = 0
 			if season_menu > 0:
 				if ',' in season_urls:
-					common.add_directory(name + ' ' + type+'s',  SITE, 'episodes', (season_url + '#' + type))
+					seasons.append((name + ' ' + type+'s',  SITE, 'episodes', (season_url + '#' + type), -1, -1))
 				else:
-					common.add_directory(type+'s',  SITE, 'episodes', (season_url + '#' + type))
-	common.set_view('seasons')
+					seasons.append((type + 's',  SITE, 'episodes', (season_url + '#' + type), -1, -1))
+	return seasons
 
 def episodes(episode_url = common.args.url):
+	episodes = []
 	episode_id, type = episode_url.split('#')
 	episode_start = 0
 	episode_count = 200
@@ -105,6 +107,7 @@ def episodes(episode_url = common.args.url):
 					episode_number = re.compile('Episode (\d*)').findall(episode_name)[0]
 				except:
 					episode_number = -1
+				episode_type = 'Full ' + episode_item['type']
 				episode_plot = episode_item['long_description']
 				episode_airdate = common.format_date(episode_item['airdate'], '%Y-%m-%d %H:%M:%S', '%d.%m.%Y')
 				episode_duration = int(episode_item['mediafiles'][0]['length_mseconds'] / 1000)
@@ -112,6 +115,14 @@ def episodes(episode_url = common.args.url):
 				for episode_thumbs in episode_item['associated_images']:
 					if episode_thumbs['type']['eeid'] == 'iPad-Large':
 						episode_thumb = episode_thumbs['url']
+				episode_hd = False
+				for episode_media in episode_item['mediafiles']:
+					try:
+						if int(episode_media['video_encoding']['eeid'].split('-')[1].strip('k')) > 2000:
+							episode_hd = True
+					except:
+						pass
+				episode_mpaa = episode_item['rating']
 				u = sys.argv[0]
 				u += '?url="' + urllib.quote_plus(url) + '"'
 				u += '&mode="' + SITE + '"'
@@ -121,10 +132,11 @@ def episodes(episode_url = common.args.url):
 								'season' : season_number,
 								'durationinseconds' : episode_duration,
 								'plot' : episode_plot,
-								'premiered' : episode_airdate }
-				common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
+								'premiered' : episode_airdate,
+								'mpaa' : episode_mpaa}
+				episodes.append((u, episode_name, episode_thumb, infoLabels, None, episode_hd, episode_type))
 		episode_start = episode_stop
-	common.set_view('episodes')
+	return episodes
 
 def play_video(video_url = common.args.url):
 	hbitrate = -1

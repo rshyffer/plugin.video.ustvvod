@@ -5,6 +5,7 @@ import connection
 import main_nbcu
 import sys
 import urllib
+import re
 from bs4 import BeautifulSoup
 
 SITE = "usa"
@@ -20,26 +21,28 @@ BASE = "http://www.usanetwork.com"
 def masterlist():
 	return main_nbcu.masterlist(SITE, SHOWS)
 
-def seasons():
-	main_nbcu.seasons(SITE, FULLEPISODES, CLIPS, FULLEPISODESWEB)
+def seasons(season_url = common.args.url):
+	return main_nbcu.seasons(SITE, FULLEPISODES, CLIPS, FULLEPISODESWEB, season_url)
 
-def episodes():
-	main_nbcu.episodes(SITE)
+def episodes(episode_url = common.args.url):
+	return main_nbcu.episodes(SITE, episode_url)
 
-def webepisodes():
-	episode_url = common.args.url
+def episodes_web(episode_url = common.args.url):
+	episodes = []
 	episode_data = connection.getURL(episode_url)
 	web_tree = BeautifulSoup(episode_data, 'html.parser')
+	show_name = web_tree.find('h2', class_ = 'show-name').string
 	episode_menu = web_tree.find_all('div', class_ = 'view-mode-vid_teaser_show_episode')
 	for i, episode_item in enumerate(episode_menu):
+		print episode_item
 		if 'tve-video-auth' not in episode_item['class']:
 			episode_name = episode_item['omniture-title']
 			try:
-				season_number = int(re.compile('Season (\d+)').findall(episode_item.find(class_ = 'caption'))[0])
+				season_number = int(re.compile('Season (\d+)').findall(episode_item.find(class_ = 'caption').string)[0])
 			except:
 				season_number = -1
 			try:
-				episode_number = int(re.compile('Episode (\d+)').findall(episode_item.find(class_ = 'caption'))[0])
+				episode_number = int(re.compile('Episode (\d+)').findall(episode_item.find(class_ = 'caption').string)[0])
 			except:
 				episode_number = -1
 			try:
@@ -54,9 +57,10 @@ def webepisodes():
 			infoLabels={	'title' : episode_name,
 						 'season' : season_number,
 						 'episode' : episode_number,
+						 'TVShowTitle' : show_name
 						}
-			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	common.set_view('episodes')
+			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, 'Full Episode'))
+	return episodes
 
 def list_qualities():
 	return main_nbcu.list_qualities()

@@ -31,6 +31,7 @@ def masterlist():
 	return master_db
 
 def seasons(season_url = common.args.url):
+	seasons = []
 	season_data = connection.getURL(FULLEPISODES % season_url)
 	try:
 		season_menu = int(BeautifulSoup(season_data, 'html.parser').find('div', class_ = 'total-videos').text.split(' ')[0])
@@ -38,7 +39,7 @@ def seasons(season_url = common.args.url):
 		season_menu = 0
 	if season_menu > 0:
 		season_url2 = FULLEPISODES % season_url
-		common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
+		seasons.append(('Full Episodes',  SITE, 'episodes', season_url2, -1, -1))
 	season_data2 = connection.getURL(CLIPS % season_url)
 	try:
 		season_menu2 = int(BeautifulSoup(season_data2, 'html.parser').find('div', class_ = 'total-videos').text.split(' ')[0])
@@ -46,25 +47,30 @@ def seasons(season_url = common.args.url):
 		season_menu2 = 0
 	if season_menu2 > 0:
 		season_url3 = CLIPS % season_url
-		common.add_directory('Clips',  SITE, 'episodes', season_url3)
-	common.set_view('seasons')
+		seasons.append(('Clips',  SITE, 'episodes', season_url3, -1, -1))
+	return seasons
 
 def episodes(episode_url = common.args.url):
+	episodes = []
 	episode_data = connection.getURL(episode_url)
 	episode_tree = BeautifulSoup(episode_data, 'html.parser')
-	add_videos(episode_tree.find('ul', class_ = 'large-grid-list'))
+	episodes = add_videos(episode_tree.find('ul', class_ = 'large-grid-list'))
 	pagedata = episode_tree.find('span', class_ = 'pagination-next')
 	if pagedata:
 		try:
-			episodes(episode_url.split('?')[0] + pagedata.a['href'] + '&type=' + episode_url.rsplit('=', 1)[1])
+			episodes.extend(episodes(episode_url.split('?')[0] + pagedata.a['href'] + '&type=' + episode_url.rsplit('=', 1)[1]))
 		except:
 			pass
-	common.set_view('episodes')	
+	return episodes
 
 def add_videos(episode_tree):
+	episodes = []
 	episode_menu = episode_tree.find_all('li', recursive = False)
 	for episode_item in episode_menu:
-		show_name = common.args.name
+		try:
+			show_name = common.args.name
+		except:
+			show_name = None
 		episode_link = episode_item.h4.a
 		episode_name = episode_link.text
 		url = BASE + episode_link['href']
@@ -77,7 +83,8 @@ def add_videos(episode_tree):
 		infoLabels = {	'title' : episode_name,
 						'plot' : episode_plot,
 						'tvshowtitle' : show_name }
-		common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+		episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, 'Full Episode'))
+	return episodes
 
 def play_video(video_url = common.args.url):
 	video_data = connection.getURL(video_url, header = {'X-Forwarded-For' : '12.13.14.15'})

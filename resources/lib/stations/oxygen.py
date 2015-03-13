@@ -3,6 +3,7 @@
 import common
 import connection
 import m3u8
+import main_nbcu
 import re
 import simplejson
 import sys
@@ -26,120 +27,24 @@ FULLEPISODES = "http://feed.theplatform.com/f/AqNl-B/iyAsU_4kQn1I?count=true&for
 SWFURL = "http://features.oxygen.com/videos/pdk/swf/flvPlayer.swf"
 
 def masterlist():
-	master_db = []
-	master_data = connection.getURL(SHOWS)
-	master_menu = simplejson.loads(master_data)['entries']
-	for master_item in master_menu:
-		master_name = master_item['title']
-		season_url = master_item['plcategory$fullTitle']
-		master_db.append((master_name, SITE, 'seasons', season_url))
-	return master_db
+	return main_nbcu.masterlist(SITE, SHOWS)
 
 def seasons(season_url = common.args.url):
-	season_data = connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
-	try:
-		season_menu = int(simplejson.loads(season_data)['totalResults'])
-	except:
-		season_menu = 0
-	if season_menu > 0:
-		season_url2 = FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu)
-		common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
-	season_data2 = connection.getURL(CLIPS % urllib.quote_plus(season_url) + '&range=0-1')
-	try:
-		season_menu2 = int(simplejson.loads(season_data2)['totalResults'])
-	except:
-		season_menu2 = 0
-	if season_menu2 > 0:
-		season_url3 = CLIPS % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu2)
-		common.add_directory('Clips',  SITE, 'episodes', season_url3)
-	common.set_view('seasons')
+	return main_nbcu.seasons(SITE, FULLEPISODES, CLIPS,  None, season_url)
+
 
 def episodes(episode_url = common.args.url):
-	episode_data = connection.getURL(episode_url)
-	episode_menu = simplejson.loads(episode_data)['entries']
-	for i, episode_item in enumerate(episode_menu):
-		default_mediacontent = None
-		for mediacontent in episode_item['media$content']:
-			if (mediacontent['plfile$isDefault'] == True) and (mediacontent['plfile$format'] == 'MPEG4'):
-				default_mediacontent = mediacontent
-			elif (mediacontent['plfile$format'] == 'MPEG4'):
-				mpeg4_mediacontent = mediacontent
-		if default_mediacontent is None:
-			default_mediacontent=mpeg4_mediacontent
-		url = default_mediacontent['plfile$url']
-		episode_duration = int(default_mediacontent['plfile$duration'])
-		episode_plot = episode_item['description']
-		episode_airdate = common.format_date(epoch = episode_item['pubDate']/1000)
-		episode_name = episode_item['title']
-		try:
-			season_number = int(episode_item['pl' + str(i + 1) + '$season'][0])
-		except:
-			season_number = -1
-		try:
-			episode_number = int(episode_item['pl' + str(i + 1) + '$episode'][0])
-		except:
-			episode_number = -1
-		try:
-			episode_thumb = episode_item['plmedia$defaultThumbnailUrl']
-		except:
-			episode_thumb = None
-		u = sys.argv[0]
-		u += '?url="' + urllib.quote_plus(url) + '"'
-		u += '&mode="' + SITE + '"'
-		u += '&sitemode="play_video"'
-		infoLabels={	'title' : episode_name,
-						'durationinseconds' : episode_duration,
-						'season' : season_number,
-						'episode' : episode_number,
-						'plot' : episode_plot,
-						'premiered' : episode_airdate }
-		common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
-	common.set_view('episodes')
+	return main_nbcu.episodes(SITE, episode_url)
 
-def play_video(video_url = common.args.url):
-	hbitrate = -1
-	sbitrate = int(addon.getSetting('quality')) * 1024
-	closedcaption = None
-	video_data = connection.getURL(video_url)
-	video_tree = BeautifulSoup(video_data, 'html.parser')
-	video_rtmp = video_tree.meta
-	if video_rtmp is not None:
-		base_url = video_rtmp['base']
-		video_url2 = video_tree.switch.find_all('video')
-		for video_index in video_url2:
-			bitrate = int(video_index['system-bitrate'])
-			if bitrate > hbitrate and bitrate <= sbitrate:
-				hbitrate = bitrate
-				playpath_url = video_index['src']	
-				if '.mp4' in playpath_url:
-					playpath_url = 'mp4:'+ playpath_url
-				else:
-					playpath_url = playpath_url.replace('.flv','')
-				finalurl = base_url +' playpath=' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
-	else:
-		video_data = connection.getURL(video_url + '&manifest=m3u')
-		video_tree = BeautifulSoup(video_data, 'html.parser')
-		try:
-			closedcaption = video_tree.textstream['src']
-		except:
-			pass
-		if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
-				convert_subtitles(closedcaption)#
-		video_url2 = video_tree.seq.find_all('video')[0]
-		video_url3 = video_url2['src']
-		video_url4 = video_url3.split('/')[-1]
-		video_data2 = connection.getURL(video_url3)
-		video_url5 = m3u8.parse(video_data2)
-		for video_index in video_url5.get('playlists'):
-			bitrate = int(video_index.get('stream_info')['bandwidth'])
-			if bitrate > hbitrate and bitrate <= sbitrate:
-				hbitrate = bitrate
-				finalurl = video_url3.replace(video_url4, video_index.get('uri'))
-	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
-	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
-		while not xbmc.Player().isPlaying():
-			xbmc.sleep(100)
-		xbmc.Player().setSubtitles(ustvpaths.SUBTITLE)
+def list_qualities():
+	return main_nbcu.list_qualities()
+
+def play_video():
+	try:
+		main_nbcu.play_video()
+	except Exception, e:
+		print "Exception", e
+		print traceback.format_exc()
 
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')

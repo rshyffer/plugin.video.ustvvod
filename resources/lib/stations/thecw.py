@@ -44,6 +44,7 @@ def masterlist():
 	return master_db
 
 def seasons(season_url = common.args.url):
+	seasons = []
 	fullepisodes = 0
 	clips = 0
 	season_data = connection.getURL(VIDEOLIST % season_url)
@@ -54,20 +55,26 @@ def seasons(season_url = common.args.url):
 		else:
 			clips = 1
 	if fullepisodes == 1:
-		common.add_directory('Full Episodes',  SITE, 'episodes', season_url + '#1')
+		seasons.append(('Full Episodes',  SITE, 'episodes', season_url + '#1', -1, -1))
 	if clips == 1:
-		common.add_directory('Clips',  SITE, 'episodes', season_url + '#0')
-	common.set_view('seasons')
+		seasons.append(('Clips',  SITE, 'episodes', season_url + '#0', -1, -1))
+
+	return seasons
 
 def episodes(episode_url = common.args.url):
+	episodes = []
 	try:
 		shutil.rmtree(os.path.join(ustvpaths.DATAPATH,'thumbs'))
 	except:
 		pass
 	episode_data = connection.getURL(VIDEOLIST % episode_url.split('#')[0])
 	episode_menu = simplejson.loads(episode_data)['videos']
-	os.mkdir(os.path.join(ustvpaths.DATAPATH,'thumbs'))
+	try:
+		os.mkdir(os.path.join(ustvpaths.DATAPATH,'thumbs'))
+	except:
+		pass
 	for episode_item in episode_menu:
+		print episode_item
 		if int(episode_item['fullep']) == int(episode_url.split('#')[1]):
 			show_name = episode_item['series_name']
 			url = episode_item['guid']
@@ -78,9 +85,10 @@ def episodes(episode_url = common.args.url):
 			episode_thumb = episode_item['large_thumbnail']
 			thumb_file = episode_thumb.split('/')[-1]
 			thumb_path = os.path.join(ustvpaths.DATAPATH, 'thumbs', thumb_file)
+			dbpath = xbmc.translatePath(ustvpaths.DBPATH)
 			thumbcount = 0
-			for name in glob.glob(os.path.join(ustvpaths.DBPATH,'textures[0-9]*.db')):
-				thumbcount = thumbcount+ database.execute_command('select count(1) from texture where url = ?', [thumb_path,], fetchone = True, dbfile = name)[0]
+			for name in glob.glob(os.path.join(dbpath, 'textures[0-9]*.db')):
+				thumbcount = thumbcount + database.execute_command('select count(1) from texture where url = ?', [thumb_path,], fetchone = True, dbfile = name)[0]
 			if thumbcount == 0:
 				thumb_data = connection.getURL(episode_thumb)
 				file = open(thumb_path, 'wb')
@@ -94,6 +102,14 @@ def episodes(episode_url = common.args.url):
 				episode_airdate = common.format_date(episode_item['airdate'],'%Y-%b-%d', '%d.%m.%Y')
 			except:
 				episode_airdate = -1
+			if episode_item['fullep'] == 1:
+				episode_type = 'Full Episode'
+			else:
+				episode_type = 'Clip'
+			print episode_type
+			episode_expires = episode_item['expire_time']
+			print episode_expires
+			episode_mpaa = episode_item['rating']
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'
 			u += '&mode="' + SITE + '"'
@@ -104,13 +120,16 @@ def episodes(episode_url = common.args.url):
 							'episode' : episode_number,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate,
-							'tvshowtitle': show_name }
-			common.add_video(u, episode_name, thumb_path, infoLabels = infoLabels)
-	common.set_view('episodes')
+							'tvshowtitle': show_name ,
+							'TVShowTitle': show_name,
+							'mpaa' : episode_mpaa}
+			infoLabels = common.enrich_infolabels(infoLabels, episode_expires.split('+')[0], '%Y-%m-%dT%H:%M:%S')
+			episodes.append((u, episode_name, thumb_path, infoLabels, None, False, episode_type))
+	return episodes
 
 def play_video(video_url = common.args.url):
-	hbitrate=-1
-	lbitrate=-1
+	hbitrate = -1
+	lbitrate =- 1
 	playpath_url = None
 	if addon.getSetting('enablesubtitles') == 'true':
 		convert_subtitles(video_url)
@@ -179,7 +198,19 @@ def play_video(video_url = common.args.url):
 		playfile.write(play_data)
 		playfile.close()
 		finalurl = ustvpaths.PLAYFILE
-	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
+	item = xbmcgui.ListItem(path = finalurl)
+	try:
+		print common.args.name
+		item.setInfo('Video', {	'title' : common.args.name,
+						'season' : common.args.season_number,
+						'episode' : common.args.episode_number,
+						'TVShowTitle' : common.args.show_title})
+	except:
+		try:
+			item.setInfo('Video', {	'title' : common.args.name})
+		except:
+			pass
+	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	while player.is_active:
 		player.sleep(250)
 

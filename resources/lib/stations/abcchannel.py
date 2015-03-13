@@ -1,5 +1,6 @@
 ﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
+import common
 import main_abcdisney
 
 BRANDID = "001"
@@ -11,11 +12,11 @@ DESCRIPTION = "ABC Television Network provides broadcast programming to more tha
 def masterlist():
 	return main_abcdisney.masterlist(SITE, BRANDID)
 
-def seasons():
-	main_abcdisney.seasons(SITE, BRANDID)
+def seasons(url = common.args.url):
+	return main_abcdisney.seasons(SITE, BRANDID, url)
 
-def episodes():
-	main_abcdisney.episodes(SITE)
+def episodes(url = common.args.url):
+	return main_abcdisney.episodes(SITE, url)
 
 def play_video():
 	main_abcdisney.play_video(SITE, BRANDID, PARTNERID)

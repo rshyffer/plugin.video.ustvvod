@@ -12,11 +12,11 @@ SHOWS = API + "promolist/10393491.json"
 def masterlist():
 	return main_viacom.masterlist(SITE, SHOWS)
 
-def seasons():
-	main_viacom.seasons(SITE, API)
+def seasons(url = common.args.url):
+	return main_viacom.seasons(SITE, API, url)
 
-def videos():
-	main_viacom.videos(SITE)
+def episodes(url = common.args.url):
+	return main_viacom.episodes(SITE, url)
 
 def play():
 	main_viacom.play_video2(API, common.args.url)

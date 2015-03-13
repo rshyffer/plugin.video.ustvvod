@@ -21,8 +21,14 @@ addon = xbmcaddon.Addon()
 player = common.XBMCPlayer()
 pluginHandle = int(sys.argv[1])
 
-CATERGORIES = ['Series', 'Featured', 'Shows']
+CATERGORIES = ['Series', 'Shows']
 
+try:
+	import StorageServer
+except:
+	import storageserverdummy as StorageServer
+cache = StorageServer.StorageServer("ustvvod", 24) # (Your plugin name, Cache time in hours)
+ 
 def masterlist(SITE, SHOWS):
 	master_db = []
 	master_data = connection.getURL(SHOWS)
@@ -34,8 +40,9 @@ def masterlist(SITE, SHOWS):
 			master_db.append((master_name, SITE, 'seasons', master_url))
 	return master_db
 
-def seasons(SITE, FULLEPISODES, CLIPS, FULLEPISODESWEB = None):
-	season_urls = common.args.url
+def seasons(SITE, FULLEPISODES, CLIPS, FULLEPISODESWEB = None, season_urls = common.args.url):
+
+	seasons = []
 	for season_url in season_urls.split(','):
 		season_data = connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
 		try:
@@ -44,15 +51,18 @@ def seasons(SITE, FULLEPISODES, CLIPS, FULLEPISODESWEB = None):
 			season_menu = 0
 		if season_menu > 0:
 			season_url2 = FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu)
-			common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
+			seasons.append(('Full Episodes',  SITE, 'episodes', season_url2, -1, -1))
 		elif FULLEPISODESWEB:
-			show = season_url.split('/')[-1].replace(' ', '')
-			web_data = connection.getURL(FULLEPISODESWEB % show)
-			web_tree = BeautifulSoup(web_data, 'html.parser')
-			all = len(web_tree.find_all('div', class_ = 'view-mode-vid_teaser_show_episode'))
-			auth = len(web_tree.find_all('div', class_ = 'tve-video-auth'))
-			if all > auth:
-				common.add_directory('Full Episodes',  SITE, 'webepisodes', FULLEPISODESWEB % show)
+			try:
+				show = season_url.split('/')[-1].replace(' ', '')
+				web_data = cache.cacheFunction(connection.getURL, FULLEPISODESWEB % show)
+				web_tree = BeautifulSoup(web_data, 'html.parser')
+				all = len(web_tree.find_all('div', class_ = 'view-mode-vid_teaser_show_episode'))
+				auth = len(web_tree.find_all('div', class_ = 'tve-video-auth'))
+				if all > auth:
+					seasons.append(('Full Episodes',  SITE, 'episodes_web', FULLEPISODESWEB % show, -1, -1))
+			except Exception as e:
+				print "Error with web processing", e
 		season_data2 = connection.getURL(CLIPS % urllib.quote_plus(season_url) + '&range=0-1')
 		try:
 			season_menu2 = int(simplejson.loads(season_data2)['totalResults'])
@@ -61,13 +71,13 @@ def seasons(SITE, FULLEPISODES, CLIPS, FULLEPISODESWEB = None):
 		if season_menu2 > 0:
 			season_url3 = CLIPS % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu2)
 			if ',' in season_urls:
-				common.add_directory('Clips %s'%season_url,  SITE, 'episodes', season_url3)
+				seasons.append(('Clips %s'%season_url,  SITE, 'episodes', season_url3, -1, -1))
 			else:
-				common.add_directory('Clips',  SITE, 'episodes', season_url3)
-	common.set_view('seasons')
+				seasons.append(('Clips',  SITE, 'episodes', season_url3, -1, -1))
+	return seasons
 
-def episodes(SITE, quality = True):
-	episode_url = common.args.url
+def episodes(SITE, episode_url = common.args.url, quailty = True):
+	episodes = []
 	episode_data = connection.getURL(episode_url)
 	episode_menu = simplejson.loads(episode_data)['entries']
 	for i, episode_item in enumerate(episode_menu):
@@ -102,6 +112,24 @@ def episodes(SITE, quality = True):
 			episode_thumb = episode_item['plmedia$defaultThumbnailUrl']
 		except:
 			episode_thumb = None
+		try:
+			if episode_item['pl1$fullEpisode'] == True:
+				episode_type = 'Full Episode'
+			else:
+				episode_type = 'Clip'
+		except:
+			episode_type = 'Clip'
+		try:
+			episode_cast = episode_item['pl1$people']
+		except:
+			episode_cast = []
+		try:
+			show_name = episode_item['pl1$shows']
+		except:
+			try:
+				show_name = episode_item['media$categories'][1]['media$name'].split('/')[1]
+			except:
+				show_name = simplejson.loads(episode_data)['title']
 		u = sys.argv[0]
 		u += '?url="' + urllib.quote_plus(url) + '"'
 		u += '&mode="' + SITE + '"'
@@ -111,12 +139,15 @@ def episodes(SITE, quality = True):
 						'season' : season_number,
 						'episode' : episode_number,
 						'plot' : episode_plot,
-						'premiered' : episode_airdate }
-		if quality:
-			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+						'premiered' : episode_airdate,
+						'cast' : episode_cast,
+						'TVShowTitle' : show_name}
+		if quailty == True:
+			quality_mode  = 'list_qualities'
 		else:
-			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
-	common.set_view('episodes')
+			quality_mode = None
+		episodes.append((u, episode_name, episode_thumb, infoLabels, quality_mode, False, episode_type))
+	return episodes
 
 def list_qualities():
 	exception = False
@@ -224,7 +255,7 @@ def play_video():
 		if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 				convert_subtitles(closedcaption)
 		if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
-			video_url2 = video_tree.seq.find_all('video')[0]
+			video_url2 = video_tree.body.seq.video
 			video_url3 = video_url2['src']
 			video_data2 = connection.getURL(video_url3, savecookie = True)
 			video_url5 = m3u8.parse(video_data2)
@@ -271,14 +302,21 @@ def play_video():
 				finalurl =  ustvpaths.PLAYFILE
 		else:
 			exception = True
+	
 	if  not exception:
 		item = xbmcgui.ListItem(path = finalurl)
-		if qbitrate is not None:
+
+		try:
 			item.setThumbnailImage(common.args.thumb)
+		except:
+			pass
+		try:
 			item.setInfo('Video', {	'title' : common.args.name,
 							'season' : common.args.season_number,
 							'episode' : common.args.episode_number,
 							'TVShowTitle' : common.args.show_title})
+		except:
+			pass
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 		while player.is_active:
 			player.sleep(250)

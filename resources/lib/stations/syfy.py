@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import common
 import main_nbcu
 
 SITE = "syfy"
@@ -14,11 +15,11 @@ SWFURL = "http://www.syfy.com/_utils/video/codebase/pdk/swf/flvPlayer.swf"
 def masterlist():
 	return main_nbcu.masterlist(SITE, SHOWS)
 
-def seasons():
-	main_nbcu.seasons(SITE, FULLEPISODES, CLIPS)
+def seasons(season_url = common.args.url):
+	return main_nbcu.seasons(SITE, FULLEPISODES, CLIPS, None, season_url)
 
-def episodes():
-	main_nbcu.episodes(SITE)
+def episodes(episode_url = common.args.url):
+	return main_nbcu.episodes(SITE, episode_url)
 
 def list_qualities():
 	return main_nbcu.list_qualities()

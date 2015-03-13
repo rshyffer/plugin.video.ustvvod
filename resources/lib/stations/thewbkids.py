@@ -26,10 +26,15 @@ def masterlist():
 	for master_item in master_menu:
 		master_name = master_item.img['alt'].strip()
 		season_url = master_item['title']
-		master_db.append((master_name, SITE, 'episodes', season_url))
+		master_db.append((master_name, SITE, 'seasons', season_url))
 	return master_db
+	
+def seasons(episode_url = common.args.url):
+	return [('Clips',  SITE, 'episodes', episode_url, -1, -1)]
 
 def episodes(episode_url = common.args.url):
+	episodes = []
+	
 	episode_data = connection.getURL(EPISODES + episode_url)
 	episode_data2 = simplejson.loads(episode_data)['list_html']
 	episode_tree = BeautifulSoup(episode_data2, 'html.parser').find('ul', id = 'videoList_ul')
@@ -49,8 +54,8 @@ def episodes(episode_url = common.args.url):
 			infoLabels={	'title' : episode_name,
 							'plot' : episode_plot,
 							'tvshowtitle' : show_name }
-			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
-	common.set_view('episodes')
+			episodes.append((u, episode_name, episode_thumb, infoLabels, None, False, 'Clip'))
+	return episodes
 
 def play_video(video_url = common.args.url):
 	video_data = connection.getURL(VIDEOURL % video_url.split('/')[-1])

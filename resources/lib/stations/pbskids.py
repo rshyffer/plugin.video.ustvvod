@@ -23,7 +23,7 @@ SHOWS = "http://pbskids.org/pbsk/video/api/getShows"
 SWFURL = "http://www-tc.pbs.org/video/media/swf/PBSPlayer.swf?video=%s&player=viral"
 TYPES = ["Episode", "Segment", "Clip", "Promotion", "Interstitial", "Other"]
 SEASON = "http://pbskids.org/pbsk/video/api/getVideos/?program=%s&endindex=1&encoding=&orderby=-airdate&status=available&category=&type=%s"
-EPISODES = "http://pbskids.org/pbsk/video/api/getVideos/?program=%s&endindex=100&encoding=&orderby=-airdate&status=available&category=&type=%s&return=type,airdate,images"
+EPISODES = "http://pbskids.org/pbsk/video/api/getVideos/?program=%s&endindex=100&encoding=&orderby=-airdate&status=available&category=&type=%s&return=type,airdate,images,expirationdate,rating"
 VIDEO = "http://pbskids.org/pbsk/video/api/getVideos/?guid=%s&endindex=1&encoding=&return=captions"
 
 def masterlist():
@@ -35,6 +35,7 @@ def masterlist():
 	return master_db
 
 def seasons(show_name = common.args.url):
+	seasons = []
 	for type in TYPES:
 		season_data = connection.getURL(SEASON % (show_name, type))
 		season_menu = simplejson.loads(season_data)
@@ -43,10 +44,11 @@ def seasons(show_name = common.args.url):
 		except:
 			season_count = 0
 		if season_count > 0:
-			common.add_directory(type + 's',  SITE, 'episodes', EPISODES % (show_name, type))
-		common.set_view('seasons')
+			seasons.append((type + 's',  SITE, 'episodes', EPISODES % (show_name, type), -1, -1))
+	return seasons
 
 def episodes(episode_url = common.args.url):
+	episodes = []
 	episode_data = connection.getURL(episode_url)
 	episode_menu = simplejson.loads(episode_data)
 	for episode_item in episode_menu['items']:
@@ -70,6 +72,8 @@ def episodes(episode_url = common.args.url):
 						HD = True
 				except:
 					pass
+			episode_type = 'Full ' + episode_item['type']
+			show_name = episode_item['series_title']
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'
 			u += '&mode="' + SITE + '"'
@@ -77,9 +81,10 @@ def episodes(episode_url = common.args.url):
 			infoLabels={	'title' : episode_name,
 							'durationinseconds' : episode_duration,
 							'plot' : episode_plot,
-							'premiered' : episode_airdate }
-			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, HD = HD, quality_mode = 'select_quailty')
-	common.set_view('episodes')
+							'premiered' : episode_airdate,
+							'TVShowTitle' : show_name}
+			episodes.append((u, episode_name, episode_thumb, infoLabels, 'select_quailty', HD, episode_type))
+	return episodes
 
 def play_video(guid = common.args.url):
 	try:

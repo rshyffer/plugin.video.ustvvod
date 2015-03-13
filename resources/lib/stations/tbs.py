@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import common
 import main_turner
 
 SITE = "tbs"
@@ -16,11 +17,11 @@ HLSPATH = "tbs"
 def masterlist():
 	return main_turner.masterlist(NAME, MOVIES, SHOWS, SITE)
 
-def seasons():
-	main_turner.seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS)
+def seasons(url = common.args.url):
+	return main_turner.seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS,None, url)
 
-def episodes():
-	main_turner.episodes_json(SITE)
+def episodes(url = common.args.url):
+	return main_turner.episodes_json(SITE, url)
 
 def play_video():
 	main_turner.play_video(SITE, EPISODE, HLSPATH)

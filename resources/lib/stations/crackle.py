@@ -39,10 +39,13 @@ def masterlist():
 			season_url = FULLEPISODES % master_item['ID']
 			master_dict[master_name] = season_url
 			master_db.append((master_name, SITE, 'seasons', season_url))
-	master_db.append(('--Crackle Movies', SITE, 'movielist', MOVIES))
+	master_db.append(('--Crackle Movies', SITE, 'episodes_movies', MOVIES))
+	if addon.getSetting('hide_clip_only') == 'false':
+		master_db.append(('Crackle Movie Clips', SITE, 'seasons_movie_clips', MOVIES))
 	return master_db
 
-def movielist(url = common.args.url):
+def seasons_movie_clips(url = common.args.url):
+	allseasons = []
 	root_dict = {}
 	root_url = url
 	root_data = connection.getURL(root_url)
@@ -61,11 +64,47 @@ def movielist(url = common.args.url):
 			showdata[15] = root_item.get('Description', showdata[15])
 			if root_item.get('ReleaseYear', None):
 				showdata[15] = u"%s \n(%s, %s)" % (showdata[15], showdata[13], root_item.get('ReleaseYear'))
-			common.add_show(root_name, SITE, 'episodes', season_url, showdata = showdata)
-	common.set_view('root')
+			allseasons.append((root_name,  SITE, 'episodes', season_url, -1, -1))
+
+	return allseasons
+
+def episodes_movies(url = common.args.url):
+	episodes = []
+	root_dict = {}
+	root_url = url
+	root_data = connection.getURL(root_url)
+	root_menu = simplejson.loads(root_data)['Entries']
+	for root_item in root_menu:
+		if not root_item.get('ClipsOnly', False):
+			movie_name = root_item['Title']
+			movie_url = FULLEPISODES % root_item['ID']
+			movie_thumb = root_item['ChannelArtTileWide']
+			movie_plot = root_item['Description']
+			movie_year = root_item['ReleaseYear']
+			movie_rating = root_item['UserRating']
+			movie_duration = root_item['DurationInSeconds']
+			movie_expires = root_item['RightsExpirationDate']
+			movie_genre = root_item['Genre']
+			movie_mpaa = root_item['Rating']
+			u = sys.argv[0]
+			u += '?url="' + urllib.quote_plus(movie_url) + '"'
+			u += '&mode="' + SITE + '"'
+			u += '&sitemode="play_video"'
+			infoLabels={	'title' : movie_name,
+							'rating' : movie_rating,
+							'durationinseconds' : movie_duration,
+							'genre' : movie_genre,
+							'plot' : movie_plot,
+							'year' : movie_year,
+							'mpaa' : movie_mpaa}
+			infoLabels = common.enrich_infolabels(infoLabels, movie_expires, '%m/%d/%Y %I:%M:%S %p')
+			if movie_duration:
+				episodes.append((u, movie_name, movie_thumb, infoLabels, 'list_qualities', False, 'Movie' ))
+	return episodes
 
 def seasons(season_url = common.args.url):
 	seasons = []
+	allseasons = []
 	season_data = connection.getURL(season_url)
 	media_list = simplejson.loads(season_data)['FolderList'][0]['PlaylistList'][0]['MediaList']
 	for media in media_list:
@@ -73,71 +112,97 @@ def seasons(season_url = common.args.url):
 		if season_number not in seasons:
 			season_title = 'Season %s' % season_number
 			seasons.append(season_number)
-			common.add_directory(season_title,  SITE, 'episodes', season_url + '#' + season_number)
-	common.set_view('seasons')
+			allseasons.append((season_title,  SITE, 'episodes', season_url + '#' + season_number, -1, -1))
+	return allseasons
 
 def episodes(episode_url = common.args.url):
+	episodes = []
 	try:
 		season_number = episode_url.split('#')[1]
 	except:
 		season_number = -1
 	episode_url = episode_url.split('#')[0]
 	episode_data = connection.getURL(episode_url)
-	episode_menu = simplejson.loads(episode_data)['FolderList'][0]['PlaylistList'][0]
-	for episode_item in episode_menu['MediaList']:
-		if episode_item['Season'] == season_number or season_number == -1:
-			''' THX to foreverguest '''
-			path_pattern = re.compile('http:\\/\\/.+?\/(.+?)_[a-zA-Z0-9]+')
-			pattern_url = episode_item['Thumbnail_Wide']
-			path = path_pattern.findall(pattern_url)
-			if not path and episode_item['ClosedCaptionFiles']:
-				path = path_pattern.findall(episode_item['ClosedCaptionFiles'][0]['Path'])
-			if not path:
-				continue
-			video_url = BASE + path[0] + '_'
-			episode_duration = int(episode_item['DurationInSeconds'])
-			episode_name = episode_item['Title']
-			episode_plot = episode_item['Description']
-			try:
-				episode_airdate = common.format_date(episode_item['ReleaseDate'], '%m/%d/%Y')
-			except:
-				episode_airdate = None
-			try:
-				episode_number = int(episode_item['Episode'])
-			except:
-				episode_number = -1
-			try:
-				episode_thumb = episode_item['Thumbnail_854x480']
-			except:
-				episode_thumb = None
-			try:
-				episode_caption = episode_item['ClosedCaptionFiles'][0]['Path']
-			except:
-				episode_caption = ''
-			episode_MPAA = episode_item['Rating']
-			episode_genre = episode_item['Genre']
-			episode_showtitle = episode_item['ParentChannelName']
-			video_url = video_url + '#' + episode_caption
-			u = sys.argv[0]
-			u += '?url="' + urllib.quote_plus(video_url) + '"'
-			u += '&mode="' + SITE + '"'
-			u += '&sitemode="play_video"'
-			infoLabels={	'title' : episode_name,
-							'durationinseconds' : episode_duration,
-							'season' : season_number,
-							'episode' : episode_number,
-							'plot' : episode_plot,
-							'premiered' : episode_airdate,
-							'MPAA' : episode_MPAA,
-							'Genre' : episode_genre,
-							'TVShowTitle' : episode_showtitle}
-			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode = 'list_qualities')
-	common.set_view('episodes')
+	try:
+		episode_menu = simplejson.loads(episode_data)['FolderList'][0]['PlaylistList'][0]
+		for episode_item in episode_menu['MediaList']:
+			if episode_item['Season'] == season_number or season_number == -1:
+				''' THX to foreverguest '''
+
+
+
+
+
+
+
+
+				video_url = find_videopath(episode_item['Thumbnail_Wide'])
+				episode_duration = int(episode_item['DurationInSeconds'])
+				episode_name = episode_item['Title']
+				episode_plot = episode_item['Description']
+				try:
+					episode_airdate = common.format_date(episode_item['ReleaseDate'], '%m/%d/%Y')
+				except:
+					episode_airdate = None
+				try:
+					episode_number = int(episode_item['Episode'])
+				except:
+					episode_number = -1
+				try:
+					episode_thumb = episode_item['Thumbnail_854x480']
+				except:
+					episode_thumb = None
+				try:
+					episode_caption = episode_item['ClosedCaptionFiles'][0]['Path']
+				except:
+					episode_caption = ''
+				episode_MPAA = episode_item['Rating']
+				episode_genre = episode_item['Genre']
+				episode_showtitle = episode_item['ParentChannelName']
+				episode_type = episode_item['MediaType']
+				episode_MPAA = episode_item['Rating']
+				episode_genre = episode_item['Genre']
+				episode_showtitle = episode_item['ParentChannelName']
+				episode_rating = episode_item['UserRating']
+				try:
+					episode_cast = re.compile('\\(([A-Za-z ]+ [A-Za-z]+)\\)').findall(episode_plot)
+				except:
+					episode_cast = None
+				video_url = video_url + '#' + episode_caption
+				u = sys.argv[0]
+				u += '?url="' + urllib.quote_plus(video_url) + '"'
+				u += '&mode="' + SITE + '"'
+				u += '&sitemode="play_video"'
+				infoLabels={	'title' : episode_name,
+								'durationinseconds' : episode_duration,
+								'season' : season_number,
+								'episode' : episode_number,
+								'plot' : episode_plot,
+								'premiered' : episode_airdate,
+								'mpaa' : episode_MPAA,
+								'Genre' : episode_genre,
+								'TVShowTitle' : episode_showtitle,
+								'Rating' : episode_rating,
+								'cast' : episode_cast}
+				episodes.append((u, episode_name, episode_thumb,  infoLabels, 'list_qualities', False, episode_type))
+
+	except:
+		pass
+	return episodes
 
 def list_qualities(video_url = common.args.url):
 	return QUALITIES
 
 def play_video(video_url = common.args.url):
+	if 'channel'  in video_url:
+		movie_data = connection.getURL(video_url)
+		movie_item = simplejson.loads(movie_data)['FolderList'][0]['PlaylistList'][0]['MediaList'][0]
+		video_url = find_videopath(movie_item['Thumbnail_Wide'])
+		try:
+			movie_caption = movie_item['ClosedCaptionFiles'][0]['Path']
+		except:
+			movie_caption = ''
+		video_url = video_url + '#' +  movie_caption
 	try:
 		qbitrate = common.args.quality
 	except:
@@ -165,12 +230,17 @@ def play_video(video_url = common.args.url):
 			convert_subtitles(closedcaption)
 	finalurl = video_url + hpath
 	item = xbmcgui.ListItem(path = finalurl)
-	if qbitrate is not None:
+	try:
 		item.setThumbnailImage(common.args.thumb)
+	except:
+		pass
+	try:
 		item.setInfo('Video', {	'title' : common.args.name,
 								'season' : common.args.season_number,
 								'episode' : common.args.episode_number,
 								'TVShowTitle' : common.args.show_title })
+	except:
+		pass
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption != ''):
 		while not xbmc.Player().isPlaying():
@@ -203,3 +273,14 @@ def convert_subtitles(closedcaption):
 	file = open(ustvpaths.SUBTITLE, 'w')
 	file.write(str_output)
 	file.close()
+
+def find_videopath(thumbnail_url):
+	path_pattern = re.compile('http:\\/\\/.+?\/(.+?)_[a-zA-Z0-9]+')
+	pattern_url = thumbnail_url
+	path = path_pattern.findall(pattern_url)
+	if not path and episode_item['ClosedCaptionFiles']:
+		path = path_pattern.findall(episode_item['ClosedCaptionFiles'][0]['Path'])
+	if not path:
+		pass
+	video_url = BASE + path[0] + '_'
+	return video_url

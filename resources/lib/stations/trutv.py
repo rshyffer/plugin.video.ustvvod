@@ -35,6 +35,7 @@ def masterlist():
 	return master_db
 
 def seasons(season_url = common.args.url):
+	seasons = []
 	clip_url = season_url.split('#')[0]
 	episode_id = season_url.split('#')[1]
 	clip_data = connection.getURL(season_url)
@@ -44,19 +45,21 @@ def seasons(season_url = common.args.url):
 	except:
 		season_menu = 0
 	if season_menu > 0:
-		common.add_directory('Episodes',  SITE, 'episodes', FULLEPISODES % episode_id)
+		seasons.append(('Episodes',  SITE, 'episodes', FULLEPISODES % episode_id, -1, -1))
 	try:
 		season_menu = int(simplejson.loads(clip_data)['totalResults'])
 	except:
 		season_menu = 0
 	if season_menu > 0:
-		common.add_directory('Clips',  SITE, 'episodes', clip_url)
-	common.set_view('seasons')
+		seasons.append(('Clips',  SITE, 'episodes', clip_url,-1, -1))
+	return seasons
 
 def episodes(episode_url = common.args.url):
+	episodes = []
 	episode_data = connection.getURL(episode_url)
-	if 'clips' in common.args.name.lower():
-		episode_menu = simplejson.loads(episode_data)['entries']
+	episode_json = simplejson.loads(episode_data)
+	if 'entries' in episode_json: # will break lib ex
+		episode_menu = episode_json['entries']
 		for i, episode_item in enumerate(episode_menu):
 			default_mediacontent = None
 			for mediacontent in episode_item['media$content']:
@@ -93,9 +96,9 @@ def episodes(episode_url = common.args.url):
 							'episode' : episode_number,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate }
-			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
+			episodes.append((u, episode_name, episode_thumb, infoLabels, None, False, 'Clip'))
 	else:
-		episode_menu = simplejson.loads(episode_data)['episodes']
+		episode_menu = episode_json['episodes']
 		for episode_item in episode_menu['episode']:
 			url = str(episode_item['id'])
 			episode_duration = common.format_seconds(episode_item['duration'])
@@ -107,13 +110,17 @@ def episodes(episode_url = common.args.url):
 			except:
 				season_number = -1
 			try:
-				episode_number = int(episode_item['episodeNumber'][:1])
+				print str(episode_item['episodeNumber'])[:1]
+				episode_number = int(str(episode_item['episodeNumber'])[1:])
 			except:
 				episode_number = -1
 			try:
 				episode_thumb = episode_item['Thumbs']['Thumb'][-1]['content']
 			except:
 				episode_thumb = None
+			episode_expires = episode_item['expirationDate']
+			show_title = episode_item['showTitle']
+			episode_mpaa = episode_item['tvRatingCode']
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'
 			u += '&mode="' + SITE + '"'
@@ -123,9 +130,12 @@ def episodes(episode_url = common.args.url):
 							'season' : season_number,
 							'episode' : episode_number,
 							'plot' : episode_plot,
-							'premiered' : episode_airdate }
-			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	common.set_view('episodes')
+							'premiered' : episode_airdate,
+							'TVShowTitle' : show_title,
+							'mpaa' : episode_mpaa}
+			infoLabels = common.enrich_infolabels(infoLabels, episode_expires, '%m/%d/%Y')
+			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, 'Full Episode'))
+	return episodes
 
 def play_video(video_url = common.args.url):
 	if 'mp4' in video_url:

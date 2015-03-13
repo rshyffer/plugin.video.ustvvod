@@ -25,11 +25,14 @@ def masterlist():
 	master_db.append(('--' + NAME + ' Movies',  SITE, 'episodes', 'Movie#' + MOVIES))
 	return master_db
 
-def seasons():
-	main_turner.seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS)
+def seasons(url = common.args.url):
+	return main_turner.seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS, url)
 
-def episodes():
-	episode_data = connection.getURL(MOVIES)
+def episodes(url = MOVIES):
+	episodes = []
+	if '#' in url:
+		url = url.split('#')[1]
+	episode_data = connection.getURL(url)
 	episode_list = simplejson.loads(episode_data)
 	episode_menu = episode_list['tcm']['titles']
 	for episode_item in episode_menu:
@@ -51,7 +54,7 @@ def episodes():
 		try:
 			episode_rating = 'Rated: %s' % episode_item['tvRating']
 		except:
-			isode_rating = ''
+			episode_rating = ''
 		try:
 			episode_director = episode_item['tvDirectors']
 		except:
@@ -62,6 +65,11 @@ def episodes():
 			episode_thumb = episode_item['imageProfiles'][1]['url']
 		except:
 			episode_thumb = None
+		episode_expires = episode_item['vod']['expiryDate']
+		try:
+			episode_actors = episode_item['tvParticipants'].split(',')
+		except:
+			episode_actors = []
 		u = sys.argv[0]
 		u += '?url="' + urllib.quote_plus(url) + '"'
 		u += '&mode="' + SITE + '"'
@@ -74,9 +82,11 @@ def episodes():
 						'year' : episode_year,
 						'genre' : episode_genre, 
 						'mpaa'  : episode_rating,
-						'director' : episode_director}
-		common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	common.set_view('episodes')
+						'director' : episode_director,
+						'cast' : episode_actors}
+		infoLabels = common.enrich_infolabels(infoLabels, episode_expires, '%Y-%b-%d %I:%M %p')
+		episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, 'Movie'))
+	return episodes
 
 def play_video():
 	main_turner.play_video(SITE, EPISODE, HLSPATH)

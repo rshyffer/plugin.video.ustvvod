@@ -16,6 +16,7 @@ from bs4 import BeautifulSoup, SoupStrainer
 addon = xbmcaddon.Addon()
 pluginHandle = int(sys.argv[1])
 
+
 SITE = "msnbc"
 NAME = "MSNBC"
 DESCRIPTION = "MSNBC is an American basic cable and satellite news television channel that is owned by the NBCUniversal News Group, a unit of the NBCUniversal Television Group division of NBCUniversal. The channel features news, information, and political opinion programming. Its name was derived from the most common abbreviations for Microsoft and the National Broadcasting Company. MSNBC and msnbc.com were founded in 1996 as partnerships of Microsoft and General Electric's NBC unit, which is now NBCUniversal. The online partnership of msnbc.com ended on July 16, 2012 and the site was rebranded as NBCNews.com. MSNBC shares the NBC logo of a rainbow peacock with its sister channels NBC, CNBC, and NBC Sports Network. Beginning in the mid-2000s, MSNBC assumed an increasingly liberal stance in its opinion programming. In October 2010, it publicly acknowledged this with a marketing campaign it called \"Lean Forward\". Further, in September of 2013, MSNBC launched its revamped official website under the tagline, \"What Progressives Have Been Waiting For.\" As of August 2013, approximately 94,519,000 American households (82.77% of households with television) receive MSNBC"
@@ -35,23 +36,32 @@ def masterlist():
 	return master_db
 
 def seasons(season_url = common.args.url):
+	seasons = []
 	season_data = connection.getURL(season_url)
-	season_tree = BeautifulSoup(season_data, 'html.parser', parse_only = SoupStrainer('div'))
-	season_source = season_tree.find('div', id = 'TPVideoPlaylistTaxonomyContainer')['source']
-	playlist_url = PLAYLIST % season_source
-	playlist_data = connection.getURL(playlist_url)
-	playlist_data = playlist_data.replace('$pdk.NBCplayer.ShowPlayerTaxonomy.GetList(', '').replace(');', '')
-	season_menu = simplejson.loads(playlist_data)
 	try:
-		for season_item in season_menu['playlistTaxonomy']:
-			common.add_directory(season_item['reference']['name'],  SITE, 'episodes', FEED % season_item['reference']['feed'])
-	except:
-		pass
-	common.set_view('seasons')
 
-def episodes():
-	main_nbcu.episodes(SITE, False)
-	
+		playlist = re.compile('"playlists":\s*(\[.*?\])', re.DOTALL).findall(season_data)[0]
+		season_menu = simplejson.loads(playlist)
+		for season_item in season_menu:
+			seasons.append((season_item['name'],  SITE, 'episodes', FEED % season_item['guid'], -1, -1))
+	except:
+		season_tree = BeautifulSoup(season_data, 'html.parser', parse_only = SoupStrainer('div'))
+		season_source = season_tree.find('div', id = 'TPVideoPlaylistTaxonomyContainer')['source']
+		playlist_url = PLAYLIST % season_source
+		playlist_data = connection.getURL(playlist_url)
+		playlist_data = playlist_data.replace('$pdk.NBCplayer.ShowPlayerTaxonomy.GetList(', '').replace(');', '')
+		season_menu = simplejson.loads(playlist_data)
+		for season_item in season_menu['playlistTaxonomy']:
+			season_name =  season_item['reference']['name']
+			season_url = FEED % season_item['reference']['feed']
+			seasons.append((season_name, SITE, 'episodes', season_url, -1, -1))
+	return seasons
+
+def episodes(url = common.args.url):
+	try:
+		return main_nbcu.episodes(SITE, url, False)
+	except  Exception as e:
+		print "Episode error", e
 	
 def play_video(video_url = common.args.url):
 	hbitrate = -1
@@ -72,6 +82,8 @@ def play_video(video_url = common.args.url):
 			xbmc.sleep(100)
 		xbmc.Player().setSubtitles(ustvpaths.SUBTITLE)
 
+
+		
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')
 	tag = re.compile(r'<.*?>')

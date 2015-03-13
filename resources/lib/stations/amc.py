@@ -28,16 +28,21 @@ def masterlist():
 	for master_item in master_menu:
 		master_name = master_item.text
 		season_url = master_item['value']
-		master_db.append((master_name, SITE, 'seasons', season_url))
+		if 'Movie' not in master_name:
+			master_db.append((master_name, SITE, 'seasons', season_url))
+		else:
+			master_name = '--' + master_name
+			master_db.append((master_name, SITE, 'episodes', season_url))
 	return master_db
 
-def seasons():
+def seasons(url = common.args.url):
+	seasons = []
 	season_data = connection.getURL(SHOWS)
 	season_tree = BeautifulSoup(season_data, 'html.parser')
 	season_videotypes = season_tree.find('select', id = 'rb-video-browser-content_type').find_all('option')
 	season_shows = season_tree.find('select', id = 'rb-video-browser-show').find_all('option')
 	for season_item in season_shows:
-		if season_item['value'] == common.args.url:
+		if season_item['value'] == url:
 			season_category = season_item['title'].replace('[','').replace(']','').replace('"','').split(',')
 			for season_videoitem in season_videotypes:
 				if season_videoitem['value'] in season_category:
@@ -45,13 +50,20 @@ def seasons():
 					season_url = 'rb-video-browser-num_items=100&module_id_base=rb-video-browser'
 					season_url += '&rb-video-browser-show=' + season_item['value']
 					season_url += '&rb-video-browser-content_type=' + season_videoitem['value']
-					common.add_directory(season_name, SITE, 'episodes', season_url)
-	common.set_view('seasons')
+					seasons.append((season_name, SITE, 'episodes', season_url, -1 ,-1))
 
-def episodes():
+	return seasons
+
+def episodes(filter = common.args.url):
+	if filter.isdigit():
+
+		filter = seasons(filter)[0][3]
+		
+
+	episodes = []
 	episode_values = {	'video_browser_action' : 'filter',
 						'params[type]' : 'all',
-						'params[filter]' : common.args.url,
+						'params[filter]' : filter,
 						'params[page]' : '1',
 						'params[post_id]' : '71306',      
 						'module_id_base' : 'rb-video-browser' }
@@ -62,15 +74,32 @@ def episodes():
 		episode_name = episode_item.a.img['title']
 		episode_plot = episode_item.a.img['alt'].replace('/n',' ')
 		episode_thumb = episode_item.a.img['src']
-		url = episode_item.a['href']		
+
+		url = episode_item.a['href']
+		show_name = url.split('/')[3].replace('-', ' ').title()
+		episode_type = episode_item.h4.string.split(',')[0].strip()
+		if episode_type == 'Full Movie':
+			episode_type = 'Movie'
+		try:
+			episode_season = int(episode_item.h4.string.split(',')[1].replace('Season', '').strip())
+		except:
+			episode_season = -1
+		try:
+			episode_number = int(episode_item.h4.string.split(',')[2].replace('Episode', '').strip())
+		except:
+			episode_number = -1
 		u = sys.argv[0]
 		u += '?url="' + urllib.quote_plus(url) + '"'
 		u += '&mode="' + SITE + '"'
 		u += '&sitemode="play_video"'
 		infoLabels={	'title' : episode_name,
-						'plot' : episode_plot }
-		common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels)
-	common.set_view('episodes')
+						'plot' : episode_plot, 
+						'TVShowTitle' : show_name,
+						'season' : episode_season,
+						'episode' : episode_number}
+		episodes.append((u, episode_name, episode_thumb, infoLabels, None, False, episode_type))
+
+	return episodes
 
 def play_video(video_url = common.args.url):
 	stored_size = 0
@@ -88,4 +117,16 @@ def play_video(video_url = common.args.url):
 			hbitrate = bitrate
 			video_url2 = item['defaultURL']
 	finalurl = video_url2
-	xbmcplugin.setResolvedUrl(pluginHandle, True, xbmcgui.ListItem(path = finalurl))
+	item = xbmcgui.ListItem(path = finalurl)
+	try:
+		item.setThumbnailImage(common.args.thumb)
+	except:
+		pass
+	try:
+		item.setInfo('Video', {	'title' : common.args.name,
+						'season' : common.args.season_number,
+						'episode' : common.args.episode_number,
+						'TVShowTitle' : common.args.show_title})
+	except:
+		pass
+	xbmcplugin.setResolvedUrl(pluginHandle, True, item)

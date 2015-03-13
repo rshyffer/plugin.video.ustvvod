@@ -30,6 +30,18 @@
 		<setting id="tor_as_service" type="bool" label="31016" default="false" visible="eq(-2,True)+eq(-14,3)" />
 		<setting type="sep" />
 	</category>
+	<category label="35000">
+		<setting type="sep" />
+		<setting id="enablelibraryfolder" type="bool" label="35001" default="true"/>
+		<setting id="customlibraryfolder" type="folder" label="35002" default="" visible="eq(-1,False)"/>
+		<setting id="updatelibrary" type="bool" label="35003" default="true"/>
+		<setting type="sep" />
+		<setting id="shownfo" type="bool" label="35007" default="false"/> 
+		<setting id="episodenfo" type="bool" label="35004" default="true"/>
+		<setting id="movienfo" type="bool" label="35005" default="false"/>
+		<setting id="librarysuffix" type="text" label="35006" default="(USTVVOD)"/>
+		<setting type="sep" />
+	</category>
 	<category label="33000">
 		<setting type="sep" />
 		<setting id="abcchannel" type="bool" label="ABC" default="true"/>

@@ -20,6 +20,7 @@ SOUTHPARKBASE = "http://southpark.cc.com"
 SHOWS = "http://www.cc.com/shows"
 VIDEOURL = "http://media.mtvnservices.com/"
 MP4URL = "http://mtvnmobile.vo.llnwd.net/kip0/_pxn=0+_pxK=18639/44620/mtvnorigin"
+RATINGS = {'Mature' : 'TV-MA', 'general audience' : 'TV-G'}
 
 def masterlist():
 	"""Build a list of all shows. First get all the shows listed in the Full Episodes menu
@@ -64,7 +65,7 @@ def _get_manifest(page_url):
 		for script in scripts:
 			if ('triforceManifestFeed') in script.string:
 				triforceManifestFeed = script.string.split(' = ')[1]
-				triforceManifestFeed = triforceManifestFeed.strip()[:-1] # remove last ; from string
+				triforceManifestFeed = triforceManifestFeed.strip()[:-1]
 				triforceManifestFeed = simplejson.loads(triforceManifestFeed)
 				return triforceManifestFeed
 	except:
@@ -94,25 +95,26 @@ def seasons(show_url = common.args.url):
 	    the HTML page. A consequence of this is that some shows can have mixed results: full
 	    episides pages does not have a manifest, but clips does. This can lead to duplication of
 	    container items. Many shows seem to contain a feed for full episodes, but this feed is empty """
+	seasons = []
 	triforceManifestFeed = _get_manifest(show_url)
 	if triforceManifestFeed:
-		add_items_from_manifestfile(triforceManifestFeed, show_url)
+		seasons = add_items_from_manifestfile(triforceManifestFeed, show_url)
 	else:
 		full_episodes_url = get_full_episodes_url(show_url)
 		clips_url = get_clips_url(show_url)
 		if full_episodes_url:
 			triforceManifestFeed = _get_manifest(full_episodes_url)
 			if triforceManifestFeed:
-				add_items_from_manifestfile(triforceManifestFeed, full_episodes_url)
+				seasons = add_items_from_manifestfile(triforceManifestFeed, full_episodes_url)
 			else:
-				common.add_directory('Full Episodes',  SITE, 'episodes', full_episodes_url)
+				seasons.append(('Full Episodes',  SITE, 'episodes', full_episodes_url, -1, -1))
 		if clips_url:
 			triforceManifestFeed = _get_manifest(clips_url)
 			if triforceManifestFeed:
-				add_items_from_manifestfile(triforceManifestFeed, clips_url)
+				seasons.extend(add_items_from_manifestfile(triforceManifestFeed, clips_url))
 			else:
-				common.add_directory('Full Episodes',  SITE, 'episodes', clips_url)
-	common.set_view('seasons')
+				seasons.append(('Full Episodes',  SITE, 'episodes', clips_url, -1, -1))
+	return seasons
 
 def episodes(episode_url = common.args.url):
 	""" Add individual episodes. If the URL is a manifest feed, load from JSON, else analyse
@@ -120,10 +122,10 @@ def episodes(episode_url = common.args.url):
 	if episode_url.endswith('#ManifestFeed'):
 		triforceManifestFeed = _get_manifest_feed(episode_url)
 		if triforceManifestFeed:
-			add_video_from_manifestfile(triforceManifestFeed)
+			episodes = add_video_from_manifestfile(triforceManifestFeed)
 	else:
-		episodes_from_html(episode_url)
-	common.set_view('episodes')
+		episodes = episodes_from_html(episode_url)
+	return episodes
 
 def get_full_episodes_url(show_url):
 	""" Get the URL to the full episodes page """
@@ -158,27 +160,9 @@ def get_clips_url(show_url):
 	else:
 		return False
 
-def add_items_from_southpark(show_url):
-	""" Add the seasons for South Park """
-	show_url = show_url.replace(SHOWS + '/south-park', SOUTHPARKBASE)
-	show_data = connection.getURL(show_url)
-	seasons = BeautifulSoup(show_data, 'html5lib').find('div', class_ = 'seasonPagination').find_all('a')
-	if seasons:
-		for season in seasons:
-			season_url = season['href']
-			if 'http' not in season_url:
-				season_url = SOUTHPARKBASE + season_url
-			season_number = season.string
-			if season_number == 'ALL':
-				continue
-			try:
-				display = 'Season %s' % str(int(season_number))
-			except:
-				pass
-			common.add_directory(display,  SITE, 'episodes', season_url )
-
 def episodes_from_html(episode_url = common.args.url, page = 1):
 	""" Add episodes by analysing the HTML of the page """
+	episodes = []
 	if page == 1:
 		episode_data = connection.getURL(episode_url)
 		episode_tree = None
@@ -198,40 +182,35 @@ def episodes_from_html(episode_url = common.args.url, page = 1):
 	if episode_tree is  None:
 		episode_tree = BeautifulSoup(episode_data, 'html5lib')
 	if 'Clips' in common.args.name  :
-		if 'southpark' in episode_url:
-			add_clips_southpark(episode_tree)
-		else:
-			next = episode_tree.find('a', class_ = re.compile('next'))		    
-			add_video(episode_tree)
-			if next is not None:
-				try:
-					if 'href' in next.attrs:
-						nexturl = next['href'].replace(' ', '+')
-					else:
-						nexturl = next['onclick'].split(';')[0].replace("loadContent('", "").replace("')", "")
-					if 'http' not in nexturl:
-						nexturl = BASE + nexturl
-					if page < int(addon.getSetting('maxpages')):
-						episodes_from_html(nexturl, page + 1)
-				except:
-					pass
+		next = episode_tree.find('a', class_ = re.compile('next'))		    
+		episodes = add_video(episode_tree)
+		if next is not None:
+			try:
+				if 'href' in next.attrs:
+					nexturl = next['href'].replace(' ', '+')
+				else:
+					nexturl = next['onclick'].split(';')[0].replace("loadContent('", "").replace("')", "")
+				if 'http' not in nexturl:
+					nexturl = BASE + nexturl
+				if page < int(addon.getSetting('maxpages')):
+					episodes_from_html(nexturl, page + 1)
+			except:
+				pass
 	else:
-		if 'southpark' in episode_url:
-			add_fullepisodes_southpark(episode_tree)
-		else:
-			next = episode_tree.find('a', class_ = re.compile('next'))		    
-			add_video(episode_tree, False)
-			if next is not None:
-				try:
-					nexturl = next['href']
-					if nexturl[0] == '?': 
-						nexturl = episode_url.split('?')[0] + nexturl				
-					elif 'http' not in nexturl: 
-						nexturl = BASE + nexturl
-					if page < int(addon.getSetting('maxpages')):
-						episodes_from_html(nexturl, page + 1)
-				except:
-					pass
+		next = episode_tree.find('a', class_ = re.compile('next'))		    
+		episodes = add_video(episode_tree, False)
+		if next is not None:
+			try:
+				nexturl = next['href']
+				if nexturl[0] == '?': 
+					nexturl = episode_url.split('?')[0] + nexturl				
+				elif 'http' not in nexturl: 
+					nexturl = BASE + nexturl
+				if page < int(addon.getSetting('maxpages')):
+					episodes.extend(episodes_from_html(nexturl, page + 1))
+			except:
+				pass
+	return episodes
 
 def _keyinfeed(keys1, keys2):
 	""" Helper function to find if a key from an list is present in another list """
@@ -243,6 +222,7 @@ def _keyinfeed(keys1, keys2):
 def add_items_from_manifestfile(triforceManifestFeed, season_url):
 	""" Add container items based on the manifest feed. If there are no items in the feed
 	    skip it. Special rule not to add Daily Show items to Colbert Report and vice versa """
+	seasons = []
 	if True:
 		feeds = []
 		for zone in triforceManifestFeed['manifest']['zones']:
@@ -253,7 +233,7 @@ def add_items_from_manifestfile(triforceManifestFeed, season_url):
 				promoType = feed['result']['promo']['promoType']
 			except:
 				promoType = None
-			if _keyinfeed(['videos','episodes','playlist','playlists','episodeVideos'], feed['result'].keys()) and promoType != 'all_full_episodes':# and not _keyinfeed(['promo'], feed['result'].keys()):
+			if _keyinfeed(['videos','episodes','playlist','playlists','episodeVideos'], feed['result'].keys()) and promoType != 'all_full_episodes':
 
 				if 'episodes' in feed['result']:
 					if len(feed['result']['episodes']) == 0:
@@ -289,7 +269,7 @@ def add_items_from_manifestfile(triforceManifestFeed, season_url):
 				continue
 			if 'Colbert' in feed['title'] and 'dailyshow' in season_url:
 				continue
-			# add #ManifestFeed at the end of the URL, so we can detect that this is a feed, not a full page
+			
 			title = feed['title']
 			feed_url =  feed['url'] 
 			if 'ENT_' not in title:
@@ -307,11 +287,13 @@ def add_items_from_manifestfile(triforceManifestFeed, season_url):
 							display_name = feed_menu2['result']['promo']['promoType'].replace('_', ' ').title()
 						except:
 							display_name = feed_menu2['result']['episodeVideos'][0]['distPolicy']['canonicalURL'].split('/')[3].title().replace('-', ' ')
-			common.add_directory(display_name,  SITE, 'episodes', feed['url'] + "#ManifestFeed")
-
+			seasons.append((display_name,  SITE, 'episodes', feed['url'] + "#ManifestFeed", -1, -1))
+	return seasons
+	
 def add_video_from_manifestfile(manifest_feed):
 	""" Add videos based on a manifest feed """
 	try:
+		episodes = []
 		shows = []
 		items = manifest_feed['result']
 		if 'episodes' in items:
@@ -332,6 +314,10 @@ def add_video_from_manifestfile(manifest_feed):
 					l = l + 1
 				k = k + 1
 			items = t_items
+		try:
+			episode_type = manifest_feed['result']['promo']['promoType'].replace('_', ' ').title()
+		except:
+			episode_type = 'Clip'
 		for item in items:
 			try:
 				episode_name = item['title']
@@ -355,6 +341,12 @@ def add_video_from_manifestfile(manifest_feed):
 			except:
 				season_number = -1
 				episode_number = -1
+			show_name = item['show']['title']
+			episode_expires = item['distPolicy']['endDate']
+			try:
+				episode_mpaa = RATINGS[item['contentRating']]
+			except:
+				episode_mpaa = None
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'
 			u += '&mode="' + SITE + '"'
@@ -364,14 +356,21 @@ def add_video_from_manifestfile(manifest_feed):
 							'episode' : episode_number,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate,
-							'durationinseconds' : episode_duration
+							'durationinseconds' : episode_duration,
+							'TVShowTitle' : show_name,
+							'mpaa' : episode_mpaa
 							}
+			try:
+				infoLabels = common.enrich_infolabels(infoLabels, epoch = episode_expires)
+			except Exception as e:
+				print "Can't enrich", e
 			show = {'u': u, 'episode_name': episode_name, 'episode_thumb': episode_thumb, 'infoLabels': infoLabels, 'epoch': epoch}
 			shows.append(show)
 		if len(shows):
 			shows = sorted(shows, key=lambda show: show['epoch'], reverse=True)
 			for show in shows:
-				common.add_video(show['u'], show['episode_name'], show['episode_thumb'], infoLabels = show['infoLabels'], quality_mode  = 'list_qualities')
+				episodes.append((show['u'], show['episode_name'], show['episode_thumb'], show['infoLabels'], 'list_qualities', False, episode_type))
+		return episodes
 	except:
 		pass
 
@@ -412,6 +411,7 @@ def add_fullepisodes_southpark(episode_tree):
 
 def add_video(episode_tree, episode = False):
 	try:
+		episodes = []
 		episode_menu = episode_tree.find_all(itemtype = 'http://schema.org/TVEpisode')
 		if not episode_menu:
 			episode_menu = episode_tree.find_all(itemtype = 'http://schema.org/VideoObject')
@@ -464,7 +464,8 @@ def add_video(episode_tree, episode = False):
 								'episode' : episode_number,
 								'plot' : episode_plot,
 								'premiered' : episode_airdate }
-				common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+				episodes.append((u, episode_name, episode_thumb, infoLabels,  'list_qualities', False, 'Full Episode'))
+		return episodes	
 	except:
 		pass
 

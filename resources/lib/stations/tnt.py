@@ -23,14 +23,15 @@ HLSPATH = "tnt"
 
 def masterlist():
 	return main_turner.masterlist(NAME, MOVIES, SHOWS, SITE, WEBSHOWS)
+	
+def seasons(url = common.args.url):
+	return main_turner.seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS, WEBSHOWS, url)
 
-def seasons():
-	main_turner.seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS, WEBSHOWS)
-
-def episodes():
-	main_turner.episodes_json(SITE)
+def episodes(url = common.args.url):
+	return main_turner.episodes_json(SITE, url)
 	
 def episodes_web():
+	episodes = []
 	master_name = common.args.url
 	webdata = connection.getURL(WEBSHOWS)
 	web_tree =  BeautifulSoup(webdata, 'html.parser', parse_only = SoupStrainer('div', id = 'page-shows'))
@@ -62,6 +63,7 @@ def episodes_web():
 				episode_thumb = item.find(itemprop = 'thumbnail')['data-standard']
 			except:
 				episode_thumb = None
+			episode_mpaa = item.span['showrating']
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'
 			u += '&mode="' + SITE + '"'
@@ -70,9 +72,12 @@ def episodes_web():
 							'durationinseconds' : episode_duration,
 							'season' : season_number,
 							'episode' : episode_number,
-							'plot' : episode_plot}
-			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	common.set_view('episodes')
+							'plot' : episode_plot,
+							'mpaa' : episode_mpaa,
+							'TVShowTitle' : master_name}
+			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, 'Full Episode'))
+	return episodes
+
 
 def play_video():
 	main_turner.play_video(SITE, EPISODE, HLSPATH)

@@ -35,7 +35,8 @@ RTMP = "cp37307.edgefcs.net"
 APP = "ondemand"
 IDENTURL = "http://%s/fcs/ident" % RTMP
 SWFURL = "http://video.nbcuni.com/core/6.6.1/OSMFPlayer.swf"
-SMIL = "http://link.theplatform.com/s/NnzsPC/%s?mbr=true&player=Onsite%%20Player&policy=43674&manifest=m3u&format=SMIL&Tracking=true&Embedded=true"
+
+SMIL = "http://link.theplatform.com/s/NnzsPC/%s?mbr=true&mbr=true&player=Onsite%%20Player&policy=43674&manifest=m3u&format=SMIL&Tracking=true&Embedded=true&formats=MPEG4,F4M,FLV,MP3"
 TONIGHT_SHOW_FEED = "%s/content/a/filter-items/?type=video"
 
 def masterlist():
@@ -49,86 +50,105 @@ def masterlist():
 	return master_db
 
 def seasons(season_url = common.args.url):
+	seasons = []
 	base_url = season_url
 	season_dict = ordereddict.OrderedDict({})
 	if 'the-tonight-show' in season_url:
-		add_show_thetonightshow(season_url)
-		return
+		seasons = add_show_thetonightshow(season_url)
+		return seasons
 	has_episodes = False
 	video_url = season_url + '/video'
 	episode_url = season_url 
-	for season_url in (episode_url, video_url):
+	for season_url in (video_url, episode_url ):
 		season_data = connection.getURL(season_url)
-		season_menu = re.compile('<div class="nbc_mpx_carousel.*? id="(.*?)">\s*<h2.*?>(.*?)</h2>', re.DOTALL).findall(season_data)
+		season_menu = re.compile('<div class="nbc_mpx_carousel.*?" id="(nbc_mpx_carousel_\d+)">\s*<h2.*?>(.*?)</h2>', re.DOTALL).findall(season_data)
 		for season_id, season_title in season_menu:
 			try:
-				tag = re.compile(r'<.*?>')
-				season_title = tag.sub('', season_title)
-				season_title = re.sub(' +',' ', season_title)
-				season_title = season_title.strip()
-				season_node = season_id.split('_')[-1]
-				if season_title not in season_dict.keys():
-					season_dict[season_title] =  EPISODES % season_node
-					if 'full episodes' == season_title.lower() or 'Season' in season_title:
-						has_episodes = True
+				if 'ALSO' not in season_title:
+					tag = re.compile(r'<.*?>')
+					season_title = tag.sub('', season_title)
+					season_title = re.sub(' +',' ', season_title)
+					season_title = season_title.strip().title()
+					if not (season_title == 'Full Episodes' and has_episodes):
+						season_node = season_id.split('_')[-1]
+						if season_title not in season_dict.keys():
+							season_dict[season_title] =  EPISODES % season_node
+							if 'full episodes' == season_title.lower() or 'Season' in season_title:
+								has_episodes = True
 			except:
 				pass
 	if not has_episodes:
-		common.add_directory('Full Episodes', SITE, 'episodes',  base_url + '/episodes')
+		episode_data = connection.getURL(base_url + '/episodes')
+		episode_menu = re.compile('src="(.*?)".*?<a href="([^"]*?)" class="watch-now-onion-skin">.*?(\d+) min.*?Season (\d+).*?Episode \d+(\d{2}).*?Air date (\d{2}/\d{2}/\d{2}).*?<div class="episode-title dotdotdot"><a href=".*?">(.*?)</a></div>.*?<p>(.*?)</p>', re.DOTALL).findall(episode_data)
+		if episode_menu:
+			seasons.append(('Full Episodes', SITE, 'episodes',  base_url + '/episodes', -1, -1))
 	for season_title in season_dict:
 		season_url = season_dict[season_title]
-		common.add_directory(season_title, SITE, 'episodes',  season_url)
-	common.set_view('seasons')
+		seasons.append((season_title, SITE, 'episodes',  season_url, -1, -1))
+
+
+	return seasons
 
 def episodes(episode_url = common.args.url):
+	episodes = []
 	if 'the-tonight-show' in episode_url:
-		if 'Clips' in common.args.name:
-			add_videos_thetonightshow(episode_url, 'segment')
+		if 'Clips' in episode_url:
+			return add_videos_thetonightshow(episode_url.split('#')[0], 'segment')
 		else:
-			add_videos_thetonightshow(episode_url, 'episode')
+			return add_videos_thetonightshow(episode_url.split('#')[0], 'episode')
 		return
 	episode_data = connection.getURL(episode_url)
 	if 'video_carousel' in episode_url:
 		episode_json = simplejson.loads(episode_data)
 		episode_menu = episode_json['entries']
 		for episode_item in episode_menu:
-			if episode_item['restricted'] != 'auth':
-				pid = episode_item['mainReleasePid']	
-				url = SMIL % pid	
-				try:
-					episode_duration = int(episode_item['duration'].replace(' min','')) * 60
-				except:
-					episode_duration = -1
-				episode_plot = HTMLParser.HTMLParser().unescape(episode_item['description'])
-				epoch = int(episode_item['pubDate']) / 1000
-				episode_airdate = common.format_date(epoch = epoch)
-				episode_name = HTMLParser.HTMLParser().unescape(episode_item['title'])
-				show_title = episode_item['showShortName']
-				try:
-					season_number = int(episode_item['season'])
-				except:
-					season_number = -1
-				try:
-					episode_number = int(episode_item['episode'])
-				except:
-					episode_number = -1
-				try:
-					episode_thumb = episode_item['images']['big']
-				except:
-					episode_thumb = None
-				u = sys.argv[0]
-				u += '?url="' + urllib.quote_plus(url) + '"'
-				u += '&mode="' + SITE + '"'
-				u += '&sitemode="play_video"'
-				infoLabels={	'title' : episode_name,
-								'durationinseconds' : episode_duration,
-								'season' : season_number,
-								'episode' : episode_number,
-								'plot' : episode_plot,
-								'premiered' : episode_airdate,
-								'TVShowTitle' : show_title}
-				common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+			try:
+				episode_restricted = episode_item['restricted']
+			except:
+				episode_restricted = 'free'
+			try:
+				if  episode_restricted != 'auth':
+					pid = episode_item['mainReleasePid']	
+					url = SMIL % pid	
+					try:
+						episode_duration = int(episode_item['duration'].replace(' min','')) * 60
+					except:
+						episode_duration = -1
+					episode_plot = HTMLParser.HTMLParser().unescape(episode_item['description'])
+					epoch = int(episode_item['pubDate']) / 1000
+					episode_airdate = common.format_date(epoch = epoch)
+					episode_name = HTMLParser.HTMLParser().unescape(episode_item['title'])
+					show_title = episode_item['showShortName']
+					try:
+						season_number = int(episode_item['season'])
+					except:
+						season_number = -1
+					try:
+						episode_number = int(episode_item['episode'])
+					except:
+						episode_number = -1
+					try:
+						episode_thumb = episode_item['images']['big']
+					except:
+						episode_thumb = None
+					episode_type = episode_item['contentType']
+					u = sys.argv[0]
+					u += '?url="' + urllib.quote_plus(url) + '"'
+					u += '&mode="' + SITE + '"'
+					u += '&sitemode="play_video"'
+					infoLabels={	'title' : episode_name,
+									'durationinseconds' : episode_duration,
+									'season' : season_number,
+									'episode' : episode_number,
+									'plot' : episode_plot,
+									'premiered' : episode_airdate,
+									'TVShowTitle' : show_title}
+
+					episodes.append((u, episode_name, episode_thumb, infoLabels,  'list_qualities', False, episode_type))
+			except Exception as e:
+				print "Episode item error",e
 	else:
+		episodes = []
 		show_title = re.compile('<h2 class="show-title"><a href=".*?">(.*?)</a></h2>').findall(episode_data)[0]
 		episode_menu = re.compile('src="(.*?)".*?<a href="([^"]*?)" class="watch-now-onion-skin">.*?(\d+) min.*?Season (\d+).*?Episode \d+(\d{2}).*?Air date (\d{2}/\d{2}/\d{2}).*?<div class="episode-title dotdotdot"><a href=".*?">(.*?)</a></div>.*?<p>(.*?)</p>', re.DOTALL).findall(episode_data)
 		for episode_thumb, episode_url, episode_duration,season_number, episode_number, episode_airdate, episode_name, episode_plot in episode_menu:
@@ -153,17 +173,23 @@ def episodes(episode_url = common.args.url):
 								'plot' : episode_plot,
 								'TVShowTitle' : show_title,
 								'premiered' : episode_airdate}
-				common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+				episodes.append((u, episode_name, episode_thumb,  infoLabels, 'list_qualities', False, 'Full Episode'))
 			except:
 				pass
-	common.set_view('episodes')
+
+
+	return episodes
 
 def add_show_thetonightshow(url):
-	common.add_directory('Full Episodes',  SITE, 'episodes', url)
-	common.add_directory('Clips',  SITE, 'episodes', url)
-	common.set_view('seasons')
+	seasons = []
+	seasons.append(('Full Episodes',  SITE, 'episodes', url + '#FullEpisode', -1, -1))
+	seasons.append(('Clips',  SITE, 'episodes', url + '#Clips', -1, -1))
+
+
+	return seasons
 
 def add_videos_thetonightshow(url, type_, page = 1, added_episodes = []):
+	episodes = []
 	this_url = (TONIGHT_SHOW_FEED % url) + '&offset=' + str((page-1) * 10)
 	root_data = connection.getURL(this_url)
 	data = simplejson.loads(root_data)
@@ -200,6 +226,11 @@ def add_videos_thetonightshow(url, type_, page = 1, added_episodes = []):
 				episode_thumb = video['images'][0]['bitImageSmall']
 			except:
 				episode_thumb = None
+			if video['type'] == 'episode':
+				episode_type = 'Full Episode'
+			else:
+				episode_type = 'Clip'
+			show_name = video['images'][0]['description']
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(episode_url) + '"'
 			u += '&mode="' + SITE + '"'
@@ -208,11 +239,14 @@ def add_videos_thetonightshow(url, type_, page = 1, added_episodes = []):
 							'season' : season_number,
 							'episode' : episode_number,
 							'plot' : episode_plot,
-							'premiered' : episode_airdate}
-			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+							'premiered' : episode_airdate,
+							'TVShowTitle' : show_name}
+			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, episode_type))
 	if page < int(addon.getSetting('maxpages')):
-		add_videos_thetonightshow(url, type_, page + 1, added_episodes)
-	common.set_view('episodes')
+		episodes.extend(add_videos_thetonightshow(url, type_, page + 1, added_episodes))
+
+
+	return episodes
 
 def play_video(video_url = common.args.url, tonightshow = False):
 	try:
@@ -235,6 +269,7 @@ def play_video(video_url = common.args.url, tonightshow = False):
 			closedcaption = smil_tree.textstream['src']
 		except:
 			pass
+
 	
 		m3u_master_data = connection.getURL(video_url2, savecookie = True)
 		m3u_master = m3u8.parse(m3u_master_data)
@@ -273,9 +308,11 @@ def play_video(video_url = common.args.url, tonightshow = False):
 			player._subtitles_Enabled = True
 		item = xbmcgui.ListItem(path = finalurl)
 		try:
+
 			item.setThumbnailImage(common.args.thumb)
 		except:
 			pass
+
 		try:
 			item.setInfo('Video', {	'title' : common.args.name,
 							'season' : common.args.season_number,
@@ -283,9 +320,10 @@ def play_video(video_url = common.args.url, tonightshow = False):
 							'TVShowTitle' : common.args.show_title})
 		except:
 			pass
+
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 		while player.is_active:
-			player.sleep(250)
+				player.sleep(250)
 	else:
 		common.show_exception(smil_tree.ref['title'], smil_tree.ref['abstract'])
 

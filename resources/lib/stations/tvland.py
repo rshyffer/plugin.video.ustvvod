@@ -38,21 +38,23 @@ def masterlist():
 	return master_db
 
 def seasons(season_url = common.args.url):
+	seasons = []
 	season_data = connection.getURL(season_url)
 	season_menu = BeautifulSoup(season_data, 'html.parser').find('a', class_ = 'full_episodes')
 	season_menu2 = BeautifulSoup(season_data, 'html.parser').find('a', class_ = 'video_clips')
 	if season_menu is not None:
 		season_url2 = BASE + season_menu['href']
-		common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
+		seasons.append(('Full Episodes',  SITE, 'episodes', season_url2, -1, -1))
 	if season_menu2 is not None:
 		season_url3 = BASE + season_menu2['href']
-		common.add_directory('Clips',  SITE, 'episodes', season_url3)
-	common.set_view('seasons')
+		seasons.append(('Clips',  SITE, 'episodes', season_url3, -1, -1))
+	return seasons
 
 def episodes(episode_url = common.args.url):
+	episodes = []
 	episode_data = connection.getURL(episode_url)
 	episode_tree = BeautifulSoup(episode_data.replace('\'+\'', ''), 'html.parser')
-	if common.args.name == 'Clips':
+	if common.args.name == 'Clips': ##iss
 		if episode_tree.find('a', class_ = 'next') is not None:
 			add_clips(episode_tree)
 			try:
@@ -60,7 +62,7 @@ def episodes(episode_url = common.args.url):
 			except:
 				pass
 		else:
-			add_clips(episode_tree)
+			episodes = add_clips(episode_tree)
 	else:
 		if episode_tree.find('a', class_ = 'season_menu') is not None:
 			show_id = re.compile('var showId = "(.+?)";').findall(episode_data)[0]
@@ -69,12 +71,13 @@ def episodes(episode_url = common.args.url):
 			for episode_item in episode_menu:
 				episode_data2 = connection.getURL(SEASONURL %(show_id, episode_item['id'], episode_id))
 				episode_tree2 = BeautifulSoup(episode_data2, 'html.parser')
-				add_fullepisodes(episode_tree2, episode_item.text.split(' ')[1])
+				episodes.extend(add_fullepisodes(episode_tree2, episode_item.text.split(' ')[1]))
 		else:
-			add_fullepisodes(episode_tree)
-	common.set_view('episodes')
+			episodes = add_fullepisodes(episode_tree)
+	return episodes
 
 def add_fullepisodes(episode_tree, season_number = -1):
+	episodes = []
 	try:
 		episode_menu = episode_tree.find_all('div', class_ = 'episodeContainer')
 		for episode_item in episode_menu:
@@ -101,11 +104,13 @@ def add_fullepisodes(episode_tree, season_number = -1):
 							'episode' : episode_number,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate }
-			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, 'Full Episode'))
 	except:
 		pass
+	return episodes
 
 def add_clips(episode_tree, season_number = -1):
+	episodes = []
 	try:
 		episode_menu = episode_tree.find_all('div', class_ = 'search_pad')
 		for episode_item in episode_menu:
@@ -138,9 +143,10 @@ def add_clips(episode_tree, season_number = -1):
 							'plot' : episode_plot,
 							'premiered' : episode_airdate,
 							'tvshowtitle': show_name }
-			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
+			episodes.append((u, episode_name, episode_thumb, infoLabels,'list_qualities', False, 'Clip'))
 	except:
 		pass
+	return episodes
 
 def play_video(video_url = common.args.url):
 	video_data = connection.getURL(video_url)

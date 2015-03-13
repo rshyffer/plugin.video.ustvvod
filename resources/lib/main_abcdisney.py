@@ -87,13 +87,18 @@ def masterlist(SITE, BRANDID):
 	return master_db
 
 def seasons(SITE, BRANDID, season_url = common.args.url):
+	seasons = []
+	season_clips = []
 	season_menu = []
 	season_numbers = []
 	clip_numbers = []
-	season_url2 = VIDEOLIST % BRANDID + '001/-1/' + season_url + '/-1/-1/-1/-1'
-	season_data = connection.getURL(season_url2)
-	season_data2 = simplejson.loads(season_data)['videos']
+
+
+
 	try:
+		season_url2 = VIDEOLIST % BRANDID + '001/-1/' + season_url + '/-1/-1/-1/-1'
+		season_data = connection.getURL(season_url2)
+		season_data2 = simplejson.loads(season_data)['videos']
 		season_count = int(season_data2['@count'])
 		if season_count > 1:
 			season_menu = season_data2['video']
@@ -107,7 +112,7 @@ def seasons(SITE, BRANDID, season_url = common.args.url):
 							season_numbers.append(season_item['season']['@id'])
 							season_name = 'Season ' + season_item['season']['@id']
 							season_url3 = VIDEOLIST % BRANDID + '001/' + season_item['@type'] + '/' + season_url + '/' + season_item['season']['@id'] + '/-1/-1/-1'
-							common.add_directory(season_name, SITE, 'episodes', season_url3)
+							seasons.append((season_name, SITE, 'episodes', season_url3, -1, -1))
 					except:
 						pass
 				elif season_item['@type'] == 'sf':
@@ -116,16 +121,18 @@ def seasons(SITE, BRANDID, season_url = common.args.url):
 							clip_numbers.append(season_item['season']['@id'])
 							season_name = 'Season Clips ' + season_item['season']['@id']
 							season_url4 = VIDEOLIST % BRANDID + '001/' + season_item['@type'] + '/' + season_url + '/' + season_item['season']['@id'] + '/-1/-1/-1'
-							common.add_directory(season_name, SITE, 'episodes', season_url4)
+							season_clips.append((season_name, SITE, 'episodes', season_url4, -1, -1))
 					except:
 						pass
-	except:
-		pass
-	common.set_view('seasons')
+		seasons.extend(season_clips)
+	except Exception as e:
+		print "Error: " + e
+	return seasons
 
-def episodes(SITE):
+def episodes(SITE, episode_url = common.args.url):
+	episodes = []
 	episode_menu = []
-	episode_data = connection.getURL(common.args.url)
+	episode_data = connection.getURL(episode_url)
 	episode_data2 = simplejson.loads(episode_data)['videos']
 	episode_count = int(episode_data2['@count'])
 	if episode_count > 1:
@@ -137,13 +144,23 @@ def episodes(SITE):
 			highest_height = -1
 			episode_name = episode_item['title']
 			episode_duration = int(episode_item['duration']['$']) / 1000
-			season_number = episode_item['season']['@id']
 			episode_id = episode_item['@id']
 			episode_type = episode_item['@type']
 			try:
 				episode_description = common.replace_signs(episode_item['longdescription'])
 			except:
-				episode_description = common.replace_signs(episode_item['description'])
+				try:
+					episode_description = common.replace_signs(episode_item['description'])
+				except:
+					episode_description = None
+			try:
+				episode_expires = episode_item['availabilities']['free']['end']
+			except:
+				episode_expires = None
+			try:
+				episode_genre = episode_item['show']['trackcode']['generic']['cgenre'].title()
+			except:
+				episode_genre = None
 			try:
 				episode_airdate = episode_item['airdates']['airdate'].rsplit(' ',1)[0]
 				episode_airdate = common.format_date(episode_airdate,'%a, %d %b %Y %H:%M:%S', '%d.%m.%Y')
@@ -153,14 +170,19 @@ def episodes(SITE):
 					episode_airdate = common.format_date(episode_airdate,'%a, %d %b %Y %H:%M:%S', '%d.%m.%Y')
 				except:
 					episode_airdate = -1
-			try:
-				episode_number = episode_item['number']
-			except:
+			if episode_genre != 'Movies':
+				season_number = episode_item['season']['@id']
+				try:
+					episode_number = episode_item['number']
+				except:
+					episode_number = -1
+				try:
+					episode_number = re.compile('Episode (\d+)').findall(episode_name)[0]
+				except:
+					pass
+			else:
 				episode_number = -1
-			try:
-				episode_number = re.compile('Episode (\d+)').findall(episode_name)[0]
-			except:
-				pass
+				season_number = -1
 			try:
 				for episode_picture in episode_item['thumbnails']['thumbnail']:
 					try:
@@ -175,6 +197,20 @@ def episodes(SITE):
 						episode_thumb = episode_picture['$']
 			except:
 				episode_thumb = episode_item['thumbnails']['thumbnail']['$']
+			if episode_genre == 'Movies':
+				type = 'Movie'
+			elif episode_type == 'lf':
+				type = 'Full Episode'
+			else:
+				type = 'Clip'
+			show_name = episode_item['show']['title']
+			try:
+				episode_mpaa = episode_item['tvrating']['rating'] + ' ' + episode_item['tvrating']['descriptors']
+			except:
+				try:
+					episode_mpaa = episode_item['tvrating']['rating']
+				except:
+					episode_mpaa = None
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(episode_id) + '#' + urllib.quote_plus(episode_type) + '"'
 			u += '&mode="' + SITE + '"'
@@ -184,9 +220,15 @@ def episodes(SITE):
 						'premiered' : episode_airdate,
 						'durationinseconds' : episode_duration,
 						'episode' : episode_number,
-						'season' : season_number }
-			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels,  quality_mode  = 'list_qualities')
-	common.set_view('episodes')
+						'season' : season_number,
+						'TVShowTitle' : show_name,
+						'mpaa' : episode_mpaa,
+						'genre' : episode_genre}
+			infoLabels = common.enrich_infolabels(infoLabels, episode_expires.rsplit(' ',1)[0], '%a, %d %b %Y %H:%M:%S')
+			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities',False, type))
+
+	return episodes
+
 	
 def list_qualities(SITE, BRANDID, PARTNERID):
 	video_id, video_type = common.args.url.split('#')
@@ -202,10 +244,8 @@ def list_qualities(SITE, BRANDID, PARTNERID):
 			try:
 				video_data2 = simplejson.loads(video_data)['videos']['video']
 				video_format = video_data2['assets']['asset']['@format']
-				#video_closedcaption = video_data2['closedcaption']['@enabled']
 			except:
 				video_format = 'MOV'
-				#video_closedcaption = 'false'
 		video_id = video_id.replace('VDKA','')
 		if video_format == 'MP4':
 			video_url = PLAYLISTMP4 % (PARTNERID, PARTNERID) + video_id
@@ -346,12 +386,22 @@ def play_video(SITE, BRANDID, PARTNERID):
 		except:
 			video_closedcaption = 'false'
 	item = xbmcgui.ListItem(path = finalurl)
-	if qbitrate is not None:
+
+	try:
+
 		item.setThumbnailImage(common.args.thumb)
+	except:
+		pass
+
+
+	try:
 		item.setInfo('Video', {	'title' : common.args.name,
 						'season' : common.args.season_number,
 						'episode' : common.args.episode_number,
 						'TVShowTitle' : common.args.show_title})
+	except:
+		pass
+
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	while player.is_active:
 		player.sleep(250)

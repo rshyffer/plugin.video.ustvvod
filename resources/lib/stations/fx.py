@@ -42,15 +42,15 @@ def masterlist():
 	return master_db
 
 def seasons(season_url = common.args.url):
-	season_data = connection.getURL(FULLEPISODES)# + season_url, header = AUTH)
-	print season_data
+	seasons = []
+	season_data = connection.getURL(FULLEPISODES, header = AUTH)# + season_url, header = AUTH)
 	try:
 		season_menu = len(simplejson.loads(season_data)['videos'])
 	except:
 		season_menu = 0
 	if season_menu > 0:
 		season_url2 = FULLEPISODES + season_url
-		common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
+		seasons.append(('Full Episodes',  SITE, 'episodes', season_url2, -1, -1))
 	season_data2 = connection.getURL(CLIPS + season_url, header = AUTH)
 	try:
 		season_menu2 = len(simplejson.loads(season_data2)['videos'])
@@ -58,10 +58,11 @@ def seasons(season_url = common.args.url):
 		season_menu2 = 0
 	if season_menu2 > 0:
 		season_url3 = CLIPS + season_url
-		common.add_directory('Clips',  SITE, 'episodes', season_url3)
-	common.set_view('seasons')
+		seasons.append(('Clips',  SITE, 'episodes', season_url3, -1, -1))
+	return seasons
 
 def episodes(episode_url = common.args.url):
+	episodes = []
 	episode_data = connection.getURL(episode_url, header = AUTH)
 	episode_menu = simplejson.loads(episode_data)['videos']
 	for episode_item in episode_menu:
@@ -92,8 +93,8 @@ def episodes(episode_url = common.args.url):
 						'episode' 			: episode_number,
 						'plot' 				: episode_plot,
 						'premiered' 		: episode_airdate }
-		common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels,  quality_mode  = 'list_qualities')
-	common.set_view('episodes')
+		episodes.append((u, episode_name, episode_thumb, infoLabels,  'list_qualities', False, 'Clip'))
+	return episodes
 
 def play_video(video_url = common.args.url):
 	try:

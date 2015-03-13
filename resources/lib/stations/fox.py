@@ -45,6 +45,7 @@ def masterlist():
 	return master_db
 
 def seasons(season_url = common.args.url):
+	seasons = []
 	if season_url in different_show_name:
 		season_url = different_show_name[season_url]
 	season_data = connection.getURL(FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-1')
@@ -54,7 +55,7 @@ def seasons(season_url = common.args.url):
 		season_menu = 0
 	if season_menu > 0:
 		season_url2 = FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu)
-		common.add_directory('Full Episodes',  SITE, 'episodes', season_url2)
+		seasons.append(('Full Episodes',  SITE, 'episodes', season_url2, -1, -1))
 	season_data2 = connection.getURL(CLIPS % urllib.quote_plus(season_url) + '&range=0-1')
 	try:
 		season_menu2 = int(simplejson.loads(season_data2)['total_count'])
@@ -62,16 +63,19 @@ def seasons(season_url = common.args.url):
 		season_menu2 = 0
 	if season_menu2 > 0:
 		season_url3 = CLIPS % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu2)
-		common.add_directory('Clips',  SITE, 'episodes', season_url3)
-	common.set_view('seasons')
+		seasons.append(('Clips',  SITE, 'episodes', season_url3, -1, -1))
+
+
+	return seasons
 
 def episodes(episode_url = common.args.url):
+	episodes = []
 	episode_data = connection.getURL(episode_url)
 	episode_menu = simplejson.loads(episode_data.replace('}{', '},{'))['results']
 	for episode_item in episode_menu:
 		episode_airdate = common.format_date(episode_item['airdate'],'%Y-%m-%d', '%d.%m.%Y')
-		if (episode_item['authEndDate'] is None or time.time() >= long(episode_item['authEndDate'])/1000) or (common.args.name == 'Clips'):
-			show_name = common.args.name
+		if (episode_item['authEndDate'] is None or time.time() >= long(episode_item['authEndDate'])/1000) or (episode_item['fullepisode'] == 'false'):
+			show_name = episode_item['series'].split('/')[-1]
 			url = episode_item['videoURL']
 			episode_duration = int(episode_item['length'])
 			episode_plot = episode_item['shortDescription']
@@ -88,6 +92,18 @@ def episodes(episode_url = common.args.url):
 				episode_thumb = episode_item['videoStillURL']
 			except:
 				episode_thumb = None
+			try:
+				episode_expires = int(episode_item['endDate']) / 1000
+			except:
+				episode_expires = False
+			episode_mpaa = episode_item['rating']
+			try:
+				if episode_item['fullepisode'] == 'true':
+					episode_type = 'Full Episode'
+				else:
+					episode_type = 'Clip'
+			except:
+				episode_type = 'Clip'
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'
 			u += '&mode="' + SITE + '"'
@@ -98,9 +114,13 @@ def episodes(episode_url = common.args.url):
 							'episode' : episode_number,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate,
-							'tvshowtitle': show_name }
-			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels,  quality_mode  = 'list_qualities')
-	common.set_view('episodes')
+							'TVShowTitle': show_name,
+							'mpaa' : episode_mpaa}
+			infoLabels = common.enrich_infolabels(infoLabels, epoch = episode_expires)
+			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, episode_type))
+
+
+	return episodes
 
 def play_video(video_url = common.args.url):
 	try:
@@ -160,12 +180,17 @@ def play_video(video_url = common.args.url):
 	playfile.close()
 	finalurl = ustvpaths.PLAYFILE
 	item = xbmcgui.ListItem(path = finalurl)
-	if qbitrate is not None:
+	try:
 		item.setThumbnailImage(common.args.thumb)
+	except:
+		pass
+	try:
 		item.setInfo('Video', {	'title' : common.args.name,
 						'season' : common.args.season_number,
 						'episode' : common.args.episode_number,
 						'TVShowTitle' : common.args.show_title})
+	except:
+		pass
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	while player.is_active:
 		player.sleep(250)
