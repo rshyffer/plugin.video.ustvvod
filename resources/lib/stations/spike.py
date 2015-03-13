@@ -28,7 +28,6 @@ def masterlist():
 	for section in master_section:
 		master_menu = section.find_all('a', text = True)
 		for master_item in master_menu:
-			print master_item
 			master_name = master_item.text
 			tvdb_name = common.get_show_data(master_name,SITE, 'seasons')[-1]
 			season_url = BASE + master_item['href']
@@ -38,8 +37,6 @@ def masterlist():
 				master_dict[tvdb_name] = master_dict[tvdb_name] + ',' + season_url
 	for master_name, season_url in master_dict.iteritems():	
 		master_db.append((master_name, SITE, 'seasons', season_url))
-	print master_db
-	print master_db
 	return master_db
 
 def _get_manifest(page_url):
@@ -168,12 +165,10 @@ def seasons(show_url = common.args.url):
 			triforceManifestFeed = _get_manifest(season_item)
 		except:
 			triforceManifestFeed = None
-		print triforceManifestFeed
 		if triforceManifestFeed:
 			seasons.extend(add_items_from_manifestfile(triforceManifestFeed, season_item, multiSeason))
 		else:
 			season_item = season_tree.find('div', class_=re.compile('(menu)|(grid)')).find('a', href = re.compile('video-'))
-			print season_item
 			if season_item is not None:
 				season_name2 = season_item.text
 				if BASE not in season_item['href']:
@@ -218,7 +213,6 @@ def add_video_from_manifestfile(manifest_feed, full_episodes = False):
 		elif 'items' in items:
 			items = items['items']
 		for item in items:
-			print item
 			try:
 				episode_type = item['episodeType']
 				if episode_type == 'fullEpisode':
@@ -227,15 +221,12 @@ def add_video_from_manifestfile(manifest_feed, full_episodes = False):
 					episode_type = 'Clip'
 			except:
 				episode_type = 'Clip'
-			print episode_type
-			print item['distPolicy']['authTve']
 			if item['distPolicy']['authTve'] == False:
 				if (full_episodes == True  and episode_type == 'Full Episode') or (full_episodes == False  and episode_type != 'Full Episode'):
 					try:
 						episode_name = item['title']
 					except:
 						episode_name = item['shortTitle']
-					print episode_name
 					try:
 						epoch = float(item['airDate'])
 						epoch = common.convert_to_timezone(epoch, '', -5, epoch)  
@@ -245,7 +236,6 @@ def add_video_from_manifestfile(manifest_feed, full_episodes = False):
 						episode_airdate = -1
 					episode_plot = item['shortDescription']
 					episode_thumb = item['images'][0]['url']
-					print episode_thumb
 					try:
 						episode_duration = item['duration']
 					except:
@@ -300,9 +290,7 @@ def episodes(episode_url = common.args.url):
 		fullEps = False
 		surfix = ''
 	if episode_url.endswith('#ManifestFeed'):
-		print 'feed'
 		triforceManifestFeed = _get_manifest_feed(episode_url)
-		print triforceManifestFeed
 		if triforceManifestFeed:
 			allepisodes = add_video_from_manifestfile(triforceManifestFeed, fullEps)
 			try:
@@ -317,12 +305,10 @@ def episodes(episode_url = common.args.url):
 def add_clips(episode_tree):
 	episodes = []
 	try:
-		print episode_tree
 		try:
 			episode_menu = episode_tree.find(class_ ='clips').find_all(class_= 'clip')
 		except:
 			episode_menu = episode_tree.find_all(class_ = 'block')
-		print episode_menu
 		for episode_item in episode_menu:
 			try:
 				episode_name = common.replace_signs(episode_item.find('a', class_ = 'title').text)
@@ -334,7 +320,6 @@ def add_clips(episode_tree):
 				url = episode_item.find('a', class_ = 'title')['href']
 			except:
 				url = episode_item.find('div', class_ = 'thumb_area').a['href']
-			print url
 			try:
 				try:
 					episode_airdate = episode_item.find('div', class_ ='info').contents[-1].split(' ', 1)[1].strip()
