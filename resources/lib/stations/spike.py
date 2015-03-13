@@ -193,8 +193,6 @@ def episodes_from_html(episode_url = common.args.url):
 	episodes = add_clips(episode_tree)
 	return episodes
 	
-
-	
 def add_video_from_manifestfile(manifest_feed, full_episodes = False):
 	""" Add videos based on a manifest feed """
 	try:
@@ -312,61 +310,9 @@ def episodes(episode_url = common.args.url):
 					allepisodes.extend(episodes(triforceManifestFeed['result']['nextPageURL'] + surfix + '#ManifestFeed'))
 			except:
 				pass
-			#print episodes
 	else:
 		allepisodes = episodes_from_html(episode_url)
 	return allepisodes
-
-def get_full_episodes_url(show_url):
-	""" Get the URL to the full episodes page """
-	show_data = connection.getURL(show_url)
-	show_tree = BeautifulSoup(show_data, 'html5lib')
-	show_menu = None
-	try:
-		show_menu = show_tree.find('a', class_ = 'episodes')
-	except:
-		pass
-	if show_menu is None:
-		show_menu = show_tree.find('a', text = re.compile('full episodes', re.IGNORECASE))
-	if show_menu is not None:
-		full_episodes_url = show_menu['href']
-		if 'http' not in full_episodes_url:
-			full_episodes_url = show_url + full_episodes_url
-		return full_episodes_url
-	else:
-		return False
-		
-
-def add_fullepisodes(episode_tree, season_number = -1):
-	try:
-		episode_menu = episode_tree.find_all('div', class_ = 'episode_guide')
-		for episode_item in episode_menu:
-			episode_name = common.replace_signs(episode_item.find('img')['title'])
-			episode_airdate = common.format_date(episode_item.find('p', class_ = 'aired_available').contents[1].strip(), '%m/%d/%Y', '%d.%m.%Y')
-			episode_plot = common.replace_signs(episode_item.find('p', class_ = False).text)
-			episode_thumb = episode_item.find('img')['src'].split('?')[0]
-			url = episode_item.find('div', class_ = 'thumb_image').a['href']
-			try:
-				episode_number = int(episode_item.find('a', class_ = 'title').contents[1].split('Episode ' + season_number)[1])
-			except:
-				try:
-					episode_number = int(url.split('-0')[1])
-				except:
-					episode_number = -1
-			if season_number == -1:
-				season_number = int(url.split('-')[-3])
-			u = sys.argv[0]
-			u += '?url="' + urllib.quote_plus(url) + '"'
-			u += '&mode="' + SITE + '"'
-			u += '&sitemode="play_video"'
-			infoLabels = {	'title' : episode_name,
-							'season' : season_number,
-							'episode' : episode_number,
-							'plot' : episode_plot,
-							'premiered' : episode_airdate }
-			common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = 'list_qualities')
-	except:
-		pass
 
 def add_clips(episode_tree):
 	episodes = []
