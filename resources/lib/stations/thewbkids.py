@@ -53,7 +53,7 @@ def episodes(episode_url = common.args.url):
 			u += '&sitemode="play_video"'
 			infoLabels={	'title' : episode_name,
 							'plot' : episode_plot,
-							'tvshowtitle' : show_name }
+							'TVShowTitle' : show_name }
 			episodes.append((u, episode_name, episode_thumb, infoLabels, None, False, 'Clip'))
 	return episodes
 

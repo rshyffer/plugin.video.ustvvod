@@ -32,7 +32,6 @@ def masterlist():
 def seasons(season_url = common.args.url):
 	seasons = []
 	seasons.append(('Clips',  SITE, 'episodes', season_url, -1, -1))
-	print seasons
 	return seasons
 
 def episodes(episode_url = common.args.url):
