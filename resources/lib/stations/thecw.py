@@ -74,7 +74,6 @@ def episodes(episode_url = common.args.url):
 	except:
 		pass
 	for episode_item in episode_menu:
-		print episode_item
 		if int(episode_item['fullep']) == int(episode_url.split('#')[1]):
 			show_name = episode_item['series_name']
 			url = episode_item['guid']
@@ -106,9 +105,7 @@ def episodes(episode_url = common.args.url):
 				episode_type = 'Full Episode'
 			else:
 				episode_type = 'Clip'
-			print episode_type
 			episode_expires = episode_item['expire_time']
-			print episode_expires
 			episode_mpaa = episode_item['rating']
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'
@@ -200,7 +197,6 @@ def play_video(video_url = common.args.url):
 		finalurl = ustvpaths.PLAYFILE
 	item = xbmcgui.ListItem(path = finalurl)
 	try:
-		print common.args.name
 		item.setInfo('Video', {	'title' : common.args.name,
 						'season' : common.args.season_number,
 						'episode' : common.args.episode_number,

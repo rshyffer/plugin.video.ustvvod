@@ -58,7 +58,6 @@ def episodes(episode_url = common.args.url):
 		u += '&sitemode="play_video"'
 		infoLabels={'title' : episode_name }
 		episodes.append((u, episode_name, episode_thumb, infoLabels, None, False, 'Clip'))
-	print episodes
 	return episodes
 
 def play_video(video_url = common.args.url):
