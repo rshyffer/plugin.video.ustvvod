@@ -123,6 +123,7 @@ def episodes(episode_url = common.args.url):
 					except:
 						pass
 				episode_mpaa = episode_item['rating']
+				episode_show = episode_thumb.split('/')[5].replace('-', ' ').title()
 				u = sys.argv[0]
 				u += '?url="' + urllib.quote_plus(url) + '"'
 				u += '&mode="' + SITE + '"'
@@ -133,7 +134,8 @@ def episodes(episode_url = common.args.url):
 								'durationinseconds' : episode_duration,
 								'plot' : episode_plot,
 								'premiered' : episode_airdate,
-								'mpaa' : episode_mpaa}
+								'mpaa' : episode_mpaa,
+								'TVShowTitle' : episode_show} 
 				episodes.append((u, episode_name, episode_thumb, infoLabels, None, episode_hd, episode_type))
 		episode_start = episode_stop
 	return episodes
