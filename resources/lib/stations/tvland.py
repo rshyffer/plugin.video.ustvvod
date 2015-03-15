@@ -54,7 +54,7 @@ def episodes(episode_url = common.args.url):
 	episodes = []
 	episode_data = connection.getURL(episode_url)
 	episode_tree = BeautifulSoup(episode_data.replace('\'+\'', ''), 'html.parser')
-	if common.args.name == 'Clips': ##iss
+	if 'clip' in episode_url:
 		if episode_tree.find('a', class_ = 'next') is not None:
 			add_clips(episode_tree)
 			try:
