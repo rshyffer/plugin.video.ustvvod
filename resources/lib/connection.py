@@ -262,10 +262,10 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 					print 'Tor instance killed!\n'
 		except urllib2.HTTPError, error:
 			success = True
-			print 'HTTP Error reason: ', error
+			xbmc.log('HTTP Error reason: ' + str(error), xbmc.LOGINFO)
 			return error.read()
 		except Exception, e:
-			print "Error: ", e
+			print "URL Error:: ", e
 		else:
 			urllib2.install_opener(old_opener)
 	return link
