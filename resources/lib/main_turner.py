@@ -179,7 +179,6 @@ def episodes_json(SITE, episode_url = common.args.url):
 
 
 def episodes(SITE, episode_url = common.args.url):
-	
 	episodes = []
 	try:
 		season_number = int(episode_url.split('filterBySeasonNumber=')[1])
@@ -194,10 +193,6 @@ def episodes(SITE, episode_url = common.args.url):
 			episode_season_number = int(episode_item['episeasonnumber'])
 		except:
 			episode_season_number = 0
-
-
-
-
 		try:
 			type = episode_item['episodeType']
 		except:
@@ -206,26 +201,12 @@ def episodes(SITE, episode_url = common.args.url):
 		if episode_season_number == season_number or 'filterBySeasonNumber'  not in episode_url:
 			segments = episode_item.find_all('segment')
 			if len(segments) == 0:
-
-
-
-
-
-
-
-
-
-
 				if type == 'EPI':
 					continue
 				else:
-
-
 					url = episode_item['id']
 			else:
 				url = ''
-
-
 				for segment in segments:
 					url = url + ',' + segment['id']
 				url = url[1:]
@@ -251,7 +232,6 @@ def episodes(SITE, episode_url = common.args.url):
 			episode_expires = episode_item['expirationdate']
 			episode_name = episode_item['title']
 			try:
-
 				season_number = int(episode_item['episeasonnumber'])
 			except:
 				season_number = -1
@@ -277,23 +257,20 @@ def episodes(SITE, episode_url = common.args.url):
 				episode_thumb = episode_item['thumbnailurl']
 			except:
 				episode_thumb = None
-			episode_plot = episode_item.description.text
-
-
-
-
-
-
-
-			show_title = episode_item['collectiontitle']
+			episode_plot = episode_item.description.text.strip()
+			try:
+				show_title = common.replace_signs(episode_item['collectiontitle'])
+			except:
+				show_title = None
 			episode_rating = episode_item['ranking']
 			episode_mpaa = episode_item['rating'].upper()
 			if type == 'EPI' or 'TVE':
 				episode_type = 'Full Episode'
 			else:
 				episode_type = 'Clip'
+			url = urllib.quote_plus(url)
 			u = sys.argv[0]
-			u += '?url="' + urllib.quote_plus(url) + '"'
+			u += '?url="' + url + '"'
 			u += '&mode="' + SITE + '"'
 			u += '&sitemode="play_video"'
 			infoLabels={    'title' : episode_name,
@@ -306,10 +283,7 @@ def episodes(SITE, episode_url = common.args.url):
 							'rating' : episode_rating,
 							'mpaa' : episode_mpaa}
 			infoLabels = common.enrich_infolabels(infoLabels, episode_expires, '%m/%d/%Y %I:%M %p')			
-			
-
 			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, episode_type))
-
 	return episodes
 
 def play_video(SITE, EPISODE, HLSPATH = None):

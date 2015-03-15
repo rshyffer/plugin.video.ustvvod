@@ -156,7 +156,10 @@ def episode_list():
 			print "Error in episodes_list::" + e
 		for episode in episodes:
 			u, episode_name, episode_thumb, infoLabels, qmode, HD, media_type = episode
-			add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = qmode, HD = HD)
+			try:
+				add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = qmode, HD = HD)
+			except Exception, e:
+				print "Error adding video", e, episode
 	set_view('episodes')
 
 def root_list(network_name):
@@ -304,7 +307,8 @@ def replace_signs(text):
 			'Ã¡'	: 'á',
 			'Ã©'	: 'é',
 			'â€˜'	: '\'',
-			'á'		: ' '}
+			'á'		: ' ',
+			'é'		: 'e'}
 	for i, j in dic.iteritems():
 		text = smart_utf8(text).replace(i, j).strip()
 	return text
