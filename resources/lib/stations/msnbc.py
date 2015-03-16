@@ -45,16 +45,19 @@ def seasons(season_url = common.args.url):
 		for season_item in season_menu:
 			seasons.append((season_item['name'],  SITE, 'episodes', FEED % season_item['guid'], -1, -1))
 	except:
-		season_tree = BeautifulSoup(season_data, 'html.parser', parse_only = SoupStrainer('div'))
-		season_source = season_tree.find('div', id = 'TPVideoPlaylistTaxonomyContainer')['source']
-		playlist_url = PLAYLIST % season_source
-		playlist_data = connection.getURL(playlist_url)
-		playlist_data = playlist_data.replace('$pdk.NBCplayer.ShowPlayerTaxonomy.GetList(', '').replace(');', '')
-		season_menu = simplejson.loads(playlist_data)
-		for season_item in season_menu['playlistTaxonomy']:
-			season_name =  season_item['reference']['name']
-			season_url = FEED % season_item['reference']['feed']
-			seasons.append((season_name, SITE, 'episodes', season_url, -1, -1))
+		try:
+			season_tree = BeautifulSoup(season_data, 'html.parser', parse_only = SoupStrainer('div'))
+			season_source = season_tree.find('div', id = 'TPVideoPlaylistTaxonomyContainer')['source']
+			playlist_url = PLAYLIST % season_source
+			playlist_data = connection.getURL(playlist_url)
+			playlist_data = playlist_data.replace('$pdk.NBCplayer.ShowPlayerTaxonomy.GetList(', '').replace(');', '')
+			season_menu = simplejson.loads(playlist_data)
+			for season_item in season_menu['playlistTaxonomy']:
+				season_name =  season_item['reference']['name']
+				season_url = FEED % season_item['reference']['feed']
+				seasons.append((season_name, SITE, 'episodes', season_url, -1, -1))
+		except Exception:
+			pass
 	return seasons
 
 def episodes(url = common.args.url):
