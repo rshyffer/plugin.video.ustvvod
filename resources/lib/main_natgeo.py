@@ -27,7 +27,7 @@ def masterlist(SITE, SHOWS, SPECIALS = None):
 		root_name = root_item.find('div', class_ = 'title').text
 		season_url = BASE + root_item.a['href']
 		if '-1' not in season_url:
-			tvdb_name = common.get_show_data(root_name, SITE, 'episodes')[-1]
+			tvdb_name = common.get_show_data(root_name, SITE, 'seasons')[-1]
 			root_name = root_name + '#' + season_url 
 			if tvdb_name not in root_dict.keys():
 				root_dict[tvdb_name] = root_name
@@ -35,35 +35,45 @@ def masterlist(SITE, SHOWS, SPECIALS = None):
 				root_dict[tvdb_name] = root_dict[tvdb_name] + ',' + root_name
 	for root_name in root_dict:
 		season_url = root_dict[root_name]
-		master_db.append((root_name, SITE, 'episodes', season_url))
+		master_db.append((root_name, SITE, 'seasons', season_url))
 	more = root_tree.find('a', class_ = 'load-more')
 	if more:
 		master_db.extend(masterlist(SITE, BASE + more['href']))
 	return master_db
 
-def seasons(SITE, season_urls):
+def seasons(SITE, BASE, season_urls):
+	seasons = []
 	for season_url in season_urls.split(','):
-		common.add_directory(season_url.split('#')[0],  SITE, 'episodes', season_url.split('#')[1])
-	common.set_view('seasons')
+		season_data = connection.getURL(season_url.split('#')[1])
+		season_tree = BeautifulSoup(season_data, 'html.parser')
+		season_menu = season_tree.find('ul', class_ = 'grid-sections')
+		for season_item in season_menu.find_all('li', class_ = ""):
+			season_name = season_item.a.string.strip()
+			if ',' in season_urls:
+				season_name = season_url.split('#')[0] + ' ' + season_name  
+			season_url = BASE + season_item.a['href']
+			seasons.append((season_name,  SITE, 'episodes', season_url, -1, -1))
+	return seasons
 
-def episodes(SITE):
-	episode_url = common.args.url
-	if ',' in episode_url:
-		seasons(SITE, episode_url)
-	else:
-		if '#' in episode_url:
-			episode_url = episode_url.split('#')[1]
-		episode_data = connection.getURL(episode_url)
-		episode_tree = BeautifulSoup(episode_data, 'html.parser', parse_only = SoupStrainer('div', class_ = 'show'))
-		add_videos(episode_tree, SITE)
-		more = episode_tree.find('a', class_ = 'load-more')
-		if more:
-			episode_data = connection.getURL(BASE + more['href'])
-			episode_tree = BeautifulSoup(episode_data, 'html.parser')
-			add_videos(episode_tree, SITE)
-		common.set_view('episodes')
+def episodes(SITE, episode_url = common.args.url):
+	episodes = []
+	if '#' in episode_url:
+		episode_url = episode_url.split('#')[1]
+	episode_data = connection.getURL(episode_url)
+	episode_tree = BeautifulSoup(episode_data, 'html.parser', parse_only = SoupStrainer('div', class_ = 'show'))
+	try:
+		episodes = add_videos(episode_tree, SITE)
+	except:
+		print "Can't add video"
+	more = episode_tree.find('a', class_ = 'load-more')
+	if more:
+		episode_data = connection.getURL(BASE + more['href'])
+		episode_tree = BeautifulSoup(episode_data, 'html.parser')
+		episodes = add_videos(episode_tree, SITE)
+	return episodes
 
 def add_videos(episode_tree, SITE):
+	episodes = []
 	episode_menu = episode_tree.find_all('div', class_ = 'media-module')
 	show_name = episode_tree.find('h1').text
 	for episode_item in episode_menu:
@@ -81,8 +91,9 @@ def add_videos(episode_tree, SITE):
 		infoLabels = {	'title' : episode_name,
 						'durationinseconds' : episode_duration,
 						'TVShowTitle' : show_name }
-		common.add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode = 'list_qualities')
-
+		episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, 'Full Episode'))
+	return episodes
+	
 def play_video(SITE):
 	video_url = common.args.url
 	try:
@@ -93,7 +104,6 @@ def play_video(SITE):
 	lbitrate = -1
 	sbitrate = int(addon.getSetting('quality'))
 	video_data = connection.getURL(video_url)
-	smil_url =  re.compile("window.video_auth_playlist_url = '(.*)'").findall(video_data)[0]
 	smil_data = connection.getURL(smil_url + '&manifest=m3u')
 	video_tree2 = BeautifulSoup(smil_data, 'html.parser')
 	video_url3 = video_tree2.video['src']
@@ -117,7 +127,7 @@ def play_video(SITE):
 				video_url5 = video_index.get('uri')
 	if video_url5 is None:
 		video_url5 = lvideo_url5
-	finalurl = video_url3.rsplit('/',1)[0] + '/' + video_url5
+	finalurl = video_url5
 	item = xbmcgui.ListItem(path = finalurl)
 	if qbitrate is not None:
 		item.setThumbnailImage(common.args.thumb)
