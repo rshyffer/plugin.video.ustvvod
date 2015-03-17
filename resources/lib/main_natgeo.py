@@ -104,6 +104,7 @@ def play_video(SITE):
 	lbitrate = -1
 	sbitrate = int(addon.getSetting('quality'))
 	video_data = connection.getURL(video_url)
+	smil_url =  re.compile('video_auth_playlist_url = "(.*)"').findall(video_data)[0]
 	smil_data = connection.getURL(smil_url + '&manifest=m3u')
 	video_tree2 = BeautifulSoup(smil_data, 'html.parser')
 	video_url3 = video_tree2.video['src']
