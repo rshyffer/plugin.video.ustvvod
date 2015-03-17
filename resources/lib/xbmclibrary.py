@@ -18,13 +18,13 @@ pluginHandle = int(sys.argv[1])
 if (addon.getSetting('enablelibraryfolder') == 'true'):
 	MOVIE_PATH = os.path.join(xbmc.translatePath('special://profile/addon_data/plugin.video.ustvvod'),'Movies')
 	TV_SHOWS_PATH = os.path.join(xbmc.translatePath('special://profile/addon_data/plugin.video.ustvvod/'),'TV')
-elif (common.settings['customlibraryfolder'] <> ''):
+elif (addon.getSetting('customlibraryfolder') <> ''):
 	MOVIE_PATH = os.path.join(xbmc.translatePath(addon.getSetting('customlibraryfolder')),'Movies')
 	TV_SHOWS_PATH = os.path.join(xbmc.translatePath(addon.getSetting('customlibraryfolder')),'TV')    
 	
 
 class Main:
-
+	active = False
 	def __init__( self ):
 		if (addon.getSetting('enablelibraryfolder') == 'true'):
 			self.SetupUSTVVODLibrary()
@@ -91,6 +91,11 @@ class Main:
 		shows = common.fetch_showlist(1)
 		self.ExportShowList(shows, 750)
 		self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % addon.getLocalizedString(39000), image = ustvpaths.FAVICON)
+		
+	def GetAllShows(self):
+		shows = common.fetch_showlist(0)
+		self.ExportShowList(shows, 750)
+		self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % addon.getLocalizedString(39002), image = ustvpaths.ALLICON)
 			
 	def GetNetworkShows(self, site):
 		network = common.get_network(site)
@@ -105,7 +110,7 @@ class Main:
 					series_title, mode, sitemode, url, siteplot = show
 				showdata = common.get_show_data(series_title, mode, sitemode, url, siteplot)
 				shows.append(showdata)
-			self.ExportShowList(shows, 2500)
+			self.ExportShowList(shows, 100)
 			image =  os.path.join(ustvpaths.IMAGEPATH, network.SITE + '.png')
 			self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % network.NAME, image = image)
 
