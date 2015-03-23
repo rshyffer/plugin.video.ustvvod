@@ -7,6 +7,7 @@ import sys
 import urllib
 import shutil
 import time
+import traceback
 import ustvpaths
 import xbmc
 import xbmcaddon
@@ -58,6 +59,9 @@ class Main:
 				print "Error exporting site ", e
 		elif common.args.mode.endswith('AllShowsLibrary'):
 			self.GetAllShows()
+		elif common.args.mode.endswith('ExportShowLibrary'):
+			series_title, mode, submode, url = common.args.url.split('<join>')
+			self.GetShow(series_title, mode, submode, url)
 		if (addon.getSetting('updatelibrary') == 'true'):
 			self.UpdateLibrary()
 	
@@ -97,6 +101,12 @@ class Main:
 		self.ExportShowList(shows, 750)
 		self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % addon.getLocalizedString(39002), image = ustvpaths.ALLICON)
 			
+	def GetShow(self, series_title, mode, sitemode, url):
+		showdata = common.get_show_data(series_title, mode, sitemode, url)
+		self.ExportShowList([showdata], 10)
+		image =  showdata[7]
+		self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % series_title, image = image)
+	
 	def GetNetworkShows(self, site):
 		network = common.get_network(site)
 		if network:
@@ -123,118 +133,123 @@ class Main:
 		try:
 			self.ExportShow(item)
 		except Exception as e:
-			print e
+			print "Error exporting show", e, item
+			print traceback.format_exc()
 
 	def ExportShow(self, show):
 		series_title, mode, sitemode, url, tvdb_id, imdb_id, tvdbbanner, tvdbposter, tvdbfanart, first_aired, date, year, actors, genres, studio, plot, runtime, rating, airs_dayofweek, airs_time, status, has_full_episodes, favor, hide, show_name = show
-		network = common.get_network(mode)
 		allepisodes = []
 		has_episodes = False
 		has_movies = False
-		if network:
-			if '--' not in series_title:
-				seasons = common.get_seasons(mode, sitemode, url)
-				for season in seasons:
-					section_title,  site, subsitemode, suburl, locked, unlocked = season
-					if 'Clips' not in section_title:
-						episodes = getattr(network, subsitemode)(suburl)
-						allepisodes.extend(episodes)
+		if '--' not in series_title:
+			seasons = common.get_seasons(mode, sitemode, url)
+			for season in seasons:
+				section_title,  site, subsitemode, suburl, locked, unlocked = season
+				if 'Clips' not in section_title:
+					episodes = common.get_episodes(mode, subsitemode, suburl) 
+					allepisodes.extend(episodes)
+					if allepisodes != []:
 						for episode in allepisodes:
-							type = episode[-1]
-							info = episode[3]
+							try:
+								type = episode[-1]
+							except:
+								print "Type not found.............."
+							try:
+								
+								info = episode[3]
+							except:
+								print "Info not found......................."
 							try:
 								number = info['episode']
 							except:
 								number = -1
 							if type == 'Full Episode' and number > -1:
 								has_episodes = True
-			else:
-				episodes = getattr(network, sitemode)(url)
-				allepisodes = episodes
-				has_movies = True
-			if has_movies:
-				directory = MOVIE_PATH
-				for episode in allepisodes:
-					self.ExportVideo(episode, directory, studio = studio)
-					icon = episode[2]
-					self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % episode[1], image = icon)
-			elif has_episodes:
-				directory = os.path.join(TV_SHOWS_PATH, self.cleanfilename(show_name))
-				self.CreateDirectory(directory)
-				if addon.getSetting('shownfo') == 'true':
-					
-					tvshowDetails  = '<tvshow>'
-					tvshowDetails += '<title>'+ show_name + '</title>'
-					tvshowDetails += '<showtitle>' + show_name + '</showtitle>'
-					tvshowDetails +=  '<rating>' + str(rating) + '</rating>'
-					tvshowDetails +=  '<year>' + str(year) + '</year>'
-					try:
-						plot = common.replace_signs(plot)
-						tvshowDetails +=  '<plot>' + plot + '</plot>'
-					except:
-						pass
-					try:
-						tvshowDetails += '<runtime>' + runtime +'</runtime>'
-					except:
-						pass
-					try:
-						tvshowDetails += '<thumb>' + tvdbposter +'</thumb>'
-					except:
-						try:
-							tvshowDetails += '<thumb>' + tvdbbanner +'</thumb>'
-						except:
-							pass
-					try:
-						tvshowDetails += '<fanart>'
-						tvshowDetails += '<thumb dim="1920x1080" colors="" preview="' + tvdbfanart + '">' + tvdbposter + '</thumb></fanart>'
-					except:
-						pass
-					try:
-						epguide = common.TVDBURL + ('/api/%s/series/%s/all/en.zip' % (common.TVDBAPIKEY, TVDB_ID))
-						tvshowDetails += '<episodeguide>'
-						tvshowDetails += '<url cache="' + TVDB_ID + '.xml">'+ epguide +'</url>'
-						tvshowDetails += '</episodeguide>'
-						tvshowDetails += '<id>' + TVDB_ID +'</id>'
-					except:
-						pass
-					try:
-						for genre in genres.split('|'):
-							if genre:
-								tvshowDetails += '<genre>' + genre + '</genre>'
-					except:
-						pass
-					try:
-						tvshowDetails += '<premiered>' + first_aired + '</premiered>'
-					except:
-						pass
-					try:
-						tvshowDetails += '<status>' + status + '</status>'
-					except:
-						pass
-					try:
-						tvshowDetails += '<studio>' + studio + '</studio>'
-					except:
-						pass
-					try:
-						for actor in actors.split('|'):
-							if actor:
-								tvshowDetails += '<actor><name>' + common.smart_unicode(actor) + '</name></actor>'
-					except:
-						pass
-					tvshowDetails +='<dateadded>' + time.strftime("%Y-%m-%d %H:%M:%S") + '</dateadded>'
-					tvshowDetails +='</tvshow>'					
-					self.SaveFile( 'tvshow.nfo', tvshowDetails, directory)
-				for episode in allepisodes:
-					try:
-						self.ExportVideo(episode, directory, studio = studio)
-					except Exception, e:
-						print "Can't export video", e
-				self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % show_name, image = tvdbposter)
-	
-			else:
-				print "No episodes found "
 		else:
-			print "Network error"
+			episodes = common.get_episodes(mode, sitemode, url)
+			allepisodes = episodes
+			has_movies = True
+		if has_movies:
+			directory = MOVIE_PATH
+			for episode in allepisodes:
+				self.ExportVideo(episode, directory, studio = studio)
+				icon = episode[2]
+				self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % episode[1], image = icon)
+		elif has_episodes:
+			directory = os.path.join(TV_SHOWS_PATH, self.cleanfilename(show_name))
+			self.CreateDirectory(directory)
+			if addon.getSetting('shownfo') == 'true':
+				
+				tvshowDetails  = '<tvshow>'
+				tvshowDetails += '<title>'+ show_name + '</title>'
+				tvshowDetails += '<showtitle>' + show_name + '</showtitle>'
+				tvshowDetails +=  '<rating>' + str(rating) + '</rating>'
+				tvshowDetails +=  '<year>' + str(year) + '</year>'
+				try:
+					plot = common.replace_signs(plot)
+					tvshowDetails +=  '<plot>' + plot + '</plot>'
+				except:
+					pass
+				try:
+					tvshowDetails += '<runtime>' + runtime +'</runtime>'
+				except:
+					pass
+				try:
+					tvshowDetails += '<thumb>' + tvdbposter +'</thumb>'
+				except:
+					try:
+						tvshowDetails += '<thumb>' + tvdbbanner +'</thumb>'
+					except:
+						pass
+				try:
+					tvshowDetails += '<fanart>'
+					tvshowDetails += '<thumb dim="1920x1080" colors="" preview="' + tvdbfanart + '">' + tvdbposter + '</thumb></fanart>'
+				except:
+					pass
+				try:
+					epguide = common.TVDBURL + ('/api/%s/series/%s/all/en.zip' % (common.TVDBAPIKEY, TVDB_ID))
+					tvshowDetails += '<episodeguide>'
+					tvshowDetails += '<url cache="' + TVDB_ID + '.xml">'+ epguide +'</url>'
+					tvshowDetails += '</episodeguide>'
+					tvshowDetails += '<id>' + TVDB_ID +'</id>'
+				except:
+					pass
+				try:
+					for genre in genres.split('|'):
+						if genre:
+							tvshowDetails += '<genre>' + genre + '</genre>'
+				except:
+					pass
+				try:
+					tvshowDetails += '<premiered>' + first_aired + '</premiered>'
+				except:
+					pass
+				try:
+					tvshowDetails += '<status>' + status + '</status>'
+				except:
+					pass
+				try:
+					tvshowDetails += '<studio>' + studio + '</studio>'
+				except:
+					pass
+				try:
+					for actor in actors.split('|'):
+						if actor:
+							tvshowDetails += '<actor><name>' + common.smart_unicode(actor) + '</name></actor>'
+				except:
+					pass
+				tvshowDetails +='<dateadded>' + time.strftime("%Y-%m-%d %H:%M:%S") + '</dateadded>'
+				tvshowDetails +='</tvshow>'					
+				self.SaveFile( 'tvshow.nfo', tvshowDetails, directory)
+			for episode in allepisodes:
+				try:
+					self.ExportVideo(episode, directory, studio = studio)
+				except Exception, e:
+					print "Can't export video", e
+			self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % show_name, image = tvdbposter)
+
+		else:
+			print "No episodes found "
 
 	def ExportVideo(self, episode, directory, studio = None):
 		strm, title, episode_thumb, data, qmode, ishd, media_type = episode

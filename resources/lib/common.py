@@ -112,7 +112,7 @@ network_module_cache = {}
 
 
 def season_list():
-	seasons = get_seasons(args.mode, args.sitemode)
+	seasons = get_seasons(args.mode, args.sitemode, args.url)
 	for season in seasons:
 		section_title,  site, sitemode, url, locked, unlocked = season
 		add_directory(smart_utf8(section_title),  site, sitemode, url, locked = locked, unlocked = unlocked)
@@ -147,20 +147,20 @@ def enrich_infolabels(infolabels, expires_date = None, date_format = None, epoch
 	return infolabels
 	
 def episode_list():
-	network = get_network(args.mode)
-	if network:
+	episodes = get_episodes(args.mode, args.sitemode)
+	for episode in episodes:
+		u, episode_name, episode_thumb, infoLabels, qmode, HD, media_type = episode
 		try:
-			print "Getting episodes", args.mode, args.sitemode
-			episodes = getattr(network, args.sitemode)()
-		except Exception as e:
-			print "Error in episodes_list::" + e
-		for episode in episodes:
-			u, episode_name, episode_thumb, infoLabels, qmode, HD, media_type = episode
-			try:
-				add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = qmode, HD = HD)
-			except Exception, e:
-				print "Error adding video", e, episode
+			add_video(u, episode_name, episode_thumb, infoLabels = infoLabels, quality_mode  = qmode, HD = HD)
+		except Exception, e:
+			print "Error adding video", e, episode
 	set_view('episodes')
+
+
+def get_episodes(network_name, site_mode, url = args.url):
+	network = get_network(network_name)
+	episodes = cache.cacheFunction(getattr(network, site_mode) , url)
+	return episodes
 
 def root_list(network_name):
 	"""
@@ -372,7 +372,7 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False, sitedata =
 	except:
 		tvdb_setting = 0
 	if checkdata and not forceRefresh and checkdata[24]  is not None and checkdata[20] != 'None':
-		if checkdata[3] != url: 
+		if smart_unicode(checkdata[3]) != smart_unicode(url): 
 			command = 'update shows set url = ? where series_title = ? and mode = ? and submode = ?;'
 			values = (url, series_title, mode, submode)
 			database.execute_command(command, values, commit = True)
@@ -411,7 +411,6 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False, sitedata =
 		return empty_values
 
 def get_series_id(seriesdata, seriesname, site = '', allowManual = False, network_alias = []):
-	print "alias: ", network_alias
 	shows = BeautifulSoup(seriesdata, 'html.parser').find_all('series')
 	for show_item in shows:
 		if  '**' in show_item.seriesname.string:
@@ -823,6 +822,9 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 		contextmenu.append((smart_utf8(addon.getLocalizedString(39010)), 'XBMC.RunPlugin(%s)' % hide_u))
 	delete_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=contextmenu' + '&sitemode=delete_show'
 	contextmenu.append((smart_utf8(addon.getLocalizedString(39011)), 'XBMC.RunPlugin(%s)' % delete_u))
+	
+	export_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=ExportShowLibrary' + '&submode=exportshow'
+	contextmenu.append((smart_utf8(addon.getLocalizedString(39034)) % series_title, 'XBMC.RunPlugin(%s)' % export_u))
 	if masterList and addon.getSetting('network_in_master') == 'true': 
 		displayname = name + ' on ' + network_name
 	else:

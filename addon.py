@@ -31,7 +31,9 @@ def modes():
 		cmlib.append( (common.smart_utf8(addon.getLocalizedString(39035)), "XBMC.RunPlugin(%s?mode='ClearLibrary')" % ( sys.argv[0] ) ) )
 		common.add_directory(common.smart_utf8(addon.getLocalizedString(39000)), 'Favorlist', 'NoUrl', thumb = ustvpaths.FAVICON, count = count, description = common.smart_utf8(addon.getLocalizedString(39001)) + '\n' + all_description,  contextmenu = cmlib)
 		count += 1
-		common.add_directory(common.smart_utf8(addon.getLocalizedString(39002)), 'Masterlist', 'NoUrl', thumb = ustvpaths.ALLICON, count = count, description = common.smart_utf8(addon.getLocalizedString(39003)) + '\n' + all_description)
+		cmlib = [ (common.smart_utf8(addon.getLocalizedString(39034)) % common.smart_utf8(addon.getLocalizedString(39002)), "XBMC.RunPlugin(%s?mode='AllShowsLibrary')" % ( sys.argv[0] ) ) ]
+		cmlib.append( (common.smart_utf8(addon.getLocalizedString(39035)), "XBMC.RunPlugin(%s?mode='ClearLibrary')" % ( sys.argv[0] ) ) )
+		common.add_directory(common.smart_utf8(addon.getLocalizedString(39002)), 'Masterlist', 'NoUrl', thumb = ustvpaths.ALLICON, count = count, description = common.smart_utf8(addon.getLocalizedString(39003)) + '\n' + all_description,  contextmenu = cmlib)
 		count += 1
 		for network in networks:
 			network_name = network.NAME
