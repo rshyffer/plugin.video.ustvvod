@@ -46,7 +46,7 @@ def seasons(season_url = common.args.url):
 		season_url2 = BASE + season_menu['href']
 		seasons.append(('Full Episodes',  SITE, 'episodes', season_url2, -1, -1))
 	if season_menu2 is not None:
-		season_url3 = BASE + season_menu2['href']
+		season_url3 = BASE + season_menu2['href'] 
 		seasons.append(('Clips',  SITE, 'episodes', season_url3, -1, -1))
 	return seasons
 
@@ -94,6 +94,7 @@ def add_fullepisodes(episode_tree, season_number = -1):
 				episode_number = int(episode_item.find('div', class_ = 'episodeIdentifier').text.split('#' + season_number)[1])
 			except:
 				episode_number = -1
+			show_name = episode_thumb.split('/')[5].replace('_', ' ').title()
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'
 			u += '&mode="' + SITE + '"'
@@ -103,7 +104,8 @@ def add_fullepisodes(episode_tree, season_number = -1):
 							'season' : season_number,
 							'episode' : episode_number,
 							'plot' : episode_plot,
-							'premiered' : episode_airdate }
+							'premiered' : episode_airdate,
+							'TVShowTitle' : show_name}
 			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, 'Full Episode'))
 	except:
 		pass
@@ -142,7 +144,7 @@ def add_clips(episode_tree, season_number = -1):
 							'episode' : episode_number,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate,
-							'tvshowtitle': show_name }
+							'TVShowTitle': show_name }
 			episodes.append((u, episode_name, episode_thumb, infoLabels,'list_qualities', False, 'Clip'))
 	except:
 		pass

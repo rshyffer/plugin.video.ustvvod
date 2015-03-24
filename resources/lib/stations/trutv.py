@@ -110,7 +110,6 @@ def episodes(episode_url = common.args.url):
 			except:
 				season_number = -1
 			try:
-				print str(episode_item['episodeNumber'])[:1]
 				episode_number = int(str(episode_item['episodeNumber'])[1:])
 			except:
 				episode_number = -1
