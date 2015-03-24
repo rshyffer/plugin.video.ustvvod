@@ -34,7 +34,6 @@ def episodes_web(episode_url = common.args.url):
 	show_name = web_tree.find('h2', class_ = 'show-name').string
 	episode_menu = web_tree.find_all('div', class_ = 'view-mode-vid_teaser_show_episode')
 	for i, episode_item in enumerate(episode_menu):
-		print episode_item
 		if 'tve-video-auth' not in episode_item['class']:
 			episode_name = episode_item['omniture-title']
 			try:
