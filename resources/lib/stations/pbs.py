@@ -53,12 +53,23 @@ def masterlist():
 				website = ''
 			if master_item2['title'] in master_check and ('PBS Kids' !=  master_item2['nola_root']) and ('blog' not in website):
 				master_name = common.smart_utf8(master_item2['title'])
-				tvdb_name = common.get_show_data(master_name, SITE, 'seasons')[-1]
 				season_url = re.compile('/cove/v1/programs/(.*?)/').findall(master_item2['resource_uri'])[0]
-				if tvdb_name not in master_dict.keys():
-					master_dict[tvdb_name] = common.smart_unicode(master_name) + '#' +season_url
+				tvdb_name = common.get_show_data(master_name, SITE, 'seasons', common.smart_unicode(master_name) + '#' +season_url)[-1]
+				if season_url:
+					if tvdb_name not in master_dict.keys():
+						try:
+							master_dict[tvdb_name] = common.smart_unicode(master_name) + '#' +season_url
+						except Exception, e:
+							print "e1", e
+							return e
+					else:
+						try:
+							master_dict[tvdb_name] = master_dict[tvdb_name] + '|' + common.smart_unicode(master_name) + '#' + season_url
+						except Exception, e:
+							print "error",e
+							return e
 				else:
-					master_dict[tvdb_name] = master_dict[tvdb_name] + ',' + master_name + '#' + season_url
+					print "No season"
 		master_start = master_stop
 	for master_name in master_dict:
 		season_url = master_dict[master_name]
@@ -67,12 +78,12 @@ def masterlist():
 
 def seasons(season_urls = common.args.url):
 	seasons = []
-	for season_url in season_urls.split(','):
+	for season_url in season_urls.split('|'):
 		name = season_url.split('#')[0]
 		season_url = season_url.split('#')[1]
 		for type in TYPES:
-			season_data = cove.videos.filter(fields = 'mediafiles', filter_program = season_url, order_by = '-airdate', filter_availability_status = 'Available', limit_start = 0, filter_type = type)
 			try:
+				season_data = cove.videos.filter(fields = 'mediafiles', filter_program = season_url, order_by = '-airdate', filter_availability_status = 'Available', limit_start = 0, filter_type = type)
 				season_menu = int(season_data['count'])
 			except:
 				season_menu = 0
@@ -88,56 +99,64 @@ def episodes(episode_url = common.args.url):
 	episode_id, type = episode_url.split('#')
 	episode_start = 0
 	episode_count = 200
-	while episode_start < episode_count:
-		episode_data = cove.videos.filter(fields = 'associated_images,mediafiles', filter_program = episode_id, order_by = '-airdate', filter_availability_status = 'Available', limit_start = episode_start, filter_type = type)
-		episode_menu = episode_data['results']
-		episode_count = episode_data['count']
-		episode_stop = episode_data['stop']
-		del episode_data
-		for episode_item in episode_menu:
-			infoLabels={}
-			if episode_item['mediafiles']:
-				url = str(episode_item['tp_media_object_id'])
-				episode_name = episode_item['title']
-				try:
-					season_number = re.compile('Season (\d*)').findall(episode_name)[0]
-				except:
-					season_number = -1
-				try:
-					episode_number = re.compile('Episode (\d*)').findall(episode_name)[0]
-				except:
-					episode_number = -1
-				episode_type = 'Full ' + episode_item['type']
-				episode_plot = episode_item['long_description']
-				episode_airdate = common.format_date(episode_item['airdate'], '%Y-%m-%d %H:%M:%S', '%d.%m.%Y')
-				episode_duration = int(episode_item['mediafiles'][0]['length_mseconds'] / 1000)
-				episode_thumb = episode_item['associated_images'][0]['url']
-				for episode_thumbs in episode_item['associated_images']:
-					if episode_thumbs['type']['eeid'] == 'iPad-Large':
-						episode_thumb = episode_thumbs['url']
-				episode_hd = False
-				for episode_media in episode_item['mediafiles']:
+	page = 0
+	while episode_start < episode_count and page <= int(addon.getSetting('maxpages')):
+		page = page + 1
+		try:
+			episode_data = cove.videos.filter(fields = 'associated_images,mediafiles', filter_program = episode_id, order_by = '-airdate', filter_availability_status = 'Available', limit_start = episode_start, filter_type = type)
+
+			episode_menu = episode_data['results']
+			episode_count = episode_data['count']
+			episode_stop = episode_data['stop']
+			del episode_data
+			for episode_item in episode_menu:
+				infoLabels={}
+				if episode_item['mediafiles']:
+					url = str(episode_item['tp_media_object_id'])
+					episode_name = episode_item['title']
 					try:
-						if int(episode_media['video_encoding']['eeid'].split('-')[1].strip('k')) > 2000:
-							episode_hd = True
+						season_number = re.compile('Season (\d*)').findall(episode_name)[0]
 					except:
-						pass
-				episode_mpaa = episode_item['rating']
-				episode_show = episode_thumb.split('/')[5].replace('-', ' ').title()
-				u = sys.argv[0]
-				u += '?url="' + urllib.quote_plus(url) + '"'
-				u += '&mode="' + SITE + '"'
-				u += '&sitemode="play_video"'
-				infoLabels={	'title' : episode_name,
-								'episode' : episode_number,
-								'season' : season_number,
-								'durationinseconds' : episode_duration,
-								'plot' : episode_plot,
-								'premiered' : episode_airdate,
-								'mpaa' : episode_mpaa,
-								'TVShowTitle' : episode_show} 
-				episodes.append((u, episode_name, episode_thumb, infoLabels, None, episode_hd, episode_type))
-		episode_start = episode_stop
+						season_number = -1
+					try:
+						episode_number = re.compile('Episode (\d*)').findall(episode_name)[0]
+					except:
+						episode_number = -1
+					episode_type = 'Full ' + episode_item['type']
+					episode_plot = episode_item['long_description']
+					episode_airdate = common.format_date(episode_item['airdate'], '%Y-%m-%d %H:%M:%S', '%d.%m.%Y')
+					episode_duration = int(episode_item['mediafiles'][0]['length_mseconds'] / 1000)
+					episode_thumb = episode_item['associated_images'][0]['url']
+					for episode_thumbs in episode_item['associated_images']:
+						if episode_thumbs['type']['eeid'] == 'iPad-Large':
+							episode_thumb = episode_thumbs['url']
+					episode_hd = False
+					for episode_media in episode_item['mediafiles']:
+						try:
+							if int(episode_media['video_encoding']['eeid'].split('-')[1].strip('k')) > 2000:
+								episode_hd = True
+						except:
+							pass
+					episode_mpaa = episode_item['rating']
+					episode_show = episode_thumb.split('/')[5].replace('-', ' ').title()
+					u = sys.argv[0]
+					u += '?url="' + urllib.quote_plus(url) + '"'
+					u += '&mode="' + SITE + '"'
+					u += '&sitemode="play_video"'
+					infoLabels={	'title' : episode_name,
+									'episode' : episode_number,
+									'season' : season_number,
+									'durationinseconds' : episode_duration,
+									'plot' : episode_plot,
+									'premiered' : episode_airdate,
+									'mpaa' : episode_mpaa,
+									'TVShowTitle' : episode_show} 
+					episodes.append((u, episode_name, episode_thumb, infoLabels, None, episode_hd, episode_type))
+			episode_start = episode_stop
+			if episode_stop == 0:
+				break
+		except:
+			pass
 	return episodes
 
 def play_video(video_url = common.args.url):
