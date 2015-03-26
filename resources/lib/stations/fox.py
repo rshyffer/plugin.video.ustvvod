@@ -64,8 +64,6 @@ def seasons(season_url = common.args.url):
 	if season_menu2 > 0:
 		season_url3 = CLIPS % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu2)
 		seasons.append(('Clips',  SITE, 'episodes', season_url3, -1, -1))
-
-
 	return seasons
 
 def episodes(episode_url = common.args.url):
@@ -108,18 +106,16 @@ def episodes(episode_url = common.args.url):
 			u += '?url="' + urllib.quote_plus(url) + '"'
 			u += '&mode="' + SITE + '"'
 			u += '&sitemode="play_video"'
-			infoLabels={	'title' : episode_name,
+			infoLabels={	'title' 			: episode_name,
 							'durationinseconds' : episode_duration,
-							'season' : season_number,
-							'episode' : episode_number,
-							'plot' : episode_plot,
-							'premiered' : episode_airdate,
-							'TVShowTitle': show_name,
-							'mpaa' : episode_mpaa}
+							'season' 			: season_number,
+							'episode' 			: episode_number,
+							'plot' 				: episode_plot,
+							'premiered' 		: episode_airdate,
+							'TVShowTitle'		: show_name,
+							'mpaa' 				: episode_mpaa}
 			infoLabels = common.enrich_infolabels(infoLabels, epoch = episode_expires)
 			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, episode_type))
-
-
 	return episodes
 
 def play_video(video_url = common.args.url):
@@ -174,7 +170,6 @@ def play_video(video_url = common.args.url):
 	localhttpserver = True
 	filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
 	xbmc.executebuiltin(filestring)
-	time.sleep(2)
 	playfile = open(ustvpaths.PLAYFILE, 'w')
 	playfile.write(video_data4)
 	playfile.close()
@@ -185,10 +180,10 @@ def play_video(video_url = common.args.url):
 	except:
 		pass
 	try:
-		item.setInfo('Video', {	'title' : common.args.name,
-						'season' : common.args.season_number,
-						'episode' : common.args.episode_number,
-						'TVShowTitle' : common.args.show_title})
+		item.setInfo('Video', {	'title' 	  : common.args.name,
+								'season' 	  : common.args.season_number,
+								'episode' 	  : common.args.episode_number,
+								'TVShowTitle' : common.args.show_title})
 	except:
 		pass
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
