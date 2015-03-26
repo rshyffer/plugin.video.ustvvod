@@ -154,7 +154,6 @@ def play_video(video_url = common.args.url):
 	localhttpserver = True
 	filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
 	xbmc.executebuiltin(filestring)
-	time.sleep(2)
 	playfile = open(ustvpaths.PLAYFILE, 'w')
 	playfile.write(video_data4)
 	playfile.close()
@@ -162,10 +161,10 @@ def play_video(video_url = common.args.url):
 	item = xbmcgui.ListItem(path = finalurl)
 	if qbitrate is not None:
 		item.setThumbnailImage(common.args.thumb)
-		item.setInfo('Video', {	'title' : common.args.name,
-						'season' : common.args.season_number,
-						'episode' : common.args.episode_number,
-						'TVShowTitle' : common.args.show_title})
+		item.setInfo('Video', {	'title' 	  : common.args.name,
+								'season' 	  : common.args.season_number,
+								'episode'     : common.args.episode_number,
+								'TVShowTitle' : common.args.show_title})
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	while player.is_active:
 		player.sleep(250)
