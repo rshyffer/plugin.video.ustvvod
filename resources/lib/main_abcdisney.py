@@ -88,13 +88,9 @@ def masterlist(SITE, BRANDID):
 
 def seasons(SITE, BRANDID, season_url = common.args.url):
 	seasons = []
-	season_clips = []
 	season_menu = []
 	season_numbers = []
 	clip_numbers = []
-
-
-
 	try:
 		season_url2 = VIDEOLIST % BRANDID + '001/-1/' + season_url + '/-1/-1/-1/-1'
 		season_data = connection.getURL(season_url2)
@@ -121,10 +117,11 @@ def seasons(SITE, BRANDID, season_url = common.args.url):
 							clip_numbers.append(season_item['season']['@id'])
 							season_name = 'Season Clips ' + season_item['season']['@id']
 							season_url4 = VIDEOLIST % BRANDID + '001/' + season_item['@type'] + '/' + season_url + '/' + season_item['season']['@id'] + '/-1/-1/-1'
-							season_clips.append((season_name, SITE, 'episodes', season_url4, -1, -1))
+							seasons.append((season_name, SITE, 'episodes', season_url4, -1, -1))
 					except:
 						pass
-		seasons.extend(season_clips)
+				else:
+					print str(SITE) + ": new season type"
 	except Exception as e:
 		print "Error: " + e
 	return seasons
@@ -215,20 +212,18 @@ def episodes(SITE, episode_url = common.args.url):
 			u += '?url="' + urllib.quote_plus(episode_id) + '#' + urllib.quote_plus(episode_type) + '"'
 			u += '&mode="' + SITE + '"'
 			u += '&sitemode="play_video"'
-			infoLabels={'title' : episode_name,
-						'plot' : episode_description,
-						'premiered' : episode_airdate,
+			infoLabels={'title' 		    : episode_name,
+						'plot' 				: episode_description,
+						'premiered' 		: episode_airdate,
 						'durationinseconds' : episode_duration,
-						'episode' : episode_number,
-						'season' : season_number,
-						'TVShowTitle' : show_name,
-						'mpaa' : episode_mpaa,
-						'genre' : episode_genre}
+						'episode' 			: episode_number,
+						'season' 			: season_number,
+						'TVShowTitle' 		: show_name,
+						'mpaa' 				: episode_mpaa,
+						'genre' 			: episode_genre}
 			infoLabels = common.enrich_infolabels(infoLabels, episode_expires.rsplit(' ',1)[0], '%a, %d %b %Y %H:%M:%S')
 			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities',False, type))
-
 	return episodes
-
 	
 def list_qualities(SITE, BRANDID, PARTNERID):
 	video_id, video_type = common.args.url.split('#')
@@ -386,22 +381,17 @@ def play_video(SITE, BRANDID, PARTNERID):
 		except:
 			video_closedcaption = 'false'
 	item = xbmcgui.ListItem(path = finalurl)
-
 	try:
-
 		item.setThumbnailImage(common.args.thumb)
 	except:
 		pass
-
-
 	try:
-		item.setInfo('Video', {	'title' : common.args.name,
-						'season' : common.args.season_number,
-						'episode' : common.args.episode_number,
-						'TVShowTitle' : common.args.show_title})
+		item.setInfo('Video', {	'title' 	  : common.args.name,
+								'season' 	  : common.args.season_number,
+								'episode' 	  : common.args.episode_number,
+								'TVShowTitle' : common.args.show_title})
 	except:
 		pass
-
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 	while player.is_active:
 		player.sleep(250)
