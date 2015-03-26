@@ -101,16 +101,15 @@ def episodes(SITE, episode_url = common.args.url):
 			u += '?url="' + urllib.quote_plus(url) + '"'
 			u += '&mode="' + SITE + '"'
 			u += '&sitemode="play_video"'
-			infoLabels={	'title' : episode_name,
+			infoLabels={	'title' 			: episode_name,
 							'durationinseconds' : episode_duration,
-							'season' : season_number,
-							'episode' : episode_number,
-							'plot' : episode_plot,
-							'premiered' : episode_airdate,
-							'TVShowTitle' : episode_showtitle,
-							'mpaa' : episode_mpaa }
+							'season' 			: season_number,
+							'episode' 			: episode_number,
+							'plot' 				: episode_plot,
+							'premiered' 		: episode_airdate,
+							'TVShowTitle' 		: episode_showtitle,
+							'mpaa' 				: episode_mpaa }
 			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', episode_HD, episode_type))
-
 	return episodes
 
 def list_qualities():
@@ -180,16 +179,15 @@ def play_video():
 	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None):
 		convert_subtitles(closedcaption)
 	item = xbmcgui.ListItem(path = finalurl)
-
 	try:
 		item.setThumbnailImage(common.args.thumb)
 	except:
 		pass
 	try:
-		item.setInfo('Video', {	'title' : common.args.name,
-						'season' : common.args.season_number,
-						'episode' : common.args.episode_number,
-						'TVShowTitle' : common.args.show_title})
+		item.setInfo('Video', {	'title' 	  : common.args.name,
+								'season' 	  : common.args.season_number,
+								'episode' 	  : common.args.episode_number,
+								'TVShowTitle' : common.args.show_title})
 	except:
 		pass
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
@@ -243,6 +241,7 @@ def convert_subtitles(closedcaption):
 	file = open(ustvpaths.SUBTITLE, 'w')
 	file.write(str_output)
 	file.close()
+	return True
 
 def sign_url(url):
 	sig = connection.getURL('http://www.history.com/components/get-signed-signature?url=' + re.compile('/[sz]/(.+)\?').findall(url)[0])
