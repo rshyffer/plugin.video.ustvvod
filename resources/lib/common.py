@@ -183,6 +183,7 @@ def root_list(network_name):
 		if (dialog.iscanceled()):
 			return False
 	for show in showdata:
+		print "S", show
 		try:
 			add_show(show[0], show[1], show[2], show[3], sitedata = show[4])
 		except:
@@ -373,7 +374,7 @@ def get_serie(series_title, mode, submode, url, forceRefresh = False, sitedata =
 		tvdb_setting = 0
 	if checkdata and not forceRefresh and checkdata[24]  is not None and checkdata[20] != 'None':
 		if smart_unicode(checkdata[3]) != smart_unicode(url): 
-			command = 'update shows set url = ? where series_title = ? and mode = ? and submode = ?;'
+			command = 'update shows set url = ? where tvdb_series_title = ? and mode = ? and submode = ?;'
 			values = (url, series_title, mode, submode)
 			database.execute_command(command, values, commit = True)
 			command = 'select * from shows where lower(series_title) = ? and mode = ? and submode = ?;'
@@ -690,6 +691,7 @@ def fetch_showlist(favored = 0):
 	return database.execute_command(command, fetchall = True, values = [favored]) 
 
 def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, hide = 0, masterList = False, showdata = None, sitedata = None):
+	print "AS", series_title, url
 	infoLabels = {}
 	tvdbfanart = None
 	tvdbbanner = None
@@ -714,6 +716,7 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 	if showdata is None:
 		showdata = get_show_data(series_title, mode, sitemode, url, siteplot)
 	series_title, mode, sitemode, url, tvdb_id, imdb_id, tvdbbanner, tvdbposter, tvdbfanart, first_aired, date, year, actors, genres, network, plot, runtime, rating, airs_dayofweek, airs_time, status, has_full_episodes, favor, hide, tvdb_series_title = showdata
+	print "URL from DB", url
 	network_module = get_network(mode)
 	if not network_module:
 		return
