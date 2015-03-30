@@ -183,7 +183,6 @@ def root_list(network_name):
 		if (dialog.iscanceled()):
 			return False
 	for show in showdata:
-		print "S", show
 		try:
 			add_show(show[0], show[1], show[2], show[3], sitedata = show[4])
 		except:
@@ -691,7 +690,6 @@ def fetch_showlist(favored = 0):
 	return database.execute_command(command, fetchall = True, values = [favored]) 
 
 def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, hide = 0, masterList = False, showdata = None, sitedata = None):
-	print "AS", series_title, url
 	infoLabels = {}
 	tvdbfanart = None
 	tvdbbanner = None
@@ -716,7 +714,6 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 	if showdata is None:
 		showdata = get_show_data(series_title, mode, sitemode, url, siteplot)
 	series_title, mode, sitemode, url, tvdb_id, imdb_id, tvdbbanner, tvdbposter, tvdbfanart, first_aired, date, year, actors, genres, network, plot, runtime, rating, airs_dayofweek, airs_time, status, has_full_episodes, favor, hide, tvdb_series_title = showdata
-	print "URL from DB", url
 	network_module = get_network(mode)
 	if not network_module:
 		return
