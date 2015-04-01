@@ -32,7 +32,7 @@ def masterlist(SITE, SHOWS, SPECIALS = None):
 			if tvdb_name not in root_dict.keys():
 				root_dict[tvdb_name] = root_name
 			else:
-				root_dict[tvdb_name] = root_dict[tvdb_name] + ',' + root_name
+				root_dict[tvdb_name] = root_dict[tvdb_name] + '|' + root_name
 	for root_name in root_dict:
 		season_url = root_dict[root_name]
 		master_db.append((root_name, SITE, 'seasons', season_url))
@@ -43,13 +43,13 @@ def masterlist(SITE, SHOWS, SPECIALS = None):
 
 def seasons(SITE, BASE, season_urls):
 	seasons = []
-	for season_url in season_urls.split(','):
+	for season_url in season_urls.split('|'):
 		season_data = connection.getURL(season_url.split('#')[1])
 		season_tree = BeautifulSoup(season_data, 'html.parser')
 		season_menu = season_tree.find('ul', class_ = 'grid-sections')
 		for season_item in season_menu.find_all('li', class_ = ""):
 			season_name = season_item.a.string.strip()
-			if ',' in season_urls:
+			if '|' in season_urls:
 				season_name = season_url.split('#')[0] + ' ' + season_name  
 			season_url = BASE + season_item.a['href']
 			seasons.append((season_name,  SITE, 'episodes', season_url, -1, -1))
