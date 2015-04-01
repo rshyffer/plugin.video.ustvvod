@@ -145,7 +145,7 @@ class Main:
 			seasons = common.get_seasons(mode, sitemode, url)
 			for season in seasons:
 				section_title,  site, subsitemode, suburl, locked, unlocked = season
-				if 'Clips' not in section_title:
+				if 'Clips' not in section_title and ('Episode' in section_title or 'Season' in section_title):
 					episodes = common.get_episodes(mode, subsitemode, suburl) 
 					allepisodes.extend(episodes)
 					if allepisodes != []:
