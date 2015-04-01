@@ -67,7 +67,10 @@ def add_videos(episode_tree):
 	episodes = []
 	episode_menu = episode_tree.find_all('li', recursive = False)
 	for episode_item in episode_menu:
-		show_name = common.args.name
+		try:
+			show_name = common.args.name
+		except:
+			show_name = None
 		episode_link = episode_item.h4.a
 		episode_name = episode_link.text
 		try:
