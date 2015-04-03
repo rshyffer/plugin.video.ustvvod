@@ -1,3 +1,14 @@
+version 1.2.2
+
+  * fix CBS, TBS, MSNBC and SpikeTV, NatGeo
+  * apply season caching to all seasons
+  * additional Crackle alias
+  * fix PBS, tvland, MSNBC, nicktoon export
+  * fix Cartoon Netwoork
+  * fix common formatting
+  * fix common problems
+  * added script.ustvvodlibraryautoupdate
+
 version 1.2.1
 
   * fix Marvel Kids for library export
