@@ -507,9 +507,15 @@ def play_video(video_url = common.args.url):
 		mgid = BeautifulSoup(video_data, 'html.parser').find('div', attrs = {'data-mgid' : True})['data-mgid']
 		video_url2 = mgid
 	except:
-		video_url2 = re.compile('swfobject\.embedSWF\("(.*?)"').findall(video_data)[0]
+		try:
+			video_url2 = re.compile('swfobject\.embedSWF\("(.*?)"').findall(video_data)[0]
+		except:
+			embedded_data = BeautifulSoup(video_data, 'html.parser').find('meta',  property = "sm4:video:embed" )['content']
+			video_url2 = BeautifulSoup(embedded_data, 'html.parser').iframe['src'].split('embed/')[1]
 	show = video_url2.split(':')[-2].replace('.com', '')
-	feed_url = 'http://' + show + '.cc.com/feeds/mrss?uri=' + video_url2
+	if show != 'comedycentral':
+		show = 'www'
+	feed_url = 'http://' + show + '.cc.com/feeds/mrss?uri=' + video_url2 
 	main_viacom.play_video(BASE, feed_url)
 
 def list_qualities(video_url = common.args.url):
