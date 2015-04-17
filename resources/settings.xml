@@ -77,6 +77,7 @@
 		<setting id="disney" type="bool" label="Disney" default="true"/>
 		<setting id="disneyjunior" type="bool" label="Disney Junior" default="true"/>
 		<setting id="disneyxd" type="bool" label="Disney XD" default="true"/>
+		<setting id="food" type="bool" label="Food Network" default="true"/>
 		<setting id="fox" type="bool" label="FOX" default="true"/>
 		<setting id="fx" type="bool" label="FX" default="false"/>
 		<setting id="history" type="bool" label="History" default="true"/>
