@@ -60,9 +60,10 @@ def seasons(season_urls = common.args.url):
 		else:
 			seasons.append(('Clips',  SITE, 'episodes', video_link, -1, -1))
 	except:
-		if re.compile('"videos":').findall(season_data):
-			seasons.append(('Clips',  SITE, 'episodes', season_urls, -1, -1))
-		else:
+		try:
+			season_title = re.compile('"channels": \[\{\s+"title": "(.*?)",\s+"start": \d+,\s+"end": \d+,\s+"total": \d+,\s+"videos":', re.DOTALL).findall(season_data)[0]
+			seasons.append((season_title,  SITE, 'episodes', season_urls, -1, -1))
+		except:
 			season_tree = BeautifulSoup(season_data)
 			season_menu = season_tree.find_all(class_ = 'ss-play')
 			for season_item in season_menu:
@@ -94,7 +95,6 @@ def episodes(episode_url = common.args.url):
 			HD = True
 		else:
 			HD = False
-		print HD
 		url = episode_item['releaseUrl']
 		episode_duration = int(episode_item['length_sss'])
 		episode_name = episode_item['title']
@@ -148,7 +148,6 @@ def play_video(video_url = common.args.url):
 		playpath_url = None
 		if qbitrate is None:
 			video_url2 = video_tree.switch.find_all('video')
-			print video_url2
 			lbitrate = -1
 			hbitrate = -1
 			sbitrate = int(addon.getSetting('quality')) * 1024
@@ -162,7 +161,6 @@ def play_video(video_url = common.args.url):
 					playpath_url = video_index['src']	
 			if playpath_url is None:
 				playpath_url = lplaypath_url
-			print playpath_url
 		else:
 			bitrate = qbitrate 
 			playpath_url = video_tree.switch.find('video', attrs = {'system-bitrate' : qbitrate})['src']
