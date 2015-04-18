@@ -101,6 +101,22 @@ msgctxt "#30021"
 msgid "Show Network Names In Favorites"
 msgstr ""
 
+msgctxt "#30022"
+msgid "Use built-in SSL support"
+msgstr ""
+
+msgctxt "#30023"
+msgid "Auto"
+msgstr ""
+
+msgctxt "#30024"
+msgid "Yes"
+msgstr ""
+
+msgctxt "#30025"
+msgid "No"
+msgstr ""
+
 msgctxt "#31000"
 msgid "Connection"
 msgstr ""

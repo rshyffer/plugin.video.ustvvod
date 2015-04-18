@@ -110,7 +110,16 @@ class _Info:
 args = _Info(sys.argv[2][1:].replace('&', ' , '))
 network_module_cache = {}
 
-
+def use_proxy():
+	xbmc_version = xbmc.getInfoLabel( "System.BuildVersion" )
+	setting = addon.getSetting('use_builtin_ssl')
+	proxy = True
+	if setting == 'Yes':
+		proxy = False
+	elif setting == 'Auto' and int(xbmc_version[:2]) >= 13:
+		proxy = False
+	return proxy
+	
 def season_list():
 	seasons = get_seasons(args.mode, args.sitemode, args.url)
 	for season in seasons:

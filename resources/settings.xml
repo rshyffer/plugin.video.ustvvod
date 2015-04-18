@@ -6,6 +6,7 @@
 		<setting id="maxpages" type="number" label="39023" default="10" />
 		<setting id="strict_names" type="enum" label="30015" default="On" lvalues="30016|30017|30018" />
 		<setting id="preffered_stream_type" type="labelenum" label="30020" default="HLS" values="RTMP|HLS" />
+		<setting id="use_builtin_ssl" type="enum" label="30022" default="30023" lvalues="30023|30024|30025" />
 		<setting type="sep" />
 	</category>
 	<category label="31000">

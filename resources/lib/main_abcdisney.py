@@ -358,21 +358,26 @@ def play_video(SITE, BRANDID, PARTNERID):
 				if qbitrate == bitrate:
 					video_url4 = video_url3['url'].replace('__ray__', BITRATETABLE[video_keys])
 		video_url4 = video_url4.replace('https','http').replace('json','m3u8')
-		video_data4 = re.sub(r"\#EXT-X-DISCONTINUITY\n","", connection.getURL(video_url4))
-		key_url = re.compile('URI="(.*?)"').findall(video_data4)[0]
-		key_data = connection.getURL(key_url)		
-		key_file = open(ustvpaths.KEYFILE % '0', 'wb')
-		key_file.write(key_data)
-		key_file.close()
-		localhttpserver = True
-		filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
-		xbmc.executebuiltin(filestring)
-		time.sleep(20)
-		video_data4 = video_data4.replace(key_url, 'http://127.0.0.1:12345/play0.key')
-		playfile = open(ustvpaths.PLAYFILE, 'w')
-		playfile.write(video_data4)
-		playfile.close()
-		finalurl = ustvpaths.PLAYFILE
+		if common.use_proxy():
+		
+			video_data4 = re.sub(r"\#EXT-X-DISCONTINUITY\n","", connection.getURL(video_url4))
+			key_url = re.compile('URI="(.*?)"').findall(video_data4)[0]
+			key_data = connection.getURL(key_url)		
+			key_file = open(ustvpaths.KEYFILE % '0', 'wb')
+			key_file.write(key_data)
+			key_file.close()
+			localhttpserver = True
+			filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
+			xbmc.executebuiltin(filestring)
+			time.sleep(20)
+			video_data4 = video_data4.replace(key_url, 'http://127.0.0.1:12345/play0.key')
+			playfile = open(ustvpaths.PLAYFILE, 'w')
+			playfile.write(video_data4)
+			playfile.close()
+			finalurl = ustvpaths.PLAYFILE
+		else:
+			finalurl = video_url4
+			player._localHTTPServer = False
 	if (video_closedcaption == 'true') and (addon.getSetting('enablesubtitles') == 'true'):
 		try:
 			closedcaption = CLOSEDCAPTIONHOST + video_data2['closedcaption']['src']['$'].split('.com')[1]
