@@ -170,6 +170,7 @@ def play_video(video_url = common.args.url):
 	localhttpserver = True
 	filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
 	xbmc.executebuiltin(filestring)
+	time.sleep(20)
 	playfile = open(ustvpaths.PLAYFILE, 'w')
 	playfile.write(video_data4)
 	playfile.close()
