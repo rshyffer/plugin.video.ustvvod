@@ -29,7 +29,7 @@ TVDBURL = 'http://thetvdb.com'
 TVDBBANNERS = 'http://thetvdb.com/banners/'
 TVDBSERIESLOOKUP = 'http://www.thetvdb.com/api/GetSeries.php?seriesname='
 
-cache = StorageServer.StorageServer("ustvvod", 24) 
+cache = StorageServer.StorageServer("ustvvodxxyyyy", 0) 
 
 class XBMCPlayer( xbmc.Player ):
 	_counter = 0
@@ -122,11 +122,15 @@ def use_proxy():
 	return proxy
 	
 def season_list():
-	seasons = get_seasons(args.mode, args.sitemode, args.url)
-	for season in seasons:
-		section_title,  site, sitemode, url, locked, unlocked = season
-		add_directory(smart_utf8(section_title),  site, sitemode, url, locked = locked, unlocked = unlocked)
-	set_view('seasons')
+	try:
+		seasons = get_seasons(args.mode, args.sitemode, args.url)
+		for season in seasons:
+			print season
+			section_title,  site, sitemode, url, locked, unlocked = season
+			add_directory(smart_utf8(section_title),  site, sitemode, url, locked = locked, unlocked = unlocked)
+		set_view('seasons')
+	except Exception, e:
+		print "Error getting seasons", e
 
 def get_seasons(network_name, site_mode, url = args.url):
 	network = get_network(network_name)
@@ -881,6 +885,7 @@ def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = No
 					'premiered' : aired,
 					'plot' : description,
 					'count' : count }
+	print description
 	u = sys.argv[0]
 	u += '?url="' + urllib.quote_plus(directory_url) + '"'
 	u += '&mode="' + mode + '"'

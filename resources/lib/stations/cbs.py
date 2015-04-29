@@ -85,10 +85,10 @@ def seasons(season_urls = common.args.url):
 							seasons.append((section_title + ' ' + season_title,  SITE, 'episodes', season_url, locked_episodes, unlocked_episodes ))
 				else:
 					seasons.append((section_title,  SITE, 'episodes', FULLEPISODES % section_id, -1, -1))
-		except:
-			pass
-	except:
-		pass
+		except Exception, e:
+			print "Error", e
+	except Exception, e:
+			print "Error", e
 	return seasons
 
 def episodes(episode_url = common.args.url):
