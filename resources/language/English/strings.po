@@ -117,6 +117,10 @@ msgctxt "#30025"
 msgid "No"
 msgstr ""
 
+msgctxt "#39033"
+msgid "Max"
+msgstr ""
+
 msgctxt "#31000"
 msgid "Connection"
 msgstr ""

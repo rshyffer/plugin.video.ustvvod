@@ -138,43 +138,49 @@ def play_video(video_url = common.args.url):
 		except:
 			video_closedcaption = 'false'
 	video_url2 = video_tree.find('video', src = True)['src']
-	video_data2 = connection.getURL(video_url2, savecookie = True)
-	video_url3 = m3u8.parse(video_data2)
-	video_url4 = None
-	for video_index in video_url3.get('playlists'):
-		bitrate = int(video_index.get('stream_info')['bandwidth'])
-		if qbitrate is None:
-			if (bitrate < lbitrate or lbitrate == -1) and bitrate > 100000:
-				lbitrate = bitrate
-				lvideo_url4 = video_index.get('uri')
-			if bitrate > hbitrate and bitrate <= sbitrate and bitrate > 100000:
-				hbitrate = bitrate
-				video_url4 = video_index.get('uri')
-			if video_url4 is None:
-				video_url4 = lvideo_url4
-		else:
-			if qbitrate == bitrate:
-				video_url4 = video_index.get('uri')
-	video_data4 = connection.getURL(video_url4, loadcookie = True)
-	key_url = re.compile('URI="(.*?)"').findall(video_data4)[0]
-	key_data = connection.getURL(key_url, loadcookie = True)
-	key_file = open(ustvpaths.KEYFILE % '0', 'wb')
-	key_file.write(key_data)
-	key_file.close()
-	video_url5 = re.compile('(http:.*?)\n').findall(video_data4)
-	for i, video_item in enumerate(video_url5):
-		newurl = base64.b64encode(video_item)
-		newurl = urllib.quote_plus(newurl)
-		video_data4 = video_data4.replace(video_item, 'http://127.0.0.1:12345/0/foxstation/' + newurl)
-	video_data4 = video_data4.replace(key_url, 'http://127.0.0.1:12345/play0.key')
-	localhttpserver = True
-	filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
-	xbmc.executebuiltin(filestring)
-	time.sleep(20)
-	playfile = open(ustvpaths.PLAYFILE, 'w')
-	playfile.write(video_data4)
-	playfile.close()
-	finalurl = ustvpaths.PLAYFILE
+	if addon.getSetting('sel_quality') == 'true' or qbitrate is not None or  int(xbmc.getInfoLabel( "System.BuildVersion" )[:2]) < 14 or common.use_proxy() :
+		print "********************************Selecion"
+		video_data2 = connection.getURL(video_url2, savecookie = True)
+		video_url3 = m3u8.parse(video_data2)
+		video_url4 = None
+		for video_index in video_url3.get('playlists'):
+			bitrate = int(video_index.get('stream_info')['bandwidth'])
+			if qbitrate is None:
+				if (bitrate < lbitrate or lbitrate == -1) and bitrate > 100000:
+					lbitrate = bitrate
+					lvideo_url4 = video_index.get('uri')
+				if bitrate > hbitrate and bitrate <= sbitrate and bitrate > 100000:
+					hbitrate = bitrate
+					video_url4 = video_index.get('uri')
+				if video_url4 is None:
+					video_url4 = lvideo_url4
+			else:
+				if qbitrate == bitrate:
+					video_url4 = video_index.get('uri')
+		video_data4 = connection.getURL(video_url4, loadcookie = True)
+		key_url = re.compile('URI="(.*?)"').findall(video_data4)[0]
+		key_data = connection.getURL(key_url, loadcookie = True)
+		key_file = open(ustvpaths.KEYFILE % '0', 'wb')
+		key_file.write(key_data)
+		key_file.close()
+		video_url5 = re.compile('(http:.*?)\n').findall(video_data4)
+		for i, video_item in enumerate(video_url5):
+			newurl = base64.b64encode(video_item)
+			newurl = urllib.quote_plus(newurl)
+			video_data4 = video_data4.replace(video_item, 'http://127.0.0.1:12345/0/foxstation/' + newurl)
+		video_data4 = video_data4.replace(key_url, 'http://127.0.0.1:12345/play0.key')
+		localhttpserver = True
+		filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
+		xbmc.executebuiltin(filestring)
+		time.sleep(20)
+		playfile = open(ustvpaths.PLAYFILE, 'w')
+		playfile.write(video_data4)
+		playfile.close()
+		finalurl = ustvpaths.PLAYFILE
+	else:
+		print "******************************** bypass selection"
+		player._localHTTPServer = False
+		finalurl = video_url2
 	item = xbmcgui.ListItem(path = finalurl)
 	try:
 		item.setThumbnailImage(common.args.thumb)

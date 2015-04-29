@@ -112,11 +112,12 @@ network_module_cache = {}
 
 def use_proxy():
 	xbmc_version = xbmc.getInfoLabel( "System.BuildVersion" )
-	setting = addon.getSetting('use_builtin_ssl')
+	setting = int(addon.getSetting('use_builtin_ssl'))
+	print "S", setting
 	proxy = True
-	if setting == 'Yes':
+	if setting == 1:
 		proxy = False
-	elif setting == 'Auto' and int(xbmc_version[:2]) >= 13:
+	elif setting == 0 and int(xbmc_version[:2]) >= 13:
 		proxy = False
 	return proxy
 	
