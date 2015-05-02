@@ -22,6 +22,7 @@ NAME = "Food Network"
 DESCRIPTION = "FOOD NETWORK (www.foodnetwork.com) is a unique lifestyle network and Web site that strives to be way more than cooking.  The network is committed to exploring new and different ways to approach food - through pop culture, competition, adventure, and travel - while also expanding its repertoire of technique-based information. Food Network is distributed to more than 96 million U.S. households and averages more than seven million Web site users monthly. With headquarters in New York City and offices in Atlanta, Los Angeles, Chicago, Detroit and Knoxville, Food Network can be seen internationally in Canada, Australia, Korea, Thailand, Singapore, the Philippines, Monaco, Andorra, Africa, France, and the French-speaking territories in the Caribbean and Polynesia. Scripps Networks Interactive (NYSE: SNI), which also owns and operates HGTV (www.hgtv.com), DIY Network (www.diynetwork.com), Great American Country (www.gactv.com) and FINE LIVING (www.fineliving.com), is the manager and general partner."
 SHOWS = "http://www.foodnetwork.com/shows/a-z.html"
 BASE  = "http://foodnetwork.com"
+BITRATES = [600, 800, 1500, 2000, 2500, 3000]
 
 def masterlist():
 	master_db = []
@@ -91,7 +92,10 @@ def episodes(episode_url = common.args.url):
 	episode_json = re.compile('"videos":\s+(\[.*?\])', re.DOTALL).findall(episode_data)[0]
 	episode_menu = simplejson.loads(episode_json)
 	for episode_item in episode_menu:
-		HD = False
+		if 'SD' not in episode_item['videoFormat']:
+			HD = True
+		else:
+			HD = False
 		url = episode_item['releaseUrl']
 		episode_duration = int(episode_item['length_sss'])
 		episode_name = episode_item['title']
@@ -126,19 +130,30 @@ def play_video(video_url = common.args.url):
 	except:
 		qbitrate = None
 	closedcaption = None
-	#mp4 works but no bitrate selection
-	video_url = video_url + '?manifest=m3u'
+	video_url = video_url 
 	video_data = connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
+	sbitrate = int(addon.getSetting('quality'))
 	if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
 		playpath_url = video_tree.video['src']
-		
+		hbitrate = 1
+		format = video_tree.find('param', attrs = {'name' : 'format' })['value']
+		if 'SD' in format:
+			bitrates = BITRATES[:5]
+			print bitrates
+		else:
+			bitrates = BITRATES
+		for i, bitrate in enumerate(bitrates):
+			print i,bitrate, sbitrate
+			if int(bitrate) < sbitrate:
+				hbitrate = i + 1
+		print "BR", hbitrate
 		try:
 			closedcaption = video_tree.find('textstream', type = 'text/srt')['src']
 		except:
 			pass
-		finalurl = playpath_url
-		item = xbmcgui.ListItem( path = finalurl)
+		finalurl = playpath_url.split('_')[0] + '_' + str(hbitrate) + '.mp4'
+		item = xbmcgui.ListItem(path = finalurl)
 		
 		try:
 			item.setThumbnailImage(common.args.thumb)
