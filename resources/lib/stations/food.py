@@ -91,10 +91,7 @@ def episodes(episode_url = common.args.url):
 	episode_json = re.compile('"videos":\s+(\[.*?\])', re.DOTALL).findall(episode_data)[0]
 	episode_menu = simplejson.loads(episode_json)
 	for episode_item in episode_menu:
-		if 'SD' not in episode_item['videoFormat']:
-			HD = True
-		else:
-			HD = False
+		HD = False
 		url = episode_item['releaseUrl']
 		episode_duration = int(episode_item['length_sss'])
 		episode_name = episode_item['title']
@@ -119,22 +116,9 @@ def episodes(episode_url = common.args.url):
 							'plot' : episode_plot,
 							'TVShowTitle': show_title,
 							'cast' : episode_cast}
-			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', HD, episode_type))
+			episodes.append((u, episode_name, episode_thumb, infoLabels, None, HD, episode_type))
 	return episodes
 
-def list_qualities(video_url = common.args.url):
-	bitrates = []
-	video_data = connection.getURL(video_url)
-	video_tree = BeautifulSoup(video_data, 'html.parser')
-	if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
-		video_url2 = video_tree.switch.find_all('video')
-		for video in video_url2:
-			bitrate = video['system-bitrate']
-			display = int(bitrate) / 1024
-			bitrates.append((display, bitrate))
-		return bitrates
-	else:
-		common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
 
 def play_video(video_url = common.args.url):
 	try:
@@ -142,28 +126,13 @@ def play_video(video_url = common.args.url):
 	except:
 		qbitrate = None
 	closedcaption = None
+	#mp4 works but no bitrate selection
+	video_url = video_url + '?manifest=m3u'
 	video_data = connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
-		playpath_url = None
-		if qbitrate is None:
-			video_url2 = video_tree.switch.find_all('video')
-			lbitrate = -1
-			hbitrate = -1
-			sbitrate = int(addon.getSetting('quality')) * 1024
-			for video_index in video_url2:
-				bitrate = int(video_index['system-bitrate'])
-				if bitrate < lbitrate or lbitrate == -1:
-					lbitrate = bitrate
-					lplaypath_url = video_index['src']	
-				if bitrate > hbitrate and bitrate <= sbitrate:
-					hbitrate = bitrate
-					playpath_url = video_index['src']	
-			if playpath_url is None:
-				playpath_url = lplaypath_url
-		else:
-			bitrate = qbitrate 
-			playpath_url = video_tree.switch.find('video', attrs = {'system-bitrate' : qbitrate})['src']
+		playpath_url = video_tree.video['src']
+		
 		try:
 			closedcaption = video_tree.find('textstream', type = 'text/srt')['src']
 		except:
