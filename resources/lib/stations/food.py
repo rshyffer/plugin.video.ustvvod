@@ -51,10 +51,8 @@ def seasons(season_urls = common.args.url):
 		season_data = connection.getURL(video_link)
 		video_tree = BeautifulSoup(season_data)
 		season_menu = video_tree.find_all('option')
-		print season_menu
 		if season_menu:
 			for season_item in season_menu:
-				print season_item
 				season_name = season_item.string
 				season_url = BASE + season_item['value']
 				seasons.append((season_name,  SITE, 'episodes', season_url, -1, -1))
@@ -74,12 +72,10 @@ def seasons(season_urls = common.args.url):
 						season_name = season_grandparent.img['title']
 					except:
 						season_name = season_grandparent.h6.string#img['title']
-					print season_name
 					try:
 						season_url = BASE + season_grandparent['href']
 					except:
 						season_url = BASE + season_grandparent.a['href']
-					print season_url
 					if 'shows' in season_url or 'packages' in season_url or 'chef' in season_url:
 						seasons.append((season_name,  SITE, 'episodes', season_url, -1, -1))
 				except:
@@ -89,7 +85,9 @@ def seasons(season_urls = common.args.url):
 def episodes(episode_url = common.args.url):
 	episodes = []
 	episode_data = connection.getURL(episode_url)
-	episode_json = re.compile('"videos":\s+(\[.*?\])', re.DOTALL).findall(episode_data)[0]
+	episode_tree = BeautifulSoup(episode_data)
+	episode_script = episode_tree.find('section', id='player-component').script.string
+	episode_json = re.compile('"videos".+(\[.*\])\}\]', re.DOTALL).findall(episode_script)[0]
 	episode_menu = simplejson.loads(episode_json)
 	for episode_item in episode_menu:
 		if 'SD' not in episode_item['videoFormat']:
@@ -135,24 +133,42 @@ def play_video(video_url = common.args.url):
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	sbitrate = int(addon.getSetting('quality'))
 	if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
-		playpath_url = video_tree.video['src']
-		hbitrate = 1
-		format = video_tree.find('param', attrs = {'name' : 'format' })['value']
-		if 'SD' in format:
-			bitrates = BITRATES[:5]
-			print bitrates
-		else:
-			bitrates = BITRATES
-		for i, bitrate in enumerate(bitrates):
-			print i,bitrate, sbitrate
-			if int(bitrate) < sbitrate:
-				hbitrate = i + 1
-		print "BR", hbitrate
+		try:
+		
+		
+			video_url2 = video_tree.switch.find_all('video')
+			lbitrate = -1
+			hbitrate = -1
+			sbitrate = int(addon.getSetting('quality')) * 1024
+			for video_index in video_url2:
+				bitrate = int(video_index['system-bitrate'])
+				if bitrate < lbitrate or lbitrate == -1:
+					lbitrate = bitrate
+					lplaypath_url = video_index['src']	
+				if bitrate > hbitrate and bitrate <= sbitrate:
+					hbitrate = bitrate
+					playpath_url = video_index['src']	
+			if playpath_url is None:
+				playpath_url = lplaypath_url
+			finalurl = playpath_url
+		except:
+			playpath_url = video_tree.video['src']
+			hbitrate = 1
+			format = video_tree.find('param', attrs = {'name' : 'format' })['value']
+			if 'SD' in format:
+				bitrates = BITRATES[:5]
+			else:
+				bitrates = BITRATES
+			for i, bitrate in enumerate(bitrates):
+				if int(bitrate) < sbitrate:
+					hbitrate = i + 1
+			finalurl = playpath_url.split('_')[0] + '_' + str(hbitrate) + '.mp4'
+
 		try:
 			closedcaption = video_tree.find('textstream', type = 'text/srt')['src']
 		except:
 			pass
-		finalurl = playpath_url.split('_')[0] + '_' + str(hbitrate) + '.mp4'
+		
 		item = xbmcgui.ListItem(path = finalurl)
 		
 		try:
