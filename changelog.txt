@@ -1,3 +1,13 @@
+version 1.2.4
+
+  * fix for Larry Wilmore Sghow
+  * add foodnetwork
+  * add option to use ssl support
+  * fix for FOX playback
+  * new suppress quality selection option
+  * fix CBS bug
+  * added foodnetwork in HD 
+
 version 1.2.3
 
   * removed script.ustvvodlibraryautoupdate
