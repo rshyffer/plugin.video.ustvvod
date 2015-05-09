@@ -284,7 +284,7 @@ def add_items_from_manifestfile(triforceManifestFeed, season_url):
 						display_name = feed_menu2['result']['playlist']['title']
 					except:
 						try:
-							display_name = feed_menu2['result']['promo']['promoType'].replace('_', ' ').title()
+							display_name = feed_menu2['result']['promo']['promoType'].replace('_', ' ').title().replace('Episode', 'Videos')
 						except:
 							display_name = feed_menu2['result']['episodeVideos'][0]['distPolicy']['canonicalURL'].split('/')[3].title().replace('-', ' ')
 			seasons.append((display_name,  SITE, 'episodes', feed['url'] + "#ManifestFeed", -1, -1))
