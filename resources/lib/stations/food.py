@@ -118,9 +118,26 @@ def episodes(episode_url = common.args.url):
 							'plot' : episode_plot,
 							'TVShowTitle': show_title,
 							'cast' : episode_cast}
-			episodes.append((u, episode_name, episode_thumb, infoLabels, None, HD, episode_type))
+			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', HD, episode_type))
 	return episodes
-
+	
+def list_qualities(video_url = common.args.url):
+	bitrates = []
+	try:
+		print "U", video_url
+		video_data = connection.getURL(video_url)
+		video_tree = BeautifulSoup(video_data, 'html.parser')
+		if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
+			video_url2 = video_tree.switch.find_all('video')
+			for video in video_url2:
+				bitrate = video['system-bitrate']
+				display = int(bitrate) / 1024
+				bitrates.append((display, bitrate))
+			return bitrates
+		else:
+			common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
+	except:
+		return [(v, k) for k, v in dict(zip(BITRATES, BITRATES)).iteritems()] 
 
 def play_video(video_url = common.args.url):
 	try:
@@ -153,15 +170,18 @@ def play_video(video_url = common.args.url):
 			finalurl = playpath_url
 		except:
 			playpath_url = video_tree.video['src']
-			hbitrate = 1
-			format = video_tree.find('param', attrs = {'name' : 'format' })['value']
-			if 'SD' in format:
-				bitrates = BITRATES[:5]
+			if qbitrate is None:
+				hbitrate = 1
+				format = video_tree.find('param', attrs = {'name' : 'format' })['value']
+				if 'SD' in format:
+					bitrates = BITRATES[:5]
+				else:
+					bitrates = BITRATES
+				for i, bitrate in enumerate(bitrates):
+					if int(bitrate) < sbitrate:
+						hbitrate = i + 1
 			else:
-				bitrates = BITRATES
-			for i, bitrate in enumerate(bitrates):
-				if int(bitrate) < sbitrate:
-					hbitrate = i + 1
+				hbitrate = BITRATES.index(qbitrate) + 1
 			finalurl = playpath_url.split('_')[0] + '_' + str(hbitrate) + '.mp4'
 
 		try:
