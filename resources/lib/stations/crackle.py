@@ -24,7 +24,6 @@ SHOWS = "http://api.crackle.com/Service.svc/browse/shows/all/all/alpha/us?format
 MOVIES = "http://api.crackle.com/Service.svc/browse/movies/all/all/alpha/us?format=json"
 BASE  = "http://media-us-am.crackle.com/"
 FULLEPISODES = "http://api.crackle.com/Service.svc/channel/%s/folders/us?format=json"
-EPISODE = "http://www.crackle.com/app/vidwallcache.aspx?flags=-1&o=12&fpl=%s&fm=%s&partner=20"
 QUALITIES = [(360, "360p.mp4"), (480, "480p_1mbps.mp4")]
 
 def masterlist():
@@ -65,7 +64,6 @@ def seasons_movie_clips(url = common.args.url):
 			if root_item.get('ReleaseYear', None):
 				showdata[15] = u"%s \n(%s, %s)" % (showdata[15], showdata[13], root_item.get('ReleaseYear'))
 			allseasons.append((root_name,  SITE, 'episodes', season_url, -1, -1))
-
 	return allseasons
 
 def episodes_movies(url = common.args.url):
@@ -128,14 +126,6 @@ def episodes(episode_url = common.args.url):
 		for episode_item in episode_menu['MediaList']:
 			if episode_item['Season'] == season_number or season_number == -1:
 				''' THX to foreverguest '''
-
-
-
-
-
-
-
-
 				video_url = find_videopath(episode_item['Thumbnail_Wide'])
 				episode_duration = int(episode_item['DurationInSeconds'])
 				episode_name = episode_item['Title']
@@ -185,7 +175,6 @@ def episodes(episode_url = common.args.url):
 								'Rating' : episode_rating,
 								'cast' : episode_cast}
 				episodes.append((u, episode_name, episode_thumb,  infoLabels, 'list_qualities', False, episode_type))
-
 	except:
 		pass
 	return episodes
