@@ -51,15 +51,11 @@ def seasons(url = common.args.url):
 					season_url += '&rb-video-browser-show=' + season_item['value']
 					season_url += '&rb-video-browser-content_type=' + season_videoitem['value']
 					seasons.append((season_name, SITE, 'episodes', season_url, -1 ,-1))
-
 	return seasons
 
 def episodes(filter = common.args.url):
 	if filter.isdigit():
-
 		filter = seasons(filter)[0][3]
-		
-
 	episodes = []
 	episode_values = {	'video_browser_action' : 'filter',
 						'params[type]' : 'all',
@@ -74,7 +70,6 @@ def episodes(filter = common.args.url):
 		episode_name = episode_item.a.img['title']
 		episode_plot = episode_item.a.img['alt'].replace('/n',' ')
 		episode_thumb = episode_item.a.img['src']
-
 		url = episode_item.a['href']
 		show_name = url.split('/')[3].replace('-', ' ').title()
 		episode_type = episode_item.h4.string.split(',')[0].strip()
@@ -98,7 +93,6 @@ def episodes(filter = common.args.url):
 						'season' : episode_season,
 						'episode' : episode_number}
 		episodes.append((u, episode_name, episode_thumb, infoLabels, None, False, episode_type))
-
 	return episodes
 
 def play_video(video_url = common.args.url):
@@ -124,9 +118,9 @@ def play_video(video_url = common.args.url):
 		pass
 	try:
 		item.setInfo('Video', {	'title' : common.args.name,
-						'season' : common.args.season_number,
-						'episode' : common.args.episode_number,
-						'TVShowTitle' : common.args.show_title})
+								'season' : common.args.season_number,
+								'episode' : common.args.episode_number,
+								'TVShowTitle' : common.args.show_title})
 	except:
 		pass
 	xbmcplugin.setResolvedUrl(pluginHandle, True, item)
