@@ -6,11 +6,9 @@ import re
 import simplejson
 import sys
 import urllib
-import ustvpaths
 import xbmc
 import xbmcaddon
 import xbmcgui
-import traceback
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 
@@ -71,7 +69,7 @@ def seasons(season_urls = common.args.url):
 					try:
 						season_name = season_grandparent.img['title']
 					except:
-						season_name = season_grandparent.h6.string#img['title']
+						season_name = season_grandparent.h6.string
 					try:
 						season_url = BASE + season_grandparent['href']
 					except:
@@ -124,7 +122,6 @@ def episodes(episode_url = common.args.url):
 def list_qualities(video_url = common.args.url):
 	bitrates = []
 	try:
-		print "U", video_url
 		video_data = connection.getURL(video_url)
 		video_tree = BeautifulSoup(video_data, 'html.parser')
 		if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
@@ -151,8 +148,6 @@ def play_video(video_url = common.args.url):
 	sbitrate = int(addon.getSetting('quality'))
 	if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
 		try:
-		
-		
 			video_url2 = video_tree.switch.find_all('video')
 			lbitrate = -1
 			hbitrate = -1
@@ -183,22 +178,19 @@ def play_video(video_url = common.args.url):
 			else:
 				hbitrate = BITRATES.index(qbitrate) + 1
 			finalurl = playpath_url.split('_')[0] + '_' + str(hbitrate) + '.mp4'
-
 		try:
 			closedcaption = video_tree.find('textstream', type = 'text/srt')['src']
 		except:
 			pass
-		
 		item = xbmcgui.ListItem(path = finalurl)
-		
 		try:
 			item.setThumbnailImage(common.args.thumb)
 		except:
 			pass
 		try:
 			item.setInfo('Video', {	'title' : common.args.name,
-							 'season' : common.args.season_number,
-							 'episode' : common.args.episode_number})
+									'season' : common.args.season_number,
+									'episode' : common.args.episode_number})
 		except:
 			pass
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
@@ -208,4 +200,3 @@ def play_video(video_url = common.args.url):
 			xbmc.Player().setSubtitles(closedcaption)
 	else:
 		common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
-
