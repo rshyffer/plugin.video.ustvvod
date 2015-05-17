@@ -55,7 +55,6 @@ def masterlist(SITE, SHOWS):
 	return master_db
 
 def seasons(SITE, API, season_id = common.args.url):
-
 	seasons = []
 	count = 0
 	for type in TYPES:
@@ -76,7 +75,6 @@ def seasons(SITE, API, season_id = common.args.url):
 				seasons.append((type[1], SITE, 'episodes', season_url, -1, -1))
 		except:
 			pass
-
 	return seasons
 
 def episodes(SITE, episode_url = common.args.url):

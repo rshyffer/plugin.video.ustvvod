@@ -18,8 +18,6 @@ BASE = "http://www.tvland.com"
 SHOWS = "http://www.tvland.com/full-episodes"
 CLIPS = "http://www.tvland.com/video-clips"
 SEASONURL = "http://www.tvland.com/fragments/search_results/related_episodes_seasons?showId=%s&seasonId=%s&episodeId=%s"
-VIDEOURL = "http://www.tvland.com/feeds/mrss/?uri="
-MP4URL = "http://mtvnmobile.vo.llnwd.net/kip0/_pxn=0+_pxK=18639/44620/mtvnorigin"
 
 def masterlist():
 	master_dict = {}
