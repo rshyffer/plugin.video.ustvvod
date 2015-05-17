@@ -2,21 +2,10 @@
 # -*- coding: utf-8 -*-
 import common
 import connection
-import m3u8
 import main_nbcu
 import re
-import simplejson
-import sys
-import urllib
 import ustvpaths
-import xbmc
-import xbmcaddon
-import xbmcgui
-import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
-
-addon = xbmcaddon.Addon()
-pluginHandle = int(sys.argv[1])
 
 SITE = "oxygen"
 NAME = "Oxygen"
@@ -31,7 +20,6 @@ def masterlist():
 
 def seasons(season_url = common.args.url):
 	return main_nbcu.seasons(SITE, FULLEPISODES, CLIPS,  None, season_url)
-
 
 def episodes(episode_url = common.args.url):
 	return main_nbcu.episodes(SITE, episode_url)
