@@ -31,11 +31,6 @@ SHOWS = "http://www.nbc.com/shows"
 EPISODES = "http://www.nbc.com/data/node/%s/video_carousel"
 VIDEOPAGE = "http://videoservices.nbcuni.com/player/clip?clear=true&domainReq=www.nbc.com&geoIP=US&clipId=%s"
 SMIL_BASE = "http://video.nbcuni.com/"
-RTMP = "cp37307.edgefcs.net"
-APP = "ondemand"
-IDENTURL = "http://%s/fcs/ident" % RTMP
-SWFURL = "http://video.nbcuni.com/core/6.6.1/OSMFPlayer.swf"
-
 SMIL = "http://link.theplatform.com/s/NnzsPC/%s?mbr=true&mbr=true&player=Onsite%%20Player&policy=43674&manifest=m3u&format=SMIL&Tracking=true&Embedded=true&formats=MPEG4,F4M,FLV,MP3"
 TONIGHT_SHOW_FEED = "%s/content/a/filter-items/?type=video"
 
@@ -85,8 +80,6 @@ def seasons(season_url = common.args.url):
 	for season_title in season_dict:
 		season_url = season_dict[season_title]
 		seasons.append((season_title, SITE, 'episodes',  season_url, -1, -1))
-
-
 	return seasons
 
 def episodes(episode_url = common.args.url):
@@ -142,8 +135,8 @@ def episodes(episode_url = common.args.url):
 									'episode' : episode_number,
 									'plot' : episode_plot,
 									'premiered' : episode_airdate,
-									'TVShowTitle' : show_title}
-
+									'TVShowTitle' : show_title
+								}
 					episodes.append((u, episode_name, episode_thumb, infoLabels,  'list_qualities', False, episode_type))
 			except Exception as e:
 				print "Episode item error",e
@@ -172,20 +165,17 @@ def episodes(episode_url = common.args.url):
 								'episode' : episode_number,
 								'plot' : episode_plot,
 								'TVShowTitle' : show_title,
-								'premiered' : episode_airdate}
+								'premiered' : episode_airdate
+							}
 				episodes.append((u, episode_name, episode_thumb,  infoLabels, 'list_qualities', False, 'Full Episode'))
 			except:
 				pass
-
-
 	return episodes
 
 def add_show_thetonightshow(url):
 	seasons = []
 	seasons.append(('Full Episodes',  SITE, 'episodes', url + '#FullEpisode', -1, -1))
 	seasons.append(('Clips',  SITE, 'episodes', url + '#Clips', -1, -1))
-
-
 	return seasons
 
 def add_videos_thetonightshow(url, type_, page = 1, added_episodes = []):
@@ -240,12 +230,11 @@ def add_videos_thetonightshow(url, type_, page = 1, added_episodes = []):
 							'episode' : episode_number,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate,
-							'TVShowTitle' : show_name}
+							'TVShowTitle' : show_name
+						}
 			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, episode_type))
 	if page < int(addon.getSetting('maxpages')):
 		episodes.extend(add_videos_thetonightshow(url, type_, page + 1, added_episodes))
-
-
 	return episodes
 
 def play_video(video_url = common.args.url, tonightshow = False):
@@ -269,8 +258,6 @@ def play_video(video_url = common.args.url, tonightshow = False):
 			closedcaption = smil_tree.textstream['src']
 		except:
 			pass
-
-	
 		m3u_master_data = connection.getURL(video_url2, savecookie = True)
 		m3u_master = m3u8.parse(m3u_master_data)
 		hbitrate = -1
@@ -312,15 +299,13 @@ def play_video(video_url = common.args.url, tonightshow = False):
 			item.setThumbnailImage(common.args.thumb)
 		except:
 			pass
-
 		try:
 			item.setInfo('Video', {	'title' : common.args.name,
-							'season' : common.args.season_number,
-							'episode' : common.args.episode_number,
-							'TVShowTitle' : common.args.show_title})
+									'season' : common.args.season_number,
+									'episode' : common.args.episode_number,
+									'TVShowTitle' : common.args.show_title})
 		except:
 			pass
-
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 		while player.is_active:
 				player.sleep(250)
@@ -367,13 +352,6 @@ def convert_subtitles(closedcaption):
 	file = open(ustvpaths.SUBTITLE, 'w')
 	file.write(str_output)
 	file.close()
-
-def get_rtmp():
-	ident_data = connection.getURL(IDENTURL)
-	ident_tree = BeautifulSoup(ident_data, 'html.parser')
-	ip = ident_tree.ip.string
-	rtmpurl = 'rtmp://' + ip + ':1935/' + APP + '?_fcs_vhost=' + RTMP
-	return str(rtmpurl)
 
 def list_qualities(video_url = common.args.url):
 	video_data = connection.getURL(video_url)
