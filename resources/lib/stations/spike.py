@@ -278,7 +278,7 @@ def add_video_from_manifestfile(manifest_feed, full_episodes = False):
 					episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, episode_type))
 		return episodes
 	except Exception,e:
-		print e
+		print "Exception: ", e
 		
 def episodes(episode_url = common.args.url):
 	""" Add individual episodes. If the URL is a manifest feed, load from JSON, else analyse

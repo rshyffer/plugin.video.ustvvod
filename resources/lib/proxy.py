@@ -140,7 +140,7 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			try:
 				self.send_header(key, headers[key])
 			except Exception, e:
-				print e
+				print "Exception: ", e
 				pass
 		self.end_headers()
 		if (sendData):
@@ -154,10 +154,10 @@ class StoppableHttpRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				except Exception, e:
 					fileout.close()
 					response.close()
-					print e
+					print "Exception: ", e
 			except Exception, e:
 				fileout.close()
-				print e
+				print "Exception: ", e
 				return
 		try:
 			fileout.close()

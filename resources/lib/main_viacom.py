@@ -181,7 +181,7 @@ def play_video(BASE, video_uri = common.args.url, media_base = VIDEOURL):
 			try:
 				threads.append(Thread(get_videos, queue, i, video_item, qbitrate))
 			except Exception, e:
-				print e
+				print "Exception: ", e
 		[i.start() for i in threads]
 		[i.join() for i in threads]
 		while not queue.empty():
@@ -232,7 +232,7 @@ def play_video2(API, video_url = common.args.url):
 		try:
 			threads.append(Thread(get_videos, queue, i, video_item[i], qbitrate))
 		except Exception, e:
-			print e
+			print "Exception: ", e
 	[i.start() for i in threads]
 	[i.join() for i in threads]
 	while not queue.empty():

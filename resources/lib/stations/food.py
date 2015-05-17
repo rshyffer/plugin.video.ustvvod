@@ -35,7 +35,7 @@ def masterlist():
 			master_url = master_item.a['href']
 			master_db.append((master_name, SITE, 'seasons', master_url))
 		except Exception, e:
-			print e
+			print "Exception: ", e
 	return master_db
 
 def seasons(season_urls = common.args.url):

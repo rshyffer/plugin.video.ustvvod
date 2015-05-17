@@ -45,4 +45,4 @@ def play_video():
 	try:
 		main_nbcu.play_video()
 	except Exception, e:
-		print "Exception", e
+		print "Exception: ", e
