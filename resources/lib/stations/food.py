@@ -10,7 +10,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-from bs4 import BeautifulSoup, SoupStrainer
+from bs4 import BeautifulSoup
 
 addon = xbmcaddon.Addon()
 pluginHandle = int(sys.argv[1])
@@ -27,7 +27,7 @@ def masterlist():
 	master_dict = {}
 	dupes = []
 	master_data = connection.getURL(SHOWS)
-	master_tree =  BeautifulSoup(master_data, 'html.parser')#, parse_only = SoupStrainer('shows-a-z'))
+	master_tree =  BeautifulSoup(master_data, 'html.parser')
 	master_menu = master_tree.find('div', class_ = 'shows-a-z').find_all('span', class_ = "arrow")
 	for master_item in master_menu:
 		try:

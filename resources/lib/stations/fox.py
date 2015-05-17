@@ -113,7 +113,8 @@ def episodes(episode_url = common.args.url):
 							'plot' 				: episode_plot,
 							'premiered' 		: episode_airdate,
 							'TVShowTitle'		: show_name,
-							'mpaa' 				: episode_mpaa}
+							'mpaa' 				: episode_mpaa
+						}
 			infoLabels = common.enrich_infolabels(infoLabels, epoch = episode_expires)
 			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, episode_type))
 	return episodes
@@ -139,7 +140,7 @@ def play_video(video_url = common.args.url):
 			video_closedcaption = 'false'
 	video_url2 = video_tree.find('video', src = True)['src']
 	if addon.getSetting('sel_quality') == 'true' or qbitrate is not None or  int(xbmc.getInfoLabel( "System.BuildVersion" )[:2]) < 14 or common.use_proxy() :
-		print "********************************Selecion"
+		print "********************************selecion"
 		video_data2 = connection.getURL(video_url2, savecookie = True)
 		video_url3 = m3u8.parse(video_data2)
 		video_url4 = None
