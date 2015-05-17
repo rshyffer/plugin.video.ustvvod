@@ -8,7 +8,6 @@ import os
 import re
 import simplejson
 import sys
-import time
 import urllib
 import ustvpaths
 import xbmc
@@ -43,7 +42,7 @@ def masterlist():
 
 def seasons(season_url = common.args.url):
 	seasons = []
-	season_data = connection.getURL(FULLEPISODES, header = AUTH)# + season_url, header = AUTH)
+	season_data = connection.getURL(FULLEPISODES, header = AUTH)
 	try:
 		season_menu = len(simplejson.loads(season_data)['videos'])
 	except:
@@ -92,7 +91,8 @@ def episodes(episode_url = common.args.url):
 						'season' 			: season_number,
 						'episode' 			: episode_number,
 						'plot' 				: episode_plot,
-						'premiered' 		: episode_airdate }
+						'premiered' 		: episode_airdate
+					}
 		episodes.append((u, episode_name, episode_thumb, infoLabels,  'list_qualities', False, 'Clip'))
 	return episodes
 
