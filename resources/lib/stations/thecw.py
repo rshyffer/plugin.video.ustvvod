@@ -58,7 +58,6 @@ def seasons(season_url = common.args.url):
 		seasons.append(('Full Episodes',  SITE, 'episodes', season_url + '#1', -1, -1))
 	if clips == 1:
 		seasons.append(('Clips',  SITE, 'episodes', season_url + '#0', -1, -1))
-
 	return seasons
 
 def episodes(episode_url = common.args.url):

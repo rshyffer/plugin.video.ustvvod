@@ -10,14 +10,11 @@ import urllib
 import xbmcaddon
 from bs4 import BeautifulSoup
 
-addon = xbmcaddon.Addon()
-
 SITE = "spike"
 NAME = "Spike TV"
 DESCRIPTION = "Spike TV knows what guys like. The brand speaks to the bold, adventuresome side of men with action-packed entertainment, including a mix of comedy, blockbuster movies, sports, innovative originals and live events. Popular shows like The Ultimate Fighter, TNA iMPACT!, Video Game Awards, DEA, MANswers, MXC, and CSI: Crime Scene Investigation, plus the Star Wars and James Bond movie franchises, position Spike TV as the leader in entertainment for men."
 BASE = "http://www.spike.com"
 SHOWS = "http://www.spike.com/shows/"
-MP4URL = "http://mtvnmobile.vo.llnwd.net/kip0/_pxn=0+_pxK=18639/44620/mtvnorigin"
 
 def masterlist():
 	master_dict = {}
@@ -67,7 +64,6 @@ def _get_manifest_feed(feed_url):
 		return simplejson.loads(page_data)
 	except:
 		return False
-		
 
 def add_items_from_manifestfile(triforceManifestFeed, season_url, multiSeason = False):
 	""" Add container items based on the manifest feed. If there are no items in the feed
@@ -124,7 +120,6 @@ def add_items_from_manifestfile(triforceManifestFeed, season_url, multiSeason = 
 					title = feed['result']['episode']['episodeType']
 					title = re.sub(r"(\w)([A-Z])", r"\1 \2", title).title()
 					seasons.append((title,  SITE, 'episodes', thiszone['feed'] + "?&fullEpisodes=1#ManifestFeed", -1, -1))
-		
 	except Exception, e:
 		pass
 	return seasons
@@ -137,7 +132,6 @@ def _keyinfeed(keys1, keys2):
 	return False
 		
 def seasons(show_url = common.args.url):
-	
 	""" Load the items for a show. This can be "Full Epiodes" and "Clips", or something based
 	    on the data.
 	    Southpark has a different site structure, so this is redirected to a different function.

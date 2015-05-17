@@ -34,7 +34,6 @@ def seasons(episode_url = common.args.url):
 
 def episodes(episode_url = common.args.url):
 	episodes = []
-	
 	episode_data = connection.getURL(EPISODES + episode_url)
 	episode_data2 = simplejson.loads(episode_data)['list_html']
 	episode_tree = BeautifulSoup(episode_data2, 'html.parser').find('ul', id = 'videoList_ul')

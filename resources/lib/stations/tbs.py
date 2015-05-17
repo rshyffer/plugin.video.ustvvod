@@ -18,7 +18,7 @@ def masterlist():
 	return main_turner.masterlist(NAME, MOVIES, SHOWS, SITE)
 
 def seasons(url = common.args.url):
-	return main_turner.seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS,None, url)
+	return main_turner.seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS, None, url)
 
 def episodes(url = common.args.url):
 	return main_turner.episodes_json(SITE, url)
