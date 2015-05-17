@@ -39,7 +39,6 @@ def seasons(season_url = common.args.url):
 	seasons = []
 	season_data = connection.getURL(season_url)
 	try:
-
 		playlist = re.compile('"playlists":\s*(\[.*?\])', re.DOTALL).findall(season_data)[0]
 		season_menu = simplejson.loads(playlist)
 		for season_item in season_menu:
@@ -63,8 +62,8 @@ def seasons(season_url = common.args.url):
 def episodes(url = common.args.url):
 	try:
 		return main_nbcu.episodes(SITE, url, False)
-	except  Exception as e:
-		print "Episode error", e
+	except Exception as e:
+		print "Exception: ", e
 	
 def play_video(video_url = common.args.url):
 	hbitrate = -1
@@ -84,8 +83,6 @@ def play_video(video_url = common.args.url):
 		while not xbmc.Player().isPlaying():
 			xbmc.sleep(100)
 		xbmc.Player().setSubtitles(ustvpaths.SUBTITLE)
-
-
 		
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')

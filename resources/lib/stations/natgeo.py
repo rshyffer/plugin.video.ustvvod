@@ -9,6 +9,7 @@ DESCRIPTION = "Critically acclaimed non-fiction. Network providing info-rich ent
 SHOWS = "http://video.nationalgeographic.com/video/national-geographic-channel?gs=all"
 SPECIALS = "http://video.nationalgeographic.com/video/national-geographic-channel/specials-1/"
 BASE = "http://video.nationalgeographic.com/"
+
 def masterlist():
 	return main_natgeo.masterlist(SITE, SHOWS, SPECIALS)
 

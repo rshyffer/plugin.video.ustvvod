@@ -67,7 +67,7 @@ def play_video(video_url = common.args.url):
 	try:
 		sbitrate = long(addon.getSetting('quality')) * 1000
 	except Exception as e:
-		print "Bitrate error", e
+		print "Exception: ", e
 	hbitrate = -1
 	print sbitrate
 	for item in video_model[0]['flavors']:
