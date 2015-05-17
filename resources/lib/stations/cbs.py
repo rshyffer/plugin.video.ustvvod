@@ -28,7 +28,6 @@ MOVIES = "http://www.cbs.com/carousels/showsByCategory/6/offset/0/limit/100"
 BASE  = "http://www.cbs.com"
 FULLEPISODES = "http://www.cbs.com/carousels/videosBySection/%s/offset/0/limit/100/xs/0/"
 FULLEPISODESWITHSEASON = "http://www.cbs.com/carousels/videosBySection/%s/offset/0/limit/80/xs/0/%s"
-SEASONCLIPS = "http://www.cbs.com/carousels/videosBySection/%s/offset/0/limit/1/xs/0/"
 EPISODE = "http://link.theplatform.com/s/dJ5BDC/%s?format=SMIL&Tracking=true&mbr=true"
 SWFURL = "http://canstatic.cbs.com/chrome/canplayer.swf"
 LOGIN_URL = "https://www.cbs.com/account/login/"
@@ -74,7 +73,6 @@ def seasons(season_urls = common.args.url):
 				section_id = section_data['sectionId']
 				section_title = section_data['title']
 				if section_data['display_seasons'] and filter_menu:
-					
 					for season_item in reversed(filter_menu):
 						if season_item['premiumCount'] != season_item['total_count'] or addon.getSetting('cbs_use_login') == 'true':
 							season_title = season_item['title']
@@ -86,9 +84,9 @@ def seasons(season_urls = common.args.url):
 				else:
 					seasons.append((section_title,  SITE, 'episodes', FULLEPISODES % section_id, -1, -1))
 		except Exception, e:
-			print "Error", e
+			print "Exception: ", e
 	except Exception, e:
-			print "Error", e
+			print "Exception: ", e
 	return seasons
 
 def episodes(episode_url = common.args.url):
@@ -155,7 +153,6 @@ def lookup_meta(url):
 	data = connection.getURL(url, loadcookie = loadcookie)
 	episode_pid = re.compile("\.pid\s?=\s?'?(.*?)'?[&;]").findall(data)[0]
 	return episode_pid
-
 
 def list_qualities(video_url = common.args.url):
 	bitrates = []
@@ -234,15 +231,14 @@ def play_video(video_url = common.args.url):
 					convert_subtitles(closedcaption)
 			finalurl = base_url + ' playpath=' + playpath_url + ' swfurl=' + SWFURL + ' swfvfy=true'
 		item = xbmcgui.ListItem( path = finalurl)
-		
 		try:
 			item.setThumbnailImage(common.args.thumb)
 		except:
 			pass
 		try:
 			item.setInfo('Video', {	'title' : common.args.name,
-							'season' : common.args.season_number,
-							'episode' : common.args.episode_number})
+									'season' : common.args.season_number,
+									'episode' : common.args.episode_number})
 		except:
 			pass
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
