@@ -190,7 +190,7 @@ def list_qualities():
 	else:
 		common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
 
-def play_video():
+def play_video(SWFURL):
 	try:
 		qbitrate = common.args.quality
 	except:

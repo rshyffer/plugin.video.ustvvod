@@ -11,6 +11,7 @@ DESCRIPTION = "With more breakout stars and critically-acclaimed original series
 SHOWS = "http://www.bravotv.com/shows"
 CLIPS = "http://feed.theplatform.com/f/PHSl-B/QiuoTr7I1m13?count=true&form=json&byCustomValue={fullEpisode}{false},{show}{%s}"
 FULLEPISODES = "http://feed.theplatform.com/f/PHSl-B/QiuoTr7I1m13?count=true&form=json&byCustomValue={fullEpisode}{true},{show}{%s}"
+SWFURL = "http://pdk.theplatform.com/5.5.11/pdk/swf/flvPlayer.swf"
 
 def masterlist():
 	master_db = []
@@ -43,6 +44,6 @@ def list_qualities():
 
 def play_video():
 	try:
-		main_nbcu.play_video()
+		main_nbcu.play_video(SWFURL)
 	except Exception, e:
 		print "Exception: ", e

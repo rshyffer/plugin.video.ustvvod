@@ -41,7 +41,7 @@ def list_qualities():
 
 def play_video():
 	try:
-		main_nbcu.play_video()
+		main_nbcu.play_video(SWFURL)
 	except Exception, e:
 		print "Exception", e
 		print traceback.format_exc()

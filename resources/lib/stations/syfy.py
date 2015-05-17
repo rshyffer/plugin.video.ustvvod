@@ -25,4 +25,4 @@ def list_qualities():
 	return main_nbcu.list_qualities()
 
 def play_video():
-	main_nbcu.play_video()
+	main_nbcu.play_video(SWFURL)

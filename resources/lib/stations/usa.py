@@ -14,8 +14,8 @@ DESCRIPTION = "USA Network is cable television's leading provider of original se
 SHOWS = "http://feed.theplatform.com/f/OyMl-B/8IyhuVgUXDd_/categories?form=json&sort=order"
 CLIPS = "http://feed.theplatform.com/f/OyMl-B/8IyhuVgUXDd_?count=true&form=json&byCustomValue={fullEpisode}{false}&byCategories=%s"
 FULLEPISODES = "http://feed.theplatform.com/f/OyMl-B/8IyhuVgUXDd_?count=true&form=json&byCustomValue={fullEpisode}{true}&byCategories=%s"
-SWFURL = "http://www.usanetwork.com/videos/pdk/swf/flvPlayer.swf"
 FULLEPISODESWEB = "http://www.usanetwork.com/%s/video-categories/full-episodes"
+SWFURL = "http://www.usanetwork.com/videos/pdk/swf/flvPlayer.swf"
 BASE = "http://www.usanetwork.com"
 
 def masterlist():
@@ -54,9 +54,9 @@ def episodes_web(episode_url = common.args.url):
 			u += '&mode="' + SITE + '"'
 			u += '&sitemode="play_video"'
 			infoLabels={	'title' : episode_name,
-						 'season' : season_number,
-						 'episode' : episode_number,
-						 'TVShowTitle' : show_name
+							'season' : season_number,
+							'episode' : episode_number,
+							'TVShowTitle' : show_name
 						}
 			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, 'Full Episode'))
 	return episodes
@@ -65,4 +65,4 @@ def list_qualities():
 	return main_nbcu.list_qualities()
 
 def play_video():
-	main_nbcu.play_video()
+	main_nbcu.play_video(SWFURL)
