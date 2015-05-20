@@ -952,7 +952,9 @@ def add_video(video_url, displayname, thumb = None, fanart = None, infoLabels = 
 		if show_title is None:
 			show_title = ''
 		quailty_u = sys.argv[0] + '?url='+ urllib.quote_plus('<join>'.join([show_title, str(season), str(episode), thumb, base64.b64encode(displayname), quality_mode, video_url])) +'&mode=contextmenu' + '&sitemode=select_quality' 
+		q_u = sys.argv[0] + '?url='+ urllib.quote_plus('<join>'.join([show_title, str(season), str(episode), thumb, base64.b64encode(displayname), quality_mode, video_url])) +'&mode=contextmenu' + '&sitemode=queue' 
 		contextmenu.append((smart_utf8(addon.getLocalizedString(39022)), 'XBMC.PlayMedia(%s)' % quailty_u))
+		contextmenu.append((smart_utf8("Queue"), 'XBMC.RunPlugin(%s)' % q_u))
 		item.addContextMenuItems(contextmenu)
 	xbmcplugin.addDirectoryItem(pluginHandle, url = video_url, listitem = item, isFolder = False)
 

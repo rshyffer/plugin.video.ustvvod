@@ -99,3 +99,22 @@ def select_quality():
 	setattr(common.args, 'season_number', int(season))
 	setattr(common.args, 'show_title', show_title)
 	getattr(network, common.args.sitemode)()
+	
+def queue():
+	playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+	show_title, season, episode, thumb, displayname, qmode, url = args.url.split('<join>')
+	name =  base64.b64decode(displayname)
+	item = xbmcgui.ListItem(name, path = url)
+	try:
+		item.setThumbnailImage(thumb)
+	except:
+		pass
+	try:
+		item.setInfo('Video', {	'title' : name,
+						'season' : season,
+						'episode' : episode,
+						'TVShowTitle' : show_title})
+	except:
+		pass
+	playlist.add(url, item)
+	xbmc.executebuiltin('XBMC.Notification(%s, %s, 5000, %s)' % ("Queued", name, thumb))
