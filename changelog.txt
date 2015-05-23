@@ -1,3 +1,12 @@
+version 1.2.5
+
+  * correct CC season labels
+  * quality selection restored in food network
+  * common fixes
+  * added a queue option
+  * added script.module.cssutils
+  * added script.module.pycaption
+
 version 1.2.4
 
   * fix for Larry Wilmore Sghow
