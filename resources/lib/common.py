@@ -42,7 +42,6 @@ class XBMCPlayer( xbmc.Player ):
 	def __init__( self, *args, **kwargs  ):
 		xbmc.Player.__init__( self )
 		self.is_active = True
-		print "************************************* INT **********************************"
 	
 	def onPlayBackSpeedChanged( self, speed ):
 		print "**************************** Speed Event *****************************" + str(speed)
@@ -113,7 +112,6 @@ network_module_cache = {}
 def use_proxy():
 	xbmc_version = xbmc.getInfoLabel( "System.BuildVersion" )
 	setting = int(addon.getSetting('use_builtin_ssl'))
-	print "S", setting
 	proxy = True
 	if setting == 1:
 		proxy = False
@@ -125,7 +123,6 @@ def season_list():
 	try:
 		seasons = get_seasons(args.mode, args.sitemode, args.url)
 		for season in seasons:
-			print season
 			section_title,  site, sitemode, url, locked, unlocked = season
 			add_directory(smart_utf8(section_title),  site, sitemode, url, locked = locked, unlocked = unlocked)
 		set_view('seasons')
@@ -885,7 +882,6 @@ def add_directory(name, mode = '', sitemode = '', directory_url = '', thumb = No
 					'premiered' : aired,
 					'plot' : description,
 					'count' : count }
-	print description
 	u = sys.argv[0]
 	u += '?url="' + urllib.quote_plus(directory_url) + '"'
 	u += '&mode="' + mode + '"'
