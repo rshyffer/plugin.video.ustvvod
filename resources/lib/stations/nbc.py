@@ -27,7 +27,7 @@ SITE = "nbc"
 NAME = "NBC"
 DESCRIPTION = "NBC Entertainment develops and schedules programming for the network's primetime, late-night, and daytime schedules. NBC's quality programs and balanced lineup have earned the network critical acclaim, numerous awards, and ratings success. The network has earned more Emmy Awards than any network in television history. NBC's roster of popular scripted series includes critically acclaimed comedies like Emmy winners The Office, starring Steve Carell, and 30 Rock, starring Alec Baldwin and Tina Fey. Veteran, award-winning dramas on NBC include Law & Order: SVU, Chuck, and Friday Night Lights. Unscripted series for NBC include the hits The Biggest Loser, Celebrity Apprentice, and America's Got Talent. NBC's late-night story is highlighted by The Tonight Show with Jay Leno, Late Night with Jimmy Fallon, Last Call with Carson Daly, and Saturday Night Live. NBC Daytime's Days of Our Lives consistently finishes among daytime's top programs in the valuable women 18-34 category. Saturday mornings the network broadcasts Qubo on NBC, a three-hour block that features fun, entertaining, and educational programming for kids, including the award-winning, 3-D animated series Veggie Tales."
 BASE = "http://nbc.com"
-SHOWS = "http://www.nbc.com/shows"
+SHOWS = "http://www.nbc.com/ajax/dropdowns-global/America-New_York"
 EPISODES = "http://www.nbc.com/data/node/%s/video_carousel"
 VIDEOPAGE = "http://videoservices.nbcuni.com/player/clip?clear=true&domainReq=www.nbc.com&geoIP=US&clipId=%s"
 SMIL_BASE = "http://video.nbcuni.com/"
@@ -37,7 +37,8 @@ TONIGHT_SHOW_FEED = "%s/content/a/filter-items/?type=video"
 def masterlist():
 	master_db = []
 	master_data = connection.getURL(SHOWS)
-	master_menu =  re.compile('<li class="views-row .*?">.*?<div>\s*<div><a href="(.*?)">.*?<div class="field .*?">\n\s*(.*?)</div>.*?</li>' , re.DOTALL).findall(master_data)
+	json = simplejson.loads(master_data)['menu_html']
+	master_menu =  re.compile('<li class="views-row .*?">.*?<div>\s*<div><a href="(.*?)">.*?<div class="field .*?">\n\s*(.*?)</div>.*?</li>' , re.DOTALL).findall(json)
 	for season_url, master_name in master_menu:
 		master_name = common.smart_unicode(master_name).strip()
 		master_name = HTMLParser.HTMLParser().unescape(master_name)
