@@ -4,7 +4,6 @@ import common
 import connection
 import m3u8
 import base64
-import datetime
 import os
 import ustvpaths
 import re
@@ -54,24 +53,9 @@ def seasons(SITE, FULLEPISODES, CLIPS, FULLEPISODESWEB = None, season_urls = com
 				web_data = connection.getURL(FULLEPISODESWEB % show)
 				web_tree = BeautifulSoup(web_data, 'html.parser')
 				all = len(web_tree.find_all('div', class_ = 'view-mode-vid_teaser_show_episode'))
-				print "All", all
 				auth = len(web_tree.find_all('div', class_ = 'tve-video-auth'))
-				print "auth",auth
 				if all > auth:
 					seasons.append(('Full Episodes',  SITE, 'episodes_web', FULLEPISODESWEB % show, -1, -1))
-				else:
-					#validate eps only
-					eps = web_tree.find( class_ = 'view-syfy-show-episodes').find_all(text= re.compile('Full Episode'))
-					headers = []
-					for ep in eps:
-						heading = ep.parent.parent.parent.parent.parent.findPrevious('h3').div.string.strip()
-						if heading not in headers:
-							headers.append(heading)
-						print heading
-					#w#eb_menu = web_tree.find_all('option', text = re.compile('[0-9]'))
-					for web_item in headers:
-						print FULLEPISODESWEB % show + '/' + web_item
-						seasons.append(('Season ' +web_item,  SITE, 'episodes_web', FULLEPISODESWEB % show + '/' + web_item, -1, -1))
 			except Exception as e:
 				print "Error with web processing", e
 		season_data2 = connection.getURL(CLIPS % urllib.quote_plus(season_url) + '&range=0-1')
@@ -159,57 +143,54 @@ def episodes(SITE, episode_url = common.args.url, quailty = True):
 			quality_mode = None
 		episodes.append((u, episode_name, episode_thumb, infoLabels, quality_mode, False, episode_type))
 	return episodes
-#	display = int(bitrate) / 1024
-	
-def list_qualities(M3UURL = None):
+
+def list_qualities():
 	exception = False
 	video_url = common.args.url
+	bitrates = []
 	video_data = connection.getURL(video_url)
+	video_tree = BeautifulSoup(video_data, 'html.parser')
+	try:
+		video_rtmp = video_tree.meta['base']
+	except:
+		video_rtmp = None
 	if 'link.theplatform.com' not in video_url:
-		print video_url
 		video_tree =  BeautifulSoup(video_data, 'html.parser')
-		try:
-			player_url = 'http:' + video_tree.find('div', class_ = 'video-player-wrapper').iframe['src']
-		except:
-			player_url = 'http:' + video_tree.find('div', id = 'pdk-player')['data-src']
-		print player_url
+		player_url = 'http:' + video_tree.find('div', class_ = 'video-player-wrapper').iframe['src']
 		player_data = connection.getURL(player_url)
-		player_tree = BeautifulSoup(player_data, 'html.parser')
-		print player_tree
+		player_tree =  BeautifulSoup(player_data, 'html.parser')
 		video_url = player_tree.find('link', type = "application/smil+xml")['href']
-		video_url = video_url + '&format=SCRIPT'
-		
-		script_data = connection.getURL(video_url)
-		script_menu = simplejson.loads(script_data)
-		if script_menu['pl1$entitlement'] != 'auth':
-			bitrates,exception = smil_bitrates(video_url)
-		else:
-			print "Need to generse master url"
-			captions = script_menu['captions'][0]['src']
-			print captions
-			#733/479/150330_2855999_Arms_of_Mine
-			try:
-				id = re.compile('([0-9]+.[0-9]+.*).tt').findall(captions)[0]
-			except Exception, e:
-				print e
-			print id
-			td = (datetime.datetime.utcnow()- datetime.datetime(1970,1,1))
-			unow = int((td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6)
-			print unow
-			master_url = M3UURL % (id, str(unow), str(unow+60))
-			bitrates = m3u_bitrates(master_url)
-			return bitrates
-			#need to set captions on player
+		video_url = video_url + '&format=SMIL'
+		video_data = connection.getURL(video_url)
+	if video_rtmp is not None:
+		for video_index in video_rtmp:
+			bitrate = int(video_index['system-bitrate'])
+			display = int(bitrate)
+			bitrates.append((display, bitrate))
 	else:
-		bitrates,exception = smil_bitrates(video_url)
+		video_data = connection.getURL(video_url + '&manifest=m3u')
+		video_tree = BeautifulSoup(video_data, 'html.parser')
+		if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
+			video_url2 = video_tree.seq.find_all('video')[0]
+			video_url3 = video_url2['src']
+			video_data2 = connection.getURL(video_url3)
+			video_url4 = m3u8.parse(video_data2)
+			for video_index in video_url4.get('playlists'):
+				bitrate = int(video_index.get('stream_info')['bandwidth'])
+				try:
+					codecs =  video_index.get('stream_info')['codecs']
+				except:
+					codecs = ''
+				display = int(bitrate) / 1024
+				bitrates.append((display, bitrate))
+		else:
+			exception = True
 	if  not exception:
 		return bitrates
 	else:
 		common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
 
-		
-
-def play_video(SWFURL, M3UURL = None, BASE = None):
+def play_video(SWFURL):
 	key_url = None
 	try:
 		qbitrate = common.args.quality
@@ -217,69 +198,19 @@ def play_video(SWFURL, M3UURL = None, BASE = None):
 		qbitrate = None
 	exception = False
 	video_url = common.args.url
-	#if BASE is not None and BASE not in video_url:
-	#	video_url = BASE + video_url 
 	hbitrate = -1
 	lbitrate = -1
 	sbitrate = int(addon.getSetting('quality')) * 1024
 	closedcaption = None
 	video_data = connection.getURL(video_url)
 	if 'link.theplatform.com' not in video_url:
-		print video_url
 		video_tree =  BeautifulSoup(video_data, 'html.parser')
-		try:
-			player_url = 'http:' + video_tree.find('div', class_ = 'video-player-wrapper').iframe['src']
-		except:
-			player_url = 'http:' + video_tree.find('div', id = 'pdk-player')['data-src']
-		print player_url
+		player_url = 'http:' + video_tree.find('div', class_ = 'video-player-wrapper').iframe['src']
 		player_data = connection.getURL(player_url)
 		player_tree =  BeautifulSoup(player_data, 'html.parser')
-		print player_tree
 		video_url = player_tree.find('link', type = "application/smil+xml")['href']
-		video_url = video_url + '&format=SCRIPT'
-		
-		script_data = connection.getURL(video_url)
-		script_menu = simplejson.loads(script_data)
-		if script_menu['pl1$entitlement'] != 'auth':
-			finalurl,exception = process_smil(video_url)
-		else:
-			captions = script_menu['captions'][0]['src']
-			try:
-				id = re.compile('([0-9]+.[0-9]+.*).tt').findall(captions)[0]
-			except Exception, e:
-				print e
-			print id
-			td = (datetime.datetime.utcnow()- datetime.datetime(1970,1,1))
-			unow = int((td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6)
-			print unow
-			master_url = M3UURL % (id, str(unow), str(unow+60))
-			finalurl = process_m3u(master_url, qbitrate)
-	else:
-		finalurl, exception = process_smil(video_url)
-	if  not exception:
-		item = xbmcgui.ListItem(path = finalurl)
-
-		try:
-			item.setThumbnailImage(common.args.thumb)
-		except:
-			pass
-		try:
-			item.setInfo('Video', {	'title' : common.args.name,
-							'season' : common.args.season_number,
-							'episode' : common.args.episode_number,
-							'TVShowTitle' : common.args.show_title})
-		except:
-			pass
-		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
-		while player.is_active:
-			player.sleep(250)
-	else:
-		common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
-
-
-def process_smil(video_url, qbitrate = None):
-	closedcaption = None
-	video_data = connection.getURL(video_url)
+		video_url = video_url + '&format=SMIL'
+		video_data = connection.getURL(video_url)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	video_rtmp = video_tree.meta
 	playpath_url = None
@@ -322,111 +253,78 @@ def process_smil(video_url, qbitrate = None):
 		if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
 			video_url2 = video_tree.body.seq.video
 			video_url3 = video_url2['src']
-			finalurl = process_m3u(video_url3, qbitrate)
-			return finalurl, False
-
+			video_data2 = connection.getURL(video_url3, savecookie = True)
+			video_url5 = m3u8.parse(video_data2)
+			for video_index in video_url5.get('playlists'):
+				bitrate = int(video_index.get('stream_info')['bandwidth'])
+				try:
+					codecs =  video_index.get('stream_info')['codecs']
+				except:
+					codecs = ''
+				if qbitrate is None:
+					if (bitrate < lbitrate or lbitrate == -1):
+						lbitrate = bitrate
+						lplaypath_url =  video_index.get('uri')
+					if (bitrate > hbitrate and bitrate <= sbitrate):
+						hbitrate = bitrate
+						playpath_url = video_index.get('uri')
+				elif  bitrate == qbitrate:
+					playpath_url =  video_index.get('uri')
+			if playpath_url is None:
+				playpath_url = lplaypath_url
+			if not common.use_proxy() and int(addon.getSetting('connectiontype')) == 0:
+				player._localHTTPServer = False
+				finalurl = playpath_url
+			else:
+				m3u_data = connection.getURL(playpath_url, loadcookie = True)
+				try:
+					key_url = re.compile('URI="(.*?)"').findall(m3u_data)[0]
+					
+					key_data = connection.getURL(key_url, loadcookie = True)		
+					key_file = open(ustvpaths.KEYFILE % '0', 'wb')
+					key_file.write(key_data)
+					key_file.close()
+				except:
+					pass
+				video_url5 = re.compile('(http:.*?)\n').findall(m3u_data)
+				if int(addon.getSetting('connectiontype')) > 0:
+					proxy_config = common.proxyConfig()
+					for i, video_item in enumerate(video_url5):
+						newurl = base64.b64encode(video_item)
+						newurl = urllib.quote_plus(newurl)
+						m3u_data = m3u_data.replace(video_item, 'http://127.0.0.1:12345/proxy/' + newurl + '/' + proxy_config)
+				filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
+				xbmc.executebuiltin(filestring)
+				time.sleep(20)
+				if key_url is not None:
+					m3u_data = m3u_data.replace(key_url, 'http://127.0.0.1:12345/play0.key')
+				playfile = open(ustvpaths.PLAYFILE, 'w')
+				playfile.write(m3u_data)
+				playfile.close()
+				finalurl =  ustvpaths.PLAYFILE
 		else:
 			exception = True
-	return finalurl, exception
 	
+	if  not exception:
+		item = xbmcgui.ListItem(path = finalurl)
 
-def smil_bitrates(video_url):
-	bitrates = []
-	video_data = connection.getURL(video_url)
-	video_tree = BeautifulSoup(video_data, 'html.parser')
-	video_rtmp = video_tree.meta
-	playpath_url = None
-	lplaypath_url = None
-	try:
-		base_url = video_rtmp['base']
-	except:
-		base_url = None
-	if base_url is not None:
-			video_url2 = video_tree.switch.find_all('video')
-			for video_index in video_url2:
-				bitrate = int(video_index['system-bitrate'])
-				bitrates.append((int(bitrate) / 1024, bitrate))
-	else:
-		video_data = connection.getURL(video_url + '&manifest=m3u&Tracking=true&Embedded=true&formats=F4M,MPEG4')
-		video_tree = BeautifulSoup(video_data, 'html.parser')
-		if  video_tree.find('param', attrs = {'name' : 'isException', 'value' : 'true'}) is None:
-			video_url2 = video_tree.body.seq.video
-			video_url3 = video_url2['src']
-			bitrates = m3u_bitrates(video3_url)
-		else:
-			exception = True
-	return bitrates, exception
-
-def m3u_bitrates(m3u_url):
-	bitrates = []
-	video_data2 = connection.getURL(m3u_url, savecookie = True)
-	video_url5 = m3u8.parse(video_data2)
-	for video_index in video_url5.get('playlists'):
-		print video_index
-		bitrate = int(video_index.get('stream_info')['bandwidth'])
-		print bitrate
-		bitrates.append((int(bitrate) / 1024, bitrate))
-	return bitrates
-
-def process_m3u(m3u_url, qbitrate = None):
-	key_url = None
-	sbitrate = int(addon.getSetting('quality')) * 1024
-	lbitrate = -1
-	hbitrate = -1
-	print "master", m3u_url
-	video_data2 = connection.getURL(m3u_url, savecookie = True)
-	print "DATA",video_data2
-	video_url5 = m3u8.parse(video_data2)
-	for video_index in video_url5.get('playlists'):
-		print video_index
-		bitrate = int(video_index.get('stream_info')['bandwidth'])
-		print bitrate
 		try:
-			codecs =  video_index.get('stream_info')['codecs']
-		except:
-			codecs = ''
-		if qbitrate is None:
-			if (bitrate < lbitrate or lbitrate == -1):
-				lbitrate = bitrate
-				lplaypath_url =  video_index.get('uri')
-			if (bitrate > hbitrate and bitrate <= sbitrate):
-				hbitrate = bitrate
-				playpath_url = video_index.get('uri')
-		elif  bitrate == qbitrate:
-			playpath_url =  video_index.get('uri')
-	if playpath_url is None:
-		playpath_url = lplaypath_url
-	if not common.use_proxy() and int(addon.getSetting('connectiontype')) == 0:
-		player._localHTTPServer = False
-		return playpath_url
-	else:
-		m3u_data = connection.getURL(playpath_url, loadcookie = True)
-		try:
-			key_url = re.compile('URI="(.*?)"').findall(m3u_data)[0]
-			
-			key_data = connection.getURL(key_url, loadcookie = True)		
-			key_file = open(ustvpaths.KEYFILE % '0', 'wb')
-			key_file.write(key_data)
-			key_file.close()
+			item.setThumbnailImage(common.args.thumb)
 		except:
 			pass
-		video_url5 = re.compile('(http:.*?)\n').findall(m3u_data)
-		if int(addon.getSetting('connectiontype')) > 0:
-			proxy_config = common.proxyConfig()
-			for i, video_item in enumerate(video_url5):
-				newurl = base64.b64encode(video_item)
-				newurl = urllib.quote_plus(newurl)
-				m3u_data = m3u_data.replace(video_item, 'http://127.0.0.1:12345/proxy/' + newurl + '/' + proxy_config)
-		filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
-		xbmc.executebuiltin(filestring)
-		time.sleep(20)
-		if key_url is not None:
-			m3u_data = m3u_data.replace(key_url, 'http://127.0.0.1:12345/play0.key')
-		playfile = open(ustvpaths.PLAYFILE, 'w')
-		playfile.write(m3u_data)
-		playfile.close()
-		return ustvpaths.PLAYFILE
-				
+		try:
+			item.setInfo('Video', {	'title' : common.args.name,
+							'season' : common.args.season_number,
+							'episode' : common.args.episode_number,
+							'TVShowTitle' : common.args.show_title})
+		except:
+			pass
+		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
+		while player.is_active:
+			player.sleep(250)
+	else:
+		common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
+
 def clean_subs(data):
 	br = re.compile(r'<br.*?>')
 	tag = re.compile(r'<.*?>')
