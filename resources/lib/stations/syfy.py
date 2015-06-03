@@ -44,9 +44,8 @@ def episodes_web(episode_url = common.args.url):
 	web_tree = BeautifulSoup(episode_data, 'html.parser')
 	show_name = re.compile('showSite":"(.*?)"').findall(episode_data)[0]
 	episode_menu = web_tree.find( class_ = 'view-syfy-show-episodes').find_all(class_ = 'views-row')
-	for i, episode_item in enumerate(episode_menu):
+	for episode_item in episode_menu:
 		if episode_item.find(text = re.compile('Full Episode')):
-		
 			episode_name = episode_item.h2.a.contents[1]
 			try:
 				season_number = int(episode_url.split('/')[-1])
@@ -64,6 +63,7 @@ def episodes_web(episode_url = common.args.url):
 				episode_thumb = episode_item.img['src']
 			except:
 				episode_thumb = None
+			episode_plot = episode_item.p.string
 			url = episode_item.a['href']
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'
@@ -72,7 +72,8 @@ def episodes_web(episode_url = common.args.url):
 			infoLabels={	'title' : episode_name,
 							'season' : season_number,
 							'episode' : episode_number,
-							'TVShowTitle' : show_name
+							'TVShowTitle' : show_name,
+							'plot' : episode_plot
 						}
 			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, 'Full Episode'))
 	next = None
