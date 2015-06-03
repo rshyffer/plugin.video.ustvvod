@@ -36,7 +36,6 @@ def play_video():
 	main_nbcu.play_video(SWFURL, M3UURL, BASE)
 	
 def episodes_web(episode_url = common.args.url):
-	print episode_url
 	episodes = []
 	try:
 		episode_data = connection.getURL(episode_url)
@@ -44,32 +43,27 @@ def episodes_web(episode_url = common.args.url):
 		print "Exception", e
 	web_tree = BeautifulSoup(episode_data, 'html.parser')
 	show_name = re.compile('showSite":"(.*?)"').findall(episode_data)[0]
-	print show_name
-	print  web_tree.find( class_ = 'view-syfy-show-episodes')
 	episode_menu = web_tree.find( class_ = 'view-syfy-show-episodes').find_all(class_ = 'views-row')
-	print episode_menu
 	for i, episode_item in enumerate(episode_menu):
 		if episode_item.find(text = re.compile('Full Episode')):
-			print episode_item
 		
 			episode_name = episode_item.h2.a.contents[1]
-			print episode_name
 			try:
 				season_number = int(episode_url.split('/')[-1])
 			except:
-				season_number = -1
-			print season_number
+				try:
+					season_number = int(episode_url.split('/')[-1].split('?')[0])
+				except:
+					season_number = -1
 			try:
 				print  episode_item.h2.a.contents[0]
 				episode_number = int(episode_item.h2.a.span.string.replace('.',''))
 			except:
 				episode_number = -1
-			print episode_number
 			try:
 				episode_thumb = episode_item.img['src']
 			except:
 				episode_thumb = None
-			print episode_thumb
 			url = episode_item.a['href']
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'
@@ -81,4 +75,12 @@ def episodes_web(episode_url = common.args.url):
 							'TVShowTitle' : show_name
 						}
 			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, 'Full Episode'))
+	next = None
+	try:
+		next = web_tree.find('li', class_ = 'pager-next')
+		if next:
+			next_url = episode_url + '?' + next.a['href'].split('?')[1]
+			episodes.extend(episodes_web(next_url))
+	except:
+		pass
 	return episodes
