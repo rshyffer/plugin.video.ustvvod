@@ -77,7 +77,7 @@ def seasons(season_urls = common.args.url):
 					if 'shows' in season_url or 'packages' in season_url or 'chef' in season_url:
 						seasons.append((season_name,  SITE, 'episodes', season_url, -1, -1))
 				except:
-					print season_grandparent
+					pass
 	return seasons
 
 def episodes(episode_url = common.args.url):
@@ -105,7 +105,10 @@ def episodes(episode_url = common.args.url):
 			episode_thumb = None
 		episode_plot = episode_item['description']
 		show_title = episode_item['showName']
-		episode_type = 'Clip'
+		if episode_duration < 500:
+			episode_type = 'Clip'
+		else:
+			episode_type = 'Full Episode'
 		if url is not None:
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'

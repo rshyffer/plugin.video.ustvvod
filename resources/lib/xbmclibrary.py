@@ -61,6 +61,7 @@ class Main:
 			self.GetAllShows()
 		elif common.args.mode.endswith('ExportShowLibrary'):
 			series_title, mode, submode, url = common.args.url.split('<join>')
+			series_title = urllib.unquote_plus(series_title)
 			self.GetShow(series_title, mode, submode, url)
 		if (addon.getSetting('updatelibrary') == 'true'):
 			self.UpdateLibrary()
@@ -146,7 +147,7 @@ class Main:
 			for season in seasons:
 				section_title,  site, subsitemode, suburl, locked, unlocked = season
 				if 'Clips' not in section_title and ('Episode' in section_title or 'Season' in section_title):
-					episodes = common.get_episodes(mode, subsitemode, suburl) 
+					episodes = common.get_episodes(mode, subsitemode, suburl, tvdb_id) 
 					allepisodes.extend(episodes)
 					if allepisodes != []:
 						for episode in allepisodes:
@@ -166,7 +167,7 @@ class Main:
 							if type == 'Full Episode' and number > -1:
 								has_episodes = True
 		else:
-			episodes = common.get_episodes(mode, sitemode, url)
+			episodes = common.get_episodes(mode, sitemode, url, tvdb_id)
 			allepisodes = episodes
 			has_movies = True
 		if has_movies:

@@ -14,7 +14,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, SoupStrainer
 
 try:
 	import StorageServer
@@ -158,7 +158,11 @@ def enrich_infolabels(infolabels, expires_date = None, date_format = None, epoch
 	return infolabels
 	
 def episode_list():
-	episodes = get_episodes(args.mode, args.sitemode)
+	try:
+		tvdb_id = args.tvdb_id 
+	except:
+		tvdb_id = None
+	episodes = get_episodes(args.mode, args.sitemode, args.url, tvdb_id)
 	for episode in episodes:
 		u, episode_name, episode_thumb, infoLabels, qmode, HD, media_type = episode
 		try:
@@ -168,10 +172,36 @@ def episode_list():
 	set_view('episodes')
 
 
-def get_episodes(network_name, site_mode, url = args.url):
+def get_episodes(network_name, site_mode, url = args.url, tvdb_id = None):
 	network = get_network(network_name)
 	episodes = cache.cacheFunction(getattr(network, site_mode) , url)
-	return episodes
+	newepisodes = []
+	series_tree = None 
+	try:
+		tvdb_setting = int(addon.getSetting('strict_names'))
+	except:
+		tvdb_setting = 0
+	if tvdb_id is not None and tvdb_setting !=1:
+		for episode in episodes:
+			try:
+				u, episode_name, episode_thumb, infoLabels, qmode, HD, media_type = episode
+				if ('episode' not in infoLabels.keys()  or infoLabels['episode'] == -1 or  'season' not in infoLabels.keys() or infoLabels['season'] == -1) and media_type == 'Full Episode':
+					if series_tree is None:
+						series_url = TVDBURL + ('/api/%s/series/%s/all/en.xml' % (TVDBAPIKEY, tvdb_id))
+						series_xml = connection.getURL(series_url, connectiontype = 0)
+						series_tree = BeautifulSoup(series_xml, 'html.parser', parse_only = SoupStrainer('episode'))
+					try:
+						episode_item = series_tree.find('episodename', text = episode_name).parent
+					except:
+						episode_item = series_tree.find('episodename', text = re.compile(episode_name.replace(' ', ' ?').replace('.', '\.').replace('The ', '(The )?').replace('.', '.,?').replace('-', '-?').replace(',', ',?|( and)?'), re.I)).parent
+					infoLabels['episode'] =  int(episode_item.episodenumber.string)
+					infoLabels['season'] =  int(episode_item.seasonnumber.string)
+			except:
+				pass
+			newepisodes.append((u, episode_name, episode_thumb, infoLabels, qmode, HD, media_type))
+	else:
+		newepisodes = episodes
+	return newepisodes
 
 def root_list(network_name):
 	"""
@@ -833,7 +863,6 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 		contextmenu.append((smart_utf8(addon.getLocalizedString(39010)), 'XBMC.RunPlugin(%s)' % hide_u))
 	delete_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=contextmenu' + '&sitemode=delete_show'
 	contextmenu.append((smart_utf8(addon.getLocalizedString(39011)), 'XBMC.RunPlugin(%s)' % delete_u))
-	
 	export_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=ExportShowLibrary' + '&submode=exportshow'
 	contextmenu.append((smart_utf8(addon.getLocalizedString(39034)) % series_title, 'XBMC.RunPlugin(%s)' % export_u))
 	if masterList and addon.getSetting('network_in_master') == 'true': 

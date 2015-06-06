@@ -74,6 +74,11 @@ def episodes(episode_url = common.args.url):
 					pass
 			episode_type = 'Full ' + episode_item['type']
 			show_name = episode_item['series_title']
+			try:
+				episode_number, episode_season = re.compile('\(Ep. ([0-9])([0-9][0-9])\)').search(episode_name).groups()
+			except:
+				episode_number = -1
+				episode_season = -1
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'
 			u += '&mode="' + SITE + '"'
@@ -82,7 +87,9 @@ def episodes(episode_url = common.args.url):
 							'durationinseconds' : episode_duration,
 							'plot' : episode_plot,
 							'premiered' : episode_airdate,
-							'TVShowTitle' : show_name}
+							'TVShowTitle' : show_name,
+							'season' : episode_season,
+							'episode' : episode_number}
 			episodes.append((u, episode_name, episode_thumb, infoLabels, 'select_quailty', HD, episode_type))
 	return episodes
 
@@ -177,37 +184,20 @@ def play_video(guid = common.args.url):
 
 def select_quailty(guid = common.args.url):
 	video_url =  VIDEO % guid
-	#hbitrate = -1
-	#lbitrate = -1
 	sbitrate = int(addon.getSetting('quality')) * 1024
 	closedcaption = None
 	video_url2 = None
-	#finalurl = ''
 	video_data = connection.getURL(video_url)
 	video_menu = simplejson.loads(video_data)['items']
 	video_item = video_menu[0] 
-	#try:
-	#	closedcaption = video_item['captions']['sami']['url']
-	#except:
-	#	pass
-#	if (addon.getSetting('enablesubtitles') == 'true') and (closedcaption is not None) and (closedcaption != ''):
-#		convert_subtitles(closedcaption.replace(' ', '+'))
 	bitrates = []
 	if addon.getSetting('preffered_stream_type') == 'RTMP':
 		for video in video_item['videos']['flash'].itervalues():
 			try:
 				bitrate = video['bitrate']
-				# if bitrate < lbitrate or lbitrate == -1:
-					# lbitrate = bitrate
-					# luri = video['url']
-				# if bitrate > hbitrate and bitrate <= sbitrate:
-					# hbitrate = bitrate
-					# uri = video['url']
-				# print video
 				bitrates.append((bitrate,bitrate))
 			except:
 				pass
-			#print uri,luri
 	else:
 		ipad_url = video_item['videos']['iphone']['url']
 		video_data2 = connection.getURL(ipad_url + '?format=json')
