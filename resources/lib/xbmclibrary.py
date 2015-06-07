@@ -65,9 +65,13 @@ class Main:
 			self.GetShow(series_title, mode, submode, url)
 		if (addon.getSetting('updatelibrary') == 'true'):
 			self.UpdateLibrary()
+			self.CleanLibrary()
 	
 	def UpdateLibrary(self):
 		xbmc.executebuiltin("UpdateLibrary(video)")
+		
+	def CleanLibrary(self):
+		xbmc.executebuiltin("CleanLibrary(video)")
 	
 	def Notification(self, heading, message, duration = 10000, image = None):
 		if self.EnableNotifications == True:
@@ -143,6 +147,11 @@ class Main:
 		has_episodes = False
 		has_movies = False
 		if '--' not in series_title:
+			directory = os.path.join(TV_SHOWS_PATH, self.cleanfilename(show_name))
+			try:
+				shutil.rmtree(directory)
+			except:
+				pass
 			seasons = common.get_seasons(mode, sitemode, url)
 			for season in seasons:
 				section_title,  site, subsitemode, suburl, locked, unlocked = season
@@ -177,7 +186,6 @@ class Main:
 				icon = episode[2]
 				self.Notification(addon.getLocalizedString(39036), addon.getLocalizedString(39037) % episode[1], image = icon)
 		elif has_episodes:
-			directory = os.path.join(TV_SHOWS_PATH, self.cleanfilename(show_name))
 			self.CreateDirectory(directory)
 			if addon.getSetting('shownfo') == 'true':
 				
