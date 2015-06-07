@@ -18,6 +18,7 @@ import xbmcaddon
 import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
+from pycaption import detect_format, SRTWriter
 from Queue import PriorityQueue
 
 addon = xbmcaddon.Addon()
@@ -25,7 +26,7 @@ player = common.XBMCPlayer()
 pluginHandle = int(sys.argv[1])
 
 VIDEOURL = 'http://media.mtvnservices.com/'
-VIDEOURLAPI = 'http://media-utils.mtvnservices.com/services/MediaGenerator/%s?device=Android&deviceOsVersion=4.4.4'
+VIDEOURLAPI = 'http://media-utils.mtvnservices.com/services/MediaGenerator/%s'
 TYPES = [('fullEpisodes' , 'Full Episodes'), ('bonusClips,afterShowsClips,recapsClips,sneakPeeksClips,dailies,showClips' , 'Extras')]
 DEVICE = 'Xbox'
 BITRATERANGE = 10
@@ -186,12 +187,9 @@ def play_video(BASE, video_uri = common.args.url, media_base = VIDEOURL):
 			video_data2 = queue.get()
 			video_url2 += video_data2[1] + ' , '
 			segments.append(video_data2[2])
-			closedcaption.append((video_data2[3], video_data2[2], video_data2[0]))
+			closedcaption.append((video_data2[3], int(video_data2[0])))
 		player._segments_array = segments
-		filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
-		xbmc.executebuiltin(filestring)
 		finalurl = video_url2[:-3]
-		localhttpserver = True
 		time.sleep(20)
 		if (addon.getSetting('enablesubtitles') == 'true') and closedcaption:
 			convert_subtitles(closedcaption)
@@ -237,13 +235,9 @@ def play_video2(API, video_url = common.args.url):
 		video_data2 = queue.get()
 		video_url2 += video_data2[1] + ' , '
 		segments.append(video_data2[2])
-		closedcaption.append((video_data2[3], video_data2[2], video_data2[0]))
+		closedcaption.append((video_data2[3], int(video_data2[0])))
 	player._segments_array = segments
-	filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH, 'proxy.py') + ', 12345)'
-	xbmc.executebuiltin(filestring)
 	finalurl = video_url2[:-3]
-	localhttpserver = True
-	time.sleep(20)
 	if (addon.getSetting('enablesubtitles') == 'true') and closedcaption:
 		convert_subtitles(closedcaption)
 		player._subtitles_Enabled = True
@@ -270,7 +264,6 @@ def get_videos(queue, i, video_item, qbitrate):
 	except:
 		try:
 			video_mgid = video_item['url'].split('uri=')[1].split('&')[0]
-			
 		except:
 			try:
 				video_mgid = video_item['url'].split('mgid=')[1].split('&')[0]
@@ -279,53 +272,38 @@ def get_videos(queue, i, video_item, qbitrate):
 	video_data = connection.getURL(VIDEOURLAPI % video_mgid)
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	try:
-		duration = video_tree.find('rendition')['duration']
+		duration = video_tree.findAll('rendition')[0]['duration']
 	except:
 		duration = 0
 	try:
-		closedcaption = video_tree.find('typographic', format = 'ttml')
+		closedcaption = video_tree.find('typographic', format = 'cea-608')['src']
 	except:
 		closedcaption = None
 	try:
-		video_menu = video_tree.src.string
 		hbitrate = -1
 		lbitrate = -1
-		m3u8_url = None
-		m3u8_master_data = connection.getURL(video_menu, savecookie = True, cookiefile = i)
-		m3u8_master = m3u8.parse(m3u8_master_data)
-		sbitrate = int(addon.getSetting('quality')) * 1024
-		for video_index in m3u8_master.get('playlists'):
-			bitrate = int(video_index.get('stream_info')['bandwidth'])
-			if qbitrate is None:
+		sbitrate = int(addon.getSetting('quality'))
+		video_url2 = video_tree.findAll('rendition')
+		if qbitrate is None:
+			for video_index in video_url2:
+				bitrate = int(video_index['bitrate'])
 				if bitrate < lbitrate or lbitrate == -1:
 					lbitrate = bitrate
-					lm3u8_url = video_index.get('uri')
+					lplaypath_url = video_index.src.string	
 				if bitrate > hbitrate and bitrate <= sbitrate:
 					hbitrate = bitrate
-					m3u8_url = video_index.get('uri')
-			elif (qbitrate * (100 - BITRATERANGE)) / 100 < bitrate and (qbitrate * (100 + BITRATERANGE)) / 100 > bitrate:
-				m3u8_url = video_index.get('uri')
-		if 	((m3u8_url is None) and (qbitrate is None)):
-			m3u8_url = lm3u8_url
-		m3u8_data = connection.getURL(m3u8_url, loadcookie = True, cookiefile = i)
-		key_url = re.compile('URI="(.*?)"').findall(m3u8_data)[0]
-		key_data = connection.getURL(key_url, loadcookie = True, cookiefile = i)
-		key_file = open(ustvpaths.KEYFILE % str(i), 'wb')
-		key_file.write(key_data)
-		key_file.close()
-		video_url = re.compile('(http:.*?)\n').findall(m3u8_data)
-		for video_item in video_url:
-			newurl = base64.b64encode(video_item)
-			newurl = urllib.quote_plus(newurl)
-			m3u8_data = m3u8_data.replace(video_item, 'http://127.0.0.1:12345/' + str(i) + '/foxstation/' + newurl)
-		m3u8_data = m3u8_data.replace(key_url, 'http://127.0.0.1:12345/play%s.key' % str(i))
-		file_name = ustvpaths.PLAYFILE.replace('.m3u8', str(i) + '.m3u8')
-		playfile = open(file_name, 'w')
-		playfile.write(m3u8_data)
-		playfile.close()
+					playpath_url = video_index.src.string
+		else:
+			playpath_url = video_tree.find('rendition', bitrate = qbitrate).src.string
+		if playpath_url is None:
+			playpath_url = lplaypath_url
+		if "gsp.alias" in playpath_url:
+			file_name = 'rtmpe://cp10740.edgefcs.net/ondemand/mtvnorigin/gsp.alias' + playpath_url.split('/gsp.alias')[1]
+		else:
+			file_name = playpath_url
 		queue.put([i, file_name, duration, closedcaption])
 	except:
-		pass
+		pass		
 
 def list_qualities(BASE, video_url = common.args.url, media_base = VIDEOURL):
 	bitrates = []
@@ -373,54 +351,26 @@ def list_qualities2(API, video_url = common.args.url):
 	video_mgid = video_tree['playlist']['videos'][0]['video']['mgid']
 	video_data2 = connection.getURL(VIDEOURLAPI % video_mgid)
 	video_tree2 = BeautifulSoup(video_data2, 'html.parser')
-	video_menu = video_tree2.find('src').string
-	m3u8_url = None
-	m3u8_master_data = connection.getURL(video_menu, savecookie = True)
-	m3u8_master = m3u8.parse(m3u8_master_data)
-	for video_index in m3u8_master.get('playlists'):
-		video_bitrate = int(video_index.get('stream_info')['bandwidth'])
-		bitrate_display = int(video_bitrate) / 1024
-		video_bitrates.append((bitrate_display, video_bitrate))
+	video_url2 = video_tree2.findAll('rendition')
+	for video_index in video_url2:
+		video_bitrate = int(video_index['bitrate'])
+		video_bitrates.append((video_bitrate, video_bitrate))
 	return video_bitrates
-
-def clean_subs(data):
-	br = re.compile(r'<br.*?>')
-	tag = re.compile(r'<.*?>')
-	space = re.compile(r'\s\s\s+')
-	apos = re.compile(r'&amp;apos;')
-	gt = re.compile(r'&gt;+')
-	sub = br.sub('\n', data)
-	sub = tag.sub(' ', sub)
-	sub = space.sub(' ', sub)
-	sub = apos.sub('\'', sub)
-	sub = gt.sub('>', sub)
-	return sub
 
 def convert_subtitles(closedcaption):
 	str_output = ''
-	j = 0
 	count = 0
-	for closedcaption_url, duration, i in closedcaption:
+	for closedcaption_url, i in closedcaption:
 		count = int(i) + 1
 		if closedcaption_url is not None:
-			subtitle_data = connection.getURL(closedcaption_url['src'], connectiontype = 0)
-			subtitle_data = BeautifulSoup(subtitle_data, 'html.parser', parse_only = SoupStrainer('div'))
-			lines = subtitle_data.find_all('p')
-			last_line = lines[-1]
-			end_time = last_line['end'].split('.')[0].split(':')
-			file_duration = int(end_time[0]) * 60 * 60 + int(end_time[1]) * 60 + int(end_time[2])
-			delay = int(file_duration) - int(duration)
-			for i, line in enumerate(lines):
-				if line is not None:
-					try:
-						sub = clean_subs(common.smart_utf8(line))
-						start_time = common.smart_utf8(datetime.datetime.strftime(datetime.datetime.strptime(line['begin'], '%H:%M:%S.%f') - datetime.timedelta(seconds = int(delay)),'%H:%M:%S,%f'))[:-4]
-						end_time = common.smart_utf8(datetime.datetime.strftime(datetime.datetime.strptime(line['end'], '%H:%M:%S.%f') - datetime.timedelta(seconds = int(delay)),'%H:%M:%S,%f'))[:-4]
-						str_output += str(j + i + 1) + '\n' + start_time + ' --> ' + end_time + '\n' + sub + '\n\n'
-					except:
-						pass
-			j = j + i + 1
-			file = open(os.path.join(ustvpaths.DATAPATH, 'subtitle-%s.srt' % str(count)), 'w')
-			file.write(str_output)
-			str_output=''
-			file.close()
+			try:
+				cc_content = common.smart_unicode(connection.getURL(closedcaption_url, connectiontype = 0).replace(' 9137', ''))
+				reader = detect_format(cc_content)
+				if reader:
+					str_output = SRTWriter().write(reader().read(cc_content))
+				file = open(os.path.join(ustvpaths.DATAPATH, 'subtitle-%s.srt' % str(count)), 'w')
+				file.write(str_output)
+				str_output=''
+				file.close()
+			except  Exception, e:
+				print "Exception: ", e
