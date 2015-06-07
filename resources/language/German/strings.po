@@ -397,6 +397,10 @@ msgctxt "#39037"
 msgid "Exported %s"
 msgstr "Exportiere %s"
 
+msgctxt "#39038"
+msgid "Queue"
+msgstr "Warteschlange"
+
 msgctxt "#34000"
 msgid "Logins"
 msgstr "Anmeldedaten"
