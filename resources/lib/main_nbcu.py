@@ -58,16 +58,20 @@ def seasons(SITE, FULLEPISODES, CLIPS, FULLEPISODESWEB = None, season_urls = com
 				if all > auth:
 					seasons.append(('Full Episodes',  SITE, 'episodes_web', FULLEPISODESWEB % show, -1, -1))
 				else:
-					eps = web_tree.find( class_ = 'view-syfy-show-episodes').find_all(text= re.compile('Full Episode'))
-					headers = []
-					for ep in eps:
-						heading = ep.parent.parent.parent.parent.parent.findPrevious('h3').div.string.strip()
-						if heading not in headers:
-							headers.append(heading)
-					for web_item in headers:
-						seasons.append(('Season ' +web_item,  SITE, 'episodes_web', FULLEPISODESWEB % show + '/' + web_item, -1, -1))
+					try:
+						eps = web_tree.find( class_ = 'view-syfy-show-episodes').find_all(text= re.compile('Full Episode'))
+						headers = []
+						for ep in eps:
+							heading = ep.parent.parent.parent.parent.parent.findPrevious('h3').div.string.strip()
+							if heading not in headers:
+								headers.append(heading)
+						for web_item in headers:
+							seasons.append(('Season ' +web_item,  SITE, 'episodes_web', FULLEPISODESWEB % show + '/' + web_item, -1, -1))
+					except:
+						title = web_tree.find( class_ = 'pane-full-episodes-pane-episodes-by-show').h2.string
+						seasons.append((title,  SITE, 'episodes_web', FULLEPISODESWEB % show, -1, -1))
 			except Exception as e:
-				print "Error with web processing", e
+				print "Exception with web processing", e
 		season_data2 = connection.getURL(CLIPS % urllib.quote_plus(season_url) + '&range=0-1')
 		try:
 			season_menu2 = int(simplejson.loads(season_data2)['totalResults'])
@@ -160,16 +164,13 @@ def list_qualities(M3UURL = None):
 	video_url = common.args.url
 	video_data = connection.getURL(video_url)
 	if 'link.theplatform.com' not in video_url:
-		print video_url
 		video_tree =  BeautifulSoup(video_data, 'html.parser')
 		try:
 			player_url = 'http:' + video_tree.find('div', class_ = 'video-player-wrapper').iframe['src']
 		except:
 			player_url = 'http:' + video_tree.find('div', id = 'pdk-player')['data-src']
-		print player_url
 		player_data = connection.getURL(player_url)
 		player_tree = BeautifulSoup(player_data, 'html.parser')
-		print player_tree
 		video_url = player_tree.find('link', type = "application/smil+xml")['href']
 		video_url = video_url + '&format=SCRIPT'
 		
@@ -178,18 +179,10 @@ def list_qualities(M3UURL = None):
 		if script_menu['pl1$entitlement'] != 'auth':
 			bitrates,exception = smil_bitrates(video_url)
 		else:
-			print "Need to generse master url"
 			captions = script_menu['captions'][0]['src']
-			print captions
-			#733/479/150330_2855999_Arms_of_Mine
-			try:
-				id = re.compile('([0-9]+.[0-9]+.*).tt').findall(captions)[0]
-			except Exception, e:
-				print e
-			print id
+			id = re.compile('([0-9]+.[0-9]+.*).tt').findall(captions)[0]
 			td = (datetime.datetime.utcnow()- datetime.datetime(1970,1,1))
 			unow = int((td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6)
-			print unow
 			master_url = M3UURL % (id, str(unow), str(unow+60))
 			bitrates = m3u_bitrates(master_url)
 			return bitrates
@@ -211,24 +204,19 @@ def play_video(SWFURL, M3UURL = None, BASE = None):
 		qbitrate = None
 	exception = False
 	video_url = common.args.url
-	#if BASE is not None and BASE not in video_url:
-	#	video_url = BASE + video_url 
 	hbitrate = -1
 	lbitrate = -1
 	sbitrate = int(addon.getSetting('quality')) * 1024
 	closedcaption = None
 	video_data = connection.getURL(video_url)
 	if 'link.theplatform.com' not in video_url:
-		print video_url
 		video_tree =  BeautifulSoup(video_data, 'html.parser')
 		try:
 			player_url = 'http:' + video_tree.find('div', class_ = 'video-player-wrapper').iframe['src']
 		except:
 			player_url = 'http:' + video_tree.find('div', id = 'pdk-player')['data-src']
-		print player_url
 		player_data = connection.getURL(player_url)
 		player_tree =  BeautifulSoup(player_data, 'html.parser')
-		print player_tree
 		video_url = player_tree.find('link', type = "application/smil+xml")['href']
 		video_url = video_url + '&format=SCRIPT'
 		
