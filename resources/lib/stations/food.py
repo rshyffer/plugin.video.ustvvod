@@ -62,6 +62,13 @@ def seasons(season_urls = common.args.url):
 			seasons.append((season_title,  SITE, 'episodes', season_urls, -1, -1))
 		except:
 			season_tree = BeautifulSoup(season_data)
+			try:
+				dropdown = season_tree.find('nav', class_ ='hub').find('span', text = 'Videos').find_next(class_ = 'dropdown-menu')
+				season_menu = dropdown.find_all('a')
+				for season_item in season_menu:
+					seasons.append((season_item['title'],  SITE, 'episodes', BASE + season_item['href'], -1, -1))
+			except:
+				pass
 			season_menu = season_tree.find_all(class_ = 'ss-play')
 			for season_item in season_menu:
 				season_grandparent = season_item.parent.parent.parent
@@ -84,7 +91,10 @@ def episodes(episode_url = common.args.url):
 	episodes = []
 	episode_data = connection.getURL(episode_url)
 	episode_tree = BeautifulSoup(episode_data)
-	episode_script = episode_tree.find('section', id='player-component').script.string
+	try:
+		episode_script = episode_tree.find('section', id='player-component').script.string
+	except:
+		episode_script = episode_tree.find('script', text=re.compile('"videos')).string
 	episode_json = re.compile('"videos".+(\[.*\])\}\]', re.DOTALL).findall(episode_script)[0]
 	episode_menu = simplejson.loads(episode_json)
 	for episode_item in episode_menu:
