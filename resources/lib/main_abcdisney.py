@@ -34,7 +34,8 @@ BITRATETABLE = {	60 : 'a',
 					360 : 'd',
 					590 : 'e',
 					1010 : 'f',
-					2100 : 'g' }
+					2100 : 'g',
+					4800: 'h'}
 
 def masterlist(SITE, BRANDID):
 	master_db = []
