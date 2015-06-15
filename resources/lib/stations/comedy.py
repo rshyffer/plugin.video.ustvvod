@@ -58,14 +58,13 @@ def _get_manifest(page_url):
 	triforceManifestFeed = None
 	page_data = connection.getURL(page_url)
 	page_tree = BeautifulSoup(page_data, 'html.parser')
-	scripts = page_tree.find_all('script')
+	scripts = page_tree.find_all('script', text= re.compile('triforceManifestFeed'))
 	try:
 		for script in scripts:
-			if ('triforceManifestFeed') in script.string:
-				triforceManifestFeed = script.string.split(' = ')[1]
-				triforceManifestFeed = triforceManifestFeed.strip()[:-1]
-				triforceManifestFeed = simplejson.loads(triforceManifestFeed)
-				return triforceManifestFeed
+			triforceManifestFeed = script.string.split(' = ')[1]
+			triforceManifestFeed = triforceManifestFeed.strip()[:-1]
+			triforceManifestFeed = simplejson.loads(triforceManifestFeed)
+			return triforceManifestFeed
 	except:
 		return False
 
