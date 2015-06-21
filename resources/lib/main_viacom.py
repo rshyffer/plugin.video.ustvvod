@@ -27,6 +27,7 @@ pluginHandle = int(sys.argv[1])
 
 VIDEOURL = 'http://media.mtvnservices.com/'
 VIDEOURLAPI = 'http://media-utils.mtvnservices.com/services/MediaGenerator/%s'
+VIDEOURLAPIHLS = 'http://media-utils.mtvnservices.com/services/MediaGenerator/%s?device=Android&deviceOsVersion=4.4.4'
 TYPES = [('fullEpisodes' , 'Full Episodes'), ('bonusClips,afterShowsClips,recapsClips,sneakPeeksClips,dailies,showClips' , 'Extras')]
 DEVICE = 'Xbox'
 BITRATERANGE = 10
@@ -178,7 +179,7 @@ def play_video(BASE, video_uri = common.args.url, media_base = VIDEOURL):
 		threads = []
 		for i, video_item in enumerate(video_segments):
 			try:
-				threads.append(Thread(get_videos, queue, i, video_item, qbitrate))
+				threads.append(Thread(get_videos, queue, i, video_item, qbitrate, False))
 			except Exception, e:
 				print "Exception: ", e
 		[i.start() for i in threads]
@@ -195,6 +196,12 @@ def play_video(BASE, video_uri = common.args.url, media_base = VIDEOURL):
 			convert_subtitles(closedcaption)
 			player._subtitles_Enabled = True
 		item = xbmcgui.ListItem(path = finalurl)
+		if player._localHTTPServer:
+			filestring = 'XBMC.RunScript(' + os.path.join(ustvpaths.LIBPATH,'proxy.py') + ', 12345)'
+			xbmc.executebuiltin(filestring)
+			finalurl = video_url2[:-3]
+			#localhttpserver = True
+			time.sleep(20)
 		queue.task_done()
 		try:
 			item.setThumbnailImage(common.args.thumb)
@@ -207,11 +214,12 @@ def play_video(BASE, video_uri = common.args.url, media_base = VIDEOURL):
 									'TVShowTitle' : common.args.show_title })
 		except:
 			pass
+
 		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
 		while player.is_active:
 			player.sleep(250)
 
-def play_video2(API, video_url = common.args.url):
+def play_video2(API, video_url = common.args.url, rtmp = True):
 	try:
 		qbitrate = common.args.quality
 	except:
@@ -226,7 +234,7 @@ def play_video2(API, video_url = common.args.url):
 	video_item = video_tree['playlist']['videos']
 	for i in range(0, len(video_item)):
 		try:
-			threads.append(Thread(get_videos, queue, i, video_item[i], qbitrate))
+			threads.append(Thread(get_videos, queue, i, video_item[i], qbitrate, rtmp))
 		except Exception, e:
 			print "Exception: ", e
 	[i.start() for i in threads]
@@ -258,7 +266,7 @@ def play_video2(API, video_url = common.args.url):
 	while player.is_active:
 		player.sleep(250)
 
-def get_videos(queue, i, video_item, qbitrate):
+def get_videos(queue, i, video_item, qbitrate, rtmp = False):
 	try:
 		video_mgid = video_item['video']['mgid']
 	except:
@@ -279,31 +287,75 @@ def get_videos(queue, i, video_item, qbitrate):
 		closedcaption = video_tree.find('typographic', format = 'cea-608')['src']
 	except:
 		closedcaption = None
-	try:
-		hbitrate = -1
-		lbitrate = -1
-		sbitrate = int(addon.getSetting('quality'))
-		video_url2 = video_tree.findAll('rendition')
-		if qbitrate is None:
-			for video_index in video_url2:
-				bitrate = int(video_index['bitrate'])
-				if bitrate < lbitrate or lbitrate == -1:
-					lbitrate = bitrate
-					lplaypath_url = video_index.src.string	
-				if bitrate > hbitrate and bitrate <= sbitrate:
-					hbitrate = bitrate
-					playpath_url = video_index.src.string
-		else:
-			playpath_url = video_tree.find('rendition', bitrate = qbitrate).src.string
-		if playpath_url is None:
-			playpath_url = lplaypath_url
-		if "gsp.alias" in playpath_url:
-			file_name = 'rtmpe://cp10740.edgefcs.net/ondemand/mtvnorigin/gsp.alias' + playpath_url.split('/gsp.alias')[1]
-		else:
-			file_name = playpath_url
-		queue.put([i, file_name, duration, closedcaption])
-	except:
-		pass		
+	hbitrate = -1
+	lbitrate = -1
+	sbitrate = int(addon.getSetting('quality'))
+	if  rtmp:
+		try:
+			video_url2 = video_tree.findAll('rendition')
+			if qbitrate is None:
+				for video_index in video_url2:
+					bitrate = int(video_index['bitrate'])
+					if bitrate < lbitrate or lbitrate == -1:
+						lbitrate = bitrate
+						lplaypath_url = video_index.src.string	
+					if bitrate > hbitrate and bitrate <= sbitrate:
+						hbitrate = bitrate
+						playpath_url = video_index.src.string
+			else:
+				playpath_url = video_tree.find('rendition', bitrate = qbitrate).src.string
+			if playpath_url is None:
+				playpath_url = lplaypath_url
+			if "gsp.alias" in playpath_url:
+				file_name = 'rtmpe://cp10740.edgefcs.net/ondemand/mtvnorigin/gsp.alias' + playpath_url.split('/gsp.alias')[1]
+			else:
+				file_name = playpath_url
+			queue.put([i, file_name, duration, closedcaption])
+		except:
+			pass
+	else:
+		try:
+			video_data = connection.getURL(VIDEOURLAPIHLS % video_mgid)
+			video_tree = BeautifulSoup(video_data, 'html.parser')
+			video_menu = video_tree.src.string
+			hbitrate = -1
+			lbitrate = -1
+			m3u8_url = None
+			m3u8_master_data = connection.getURL(video_menu, savecookie = True, cookiefile = i)
+			m3u8_master = m3u8.parse(m3u8_master_data)
+			sbitrate = int(addon.getSetting('quality')) * 1024
+			for video_index in m3u8_master.get('playlists'):
+				bitrate = int(video_index.get('stream_info')['bandwidth'])
+				if qbitrate is None:
+					if bitrate < lbitrate or lbitrate == -1:
+						lbitrate = bitrate
+						lm3u8_url = video_index.get('uri')
+					if bitrate > hbitrate and bitrate <= sbitrate:
+						hbitrate = bitrate
+						m3u8_url = video_index.get('uri')
+				elif (qbitrate * (100 - BITRATERANGE)) / 100 < bitrate and (qbitrate * (100 + BITRATERANGE)) / 100 > bitrate:
+					m3u8_url = video_index.get('uri')
+			if 	((m3u8_url is None) and (qbitrate is None)):
+				m3u8_url = lm3u8_url
+			m3u8_data = connection.getURL(m3u8_url, loadcookie = True, cookiefile = i)
+			key_url = re.compile('URI="(.*?)"').findall(m3u8_data)[0]
+			key_data = connection.getURL(key_url, loadcookie = True, cookiefile = i)
+			key_file = open(ustvpaths.KEYFILE % str(i), 'wb')
+			key_file.write(key_data)
+			key_file.close()
+			video_url = re.compile('(http:.*?)\n').findall(m3u8_data)
+			for video_item in video_url:
+				newurl = base64.b64encode(video_item)
+				newurl = urllib.quote_plus(newurl)
+				m3u8_data = m3u8_data.replace(video_item, 'http://127.0.0.1:12345/' + str(i) + '/foxstation/' + newurl)
+			m3u8_data = m3u8_data.replace(key_url, 'http://127.0.0.1:12345/play%s.key' % str(i))
+			file_name = ustvpaths.PLAYFILE.replace('.m3u8', str(i) + '.m3u8')
+			playfile = open(file_name, 'w')
+			playfile.write(m3u8_data)
+			playfile.close()
+			queue.put([i, file_name, duration, closedcaption])
+		except:
+			pass	
 
 def list_qualities(BASE, video_url = common.args.url, media_base = VIDEOURL):
 	bitrates = []
