@@ -7,7 +7,10 @@ import ustvpaths
 import socks
 import socket
 import ssl
-import stem.process
+try:
+	import stem.process
+except:
+	pass
 import time
 import urllib
 import urllib2
