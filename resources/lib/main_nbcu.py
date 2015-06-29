@@ -29,11 +29,21 @@ def masterlist(SITE, SHOWS):
 	master_db = []
 	master_data = connection.getURL(SHOWS)
 	master_menu = simplejson.loads(master_data)['entries']
+	dupes = {}
 	for master_item in master_menu:
 		master_name = master_item['title']
 		master_url = master_item['plcategory$fullTitle']
+		master_order = master_item['plcategory$order']
 		if len(master_url.split('/')) == 2 and master_url.split('/')[0] in CATERGORIES:
-			master_db.append((master_name, SITE, 'seasons', master_url))
+			key = master_name.replace(' ', '')
+			if key in dupes:
+				dupe_order, dupe_url, dupe_name = dupes[key]
+				if dupe_order > master_order:
+					dupes[key] = (master_order, master_url, master_name)
+			else:
+				dupes[key] = (master_order, master_url, master_name)
+	for master_order, master_url, master_name in dupes.itervalues():
+		master_db.append((master_name, SITE, 'seasons', master_url))
 	return master_db
 
 def seasons(SITE, FULLEPISODES, CLIPS, FULLEPISODESWEB = None, season_urls = common.args.url):
