@@ -58,7 +58,7 @@ def seasons(SITE, FULLEPISODES, CLIPS, FULLEPISODESWEB = None, season_urls = com
 		if season_menu > 0:
 			season_url2 = FULLEPISODES % urllib.quote_plus(season_url) + '&range=0-' + str(season_menu)
 			seasons.append(('Full Episodes',  SITE, 'episodes', season_url2, -1, -1))
-		elif FULLEPISODESWEB:
+		if FULLEPISODESWEB:
 			try:
 				show = season_url.split('/')[-1].replace(' ', '')
 				web_data = connection.getURL(FULLEPISODESWEB % show)
