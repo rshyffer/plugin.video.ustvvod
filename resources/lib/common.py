@@ -870,7 +870,7 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 	else:
 		displayname = name
 	item = xbmcgui.ListItem(displayname, iconImage = thumb, thumbnailImage = thumb)
-	item.addContextMenuItems(contextmenu)
+	item.addContextMenuItems(contextmenu, True)
 	item.setProperty('fanart_image', fanart)
 	item.setInfo(type = 'Video', infoLabels = infoLabels)
 	xbmcplugin.addDirectoryItem(pluginHandle, url = u, listitem = item, isFolder = True)
