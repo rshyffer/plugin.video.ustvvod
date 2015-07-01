@@ -865,6 +865,8 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 	contextmenu.append((smart_utf8(addon.getLocalizedString(39011)), 'XBMC.RunPlugin(%s)' % delete_u))
 	export_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=ExportShowLibrary' + '&submode=exportshow'
 	contextmenu.append((smart_utf8(addon.getLocalizedString(39034)) % series_title, 'XBMC.RunPlugin(%s)' % export_u))
+	settings_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=contextmenu' + '&sitemode=settings'
+	contextmenu.append(("Settings", 'XBMC.RunPlugin(%s)' % settings_u))
 	if masterList and addon.getSetting('network_in_master') == 'true': 
 		displayname = name + ' on ' + network_name
 	else:

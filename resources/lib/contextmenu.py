@@ -118,3 +118,6 @@ def queue():
 		pass
 	playlist.add(url, item)
 	xbmc.executebuiltin('XBMC.Notification(%s, %s, 5000, %s)' % ("Queued", name, thumb))
+	
+def settings():
+	addon.openSettings()
