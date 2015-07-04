@@ -401,6 +401,10 @@ msgctxt "#39038"
 msgid "Queue"
 msgstr ""
 
+msgctxt "#39039"
+msgid "Show export menu"
+msgstr ""
+
 msgctxt "#34000"
 msgid "Logins"
 msgstr ""
