@@ -401,12 +401,17 @@ msgctxt "#39038"
 msgid "Queue"
 msgstr ""
 
+
 msgctxt "#39039"
 msgid "Show export menu"
 msgstr ""
 
 msgctxt "#39040"
 msgid "Library Updater Settings"
+msgstr ""
+
+msgctxt "#39041"
+msgid "Library updater script not installed, check repo."
 msgstr ""
 
 msgctxt "#34000"

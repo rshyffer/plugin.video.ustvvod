@@ -55,7 +55,7 @@ def modes():
 			updater.openSettings()
 		except:
 			dialog = xbmcgui.Dialog()
-			dialog.ok('USTV VOD', 'Library updater not found, see repo.')
+			dialog.ok(addon.getAddonInfo('name'), addon.getLocalizedString(39041))
 	elif common.args.mode.endswith('Library'):
 		xbmclibrary.Main()
 	elif common.args.mode == 'Masterlist':
