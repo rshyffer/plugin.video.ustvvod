@@ -8,6 +8,7 @@ import contextmenu
 import sys
 import ustvpaths
 import xbmcaddon
+import xbmcgui
 import xbmcplugin
 import xbmclibrary
 
@@ -48,6 +49,13 @@ def modes():
 		xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_PLAYLIST_ORDER)
 		common.set_view()
 		xbmcplugin.endOfDirectory(pluginHandle)
+	elif common.args.mode.startswith('script'):
+		try:
+			updater = xbmcaddon.Addon('script.ustvvodlibraryautoupdate')
+			updater.openSettings()
+		except:
+			dialog = xbmcgui.Dialog()
+			dialog.ok('USTV VOD', 'Library updater not found, see repo.')
 	elif common.args.mode.endswith('Library'):
 		xbmclibrary.Main()
 	elif common.args.mode == 'Masterlist':

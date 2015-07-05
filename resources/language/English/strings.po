@@ -405,6 +405,10 @@ msgctxt "#39039"
 msgid "Show export menu"
 msgstr ""
 
+msgctxt "#39040"
+msgid "Library Updater Settings"
+msgstr ""
+
 msgctxt "#34000"
 msgid "Logins"
 msgstr ""
