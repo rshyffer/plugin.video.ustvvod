@@ -35,7 +35,7 @@ def masterlist(SITE, SHOWS):
 		master_url = master_item['plcategory$fullTitle']
 		master_order = master_item['plcategory$order']
 		if len(master_url.split('/')) == 2 and master_url.split('/')[0] in CATERGORIES:
-			key = master_name.replace(' ', '')
+			key = master_name.replace(' ', '').replace('?', '')
 			if key in dupes:
 				dupe_order, dupe_url, dupe_name = dupes[key]
 				if dupe_order > master_order:
