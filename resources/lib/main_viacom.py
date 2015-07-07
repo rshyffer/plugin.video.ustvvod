@@ -19,9 +19,9 @@ import xbmcgui
 import xbmcplugin
 from bs4 import BeautifulSoup, SoupStrainer
 try:
-	from pycaptionxxx import detect_format, SRTWriter
+	from pycaption import detect_format, SRTWriter
 except:
-	print "No subs"
+	pass
 from Queue import PriorityQueue
 
 addon = xbmcaddon.Addon()
