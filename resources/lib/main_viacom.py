@@ -21,7 +21,7 @@ from bs4 import BeautifulSoup, SoupStrainer
 try:
 	from pycaption import detect_format, SRTWriter
 except:
-	pass
+	detect_format = None
 from Queue import PriorityQueue
 
 addon = xbmcaddon.Addon()
@@ -195,7 +195,7 @@ def play_video(BASE, video_uri = common.args.url, media_base = VIDEOURL):
 		player._segments_array = segments
 		finalurl = video_url2[:-3]
 		time.sleep(20)
-		if (addon.getSetting('enablesubtitles') == 'true') and closedcaption:
+		if (addon.getSetting('enablesubtitles') == 'true') and closedcaption and detect_format is not None:
 			convert_subtitles(closedcaption)
 			player._subtitles_Enabled = True
 		item = xbmcgui.ListItem(path = finalurl)
@@ -249,7 +249,7 @@ def play_video2(API, video_url = common.args.url, rtmp = True):
 		closedcaption.append((video_data2[3], int(video_data2[0])))
 	player._segments_array = segments
 	finalurl = video_url2[:-3]
-	if (addon.getSetting('enablesubtitles') == 'true') and closedcaption:
+	if (addon.getSetting('enablesubtitles') == 'true') and closedcaption and detect_format is not None:
 		convert_subtitles(closedcaption)
 		player._subtitles_Enabled = True
 	item = xbmcgui.ListItem(path = finalurl)
