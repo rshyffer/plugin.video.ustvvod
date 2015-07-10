@@ -14,7 +14,7 @@ DESCRIPTION = "USA Network is cable television's leading provider of original se
 SHOWS = "http://feed.theplatform.com/f/OyMl-B/8IyhuVgUXDd_/categories?form=json&sort=order"
 CLIPS = "http://feed.theplatform.com/f/OyMl-B/8IyhuVgUXDd_?count=true&form=json&byCustomValue={fullEpisode}{false}&byCategories=%s"
 FULLEPISODES = "http://feed.theplatform.com/f/OyMl-B/8IyhuVgUXDd_?count=true&form=json&byCustomValue={fullEpisode}{true}&byCategories=%s"
-FULLEPISODESWEB = "http://www.usanetwork.com/%s/video-categories/full-episodes"
+FULLEPISODESWEB = "http://www.usanetwork.com/%s/episodes"
 SWFURL = "http://www.usanetwork.com/videos/pdk/swf/flvPlayer.swf"
 BASE = "http://www.usanetwork.com"
 
@@ -29,26 +29,35 @@ def episodes(episode_url = common.args.url):
 
 def episodes_web(episode_url = common.args.url):
 	episodes = []
+	print "web"
 	episode_data = connection.getURL(episode_url)
 	web_tree = BeautifulSoup(episode_data, 'html.parser')
-	show_name = web_tree.find('h2', class_ = 'show-name').string
-	episode_menu = web_tree.find_all('div', class_ = 'view-mode-vid_teaser_show_episode')
+	try:
+		show_name = web_tree.find(class_ = 'show-name').string
+	except:
+		show_name = web_tree.h1.string
+	print show_name
+	episode_menu = web_tree.find_all(class_ = 'episode-landing-list-item')
 	for i, episode_item in enumerate(episode_menu):
-		if 'tve-video-auth' not in episode_item['class']:
-			episode_name = episode_item['omniture-title']
+		print episode_item
+		if episode_item.find(class_ = 'full-episode-button'):
+			episode_name = episode_item.find(class_ = 'title').string
+			print episode_name
 			try:
-				season_number = int(re.compile('Season (\d+)').findall(episode_item.find(class_ = 'caption').string)[0])
+				season_number,episode_number = re.compile('(\d+)\sEP(\d+)').search(episode_item.find(class_ = 'additional').string).groups()
 			except:
 				season_number = -1
-			try:
-				episode_number = int(re.compile('Episode (\d+)').findall(episode_item.find(class_ = 'caption').string)[0])
-			except:
 				episode_number = -1
+			print season_number,episode_number
 			try:
 				episode_thumb = episode_item.img['src']
 			except:
 				episode_thumb = None
-			url = BASE + episode_item['omniture-id']
+			print episode_thumb
+			url = BASE + episode_item.a['href']
+			print url
+			episode_type =  'Full Episode'
+			print episode_type
 			u = sys.argv[0]
 			u += '?url="' + urllib.quote_plus(url) + '"'
 			u += '&mode="' + SITE + '"'
@@ -58,7 +67,7 @@ def episodes_web(episode_url = common.args.url):
 							'episode' : episode_number,
 							'TVShowTitle' : show_name
 						}
-			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, 'Full Episode'))
+			episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, episode_type))
 	return episodes
 
 def list_qualities():
