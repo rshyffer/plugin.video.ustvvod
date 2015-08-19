@@ -56,12 +56,15 @@ def _get_manifest(page_url):
 	""" Try to get the manifest Javascript object for the current page. Input URL can be any kind of page
 	    Returns the manifest feed as a JSON object if found, else return False """
 	triforceManifestFeed = None
-	page_data = connection.getURL(page_url)
+	page_data = connection.getURL(page_url.replace('=', '').strip())
 	page_tree = BeautifulSoup(page_data, 'html.parser')
 	scripts = page_tree.find_all('script', text= re.compile('triforceManifestFeed'))
+	print scripts
 	try:
 		for script in scripts:
-			triforceManifestFeed = script.string.split(' = ')[1]
+			print "S",script
+			triforceManifestFeed = script.string.split('var triforceManifestFeed = ')[1]
+			print triforceManifestFeed
 			triforceManifestFeed = triforceManifestFeed.strip()[:-1]
 			triforceManifestFeed = simplejson.loads(triforceManifestFeed)
 			return triforceManifestFeed
@@ -93,6 +96,7 @@ def seasons(show_url = common.args.url):
 	    episides pages does not have a manifest, but clips does. This can lead to duplication of
 	    container items. Many shows seem to contain a feed for full episodes, but this feed is empty """
 	seasons = []
+	print "su",show_url
 	triforceManifestFeed = _get_manifest(show_url)
 	if triforceManifestFeed:
 		seasons = add_items_from_manifestfile(triforceManifestFeed, show_url)
