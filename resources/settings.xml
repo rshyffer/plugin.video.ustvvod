@@ -1,7 +1,7 @@
 ﻿<settings>
 	<category label="30000">
 		<setting type="sep" />
-		<setting id="sel_quality" type="bool" label="39022" default="true"/>
+		<setting id="sel_quality" type="bool" label="39022" default="false"/>
 		<setting id="quality" type="labelenum" label="30001" default="5000" visible="eq(-1,True)" lvalues="30002|30003|30004|30005|30006|30007|30008|30009|30010|30011|30012|30013" />
 		<setting id="enablesubtitles" type="bool" label="30014" default="false" />
 		<setting id="maxpages" type="number" label="39023" default="10" />
