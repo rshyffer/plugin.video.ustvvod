@@ -48,6 +48,7 @@ def _get_manifest(page_url):
 			if ('triforceManifestFeed') in script.string:
 				triforceManifestFeed = script.string.split(' = ')[1]
 				triforceManifestFeed = triforceManifestFeed.strip()[:-1]
+				triforceManifestFeed = triforceManifestFeed.split(';')[0]
 				triforceManifestFeed = simplejson.loads(triforceManifestFeed)
 				return triforceManifestFeed
 	except:
