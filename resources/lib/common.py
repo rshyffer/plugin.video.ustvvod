@@ -55,11 +55,16 @@ class XBMCPlayer( xbmc.Player ):
 		if len(self._segments_array) > 1:
 			total = 0
 			index = -1
+			diff = 0
 			for i, duration in enumerate(self._segments_array):
 				total = total + int(duration)
 				if play_time < total and index == -1:
 					index = i
-			self._counter = index + 1
+					diff = total - play_time
+			if  diff > 90:
+				self._counter = index + 1
+			else:
+				self._counter = self._counter + 1
 		else:
 			self._counter = 1
 		
@@ -68,7 +73,7 @@ class XBMCPlayer( xbmc.Player ):
 				if self._subtitles_Type == "SRT":
 					self.setSubtitles(os.path.join(ustvpaths.DATAPATH, 'subtitle-%s.srt' % str(self._counter)))
 				else:
-					self.setSubtitles(os.path.join(ustvpaths.DATAPATH, 'subtitle-%s.smi' % str(self._counter)))
+					self.setSubtitles(os.path.join(ustvpaths.DATAPATH, 'subtitle-%s.smi' % str(self._counter )))
 			else:
 				if self._subtitles_Type == "SRT":
 					self.setSubtitles(ustvpaths.SUBTITLE)

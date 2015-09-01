@@ -287,7 +287,7 @@ def get_videos(queue, i, video_item, qbitrate, rtmp = False):
 	except:
 		duration = 0
 	try:
-		closedcaption = video_tree.find('typographic', format = 'cea-608')['src']
+		closedcaption = video_tree.find('typographic', format = 'ttml')['src']
 	except:
 		closedcaption = None
 	hbitrate = -1
@@ -422,10 +422,13 @@ def convert_subtitles(closedcaption):
 				cc_content = common.smart_unicode(connection.getURL(closedcaption_url, connectiontype = 0).replace(' 9137', ''))
 				reader = detect_format(cc_content)
 				if reader:
-					str_output = SRTWriter().write(reader().read(cc_content))
-				file = open(os.path.join(ustvpaths.DATAPATH, 'subtitle-%s.srt' % str(count)), 'w')
-				file.write(str_output)
-				str_output=''
-				file.close()
+				
+					str_output = common.smart_utf8(SRTWriter().write(reader().read(cc_content)))
+					file = open(os.path.join(ustvpaths.DATAPATH, 'subtitle-%s.srt' % str(count)), 'w')
+					file.write(str_output)
+					str_output=''
+					file.close()
+				else:
+					print "Unknown sub type"
 			except  Exception, e:
-				print "Exception: ", e
+				print "Exception with Subs: ", e
