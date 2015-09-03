@@ -244,5 +244,7 @@ def convert_subtitles(closedcaption):
 	return True
 
 def sign_url(url):
-	sig = connection.getURL('http://www.history.com/components/get-signed-signature?url=' + re.compile('/[sz]/(.+)\?').findall(url)[0])
+	query = { 'url' : re.compile('/[sz]/(.+)\?').findall(url)[0] }
+	encoded = urllib.urlencode(query)
+	sig = connection.getURL('http://servicesaetn-a.akamaihd.net/jservice/video/components/get-signed-signature?' + encoded)
 	return sig
