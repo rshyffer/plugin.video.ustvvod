@@ -875,6 +875,8 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 		settings_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=contextmenu' + '&sitemode=settings'
 		contextmenu.append(("Settings", 'XBMC.RunPlugin(%s)' % settings_u))
 		supress_bultin = True
+	else:
+		supress_bultin = False
 	if masterList and addon.getSetting('network_in_master') == 'true': 
 		displayname = name + ' on ' + network_name
 	else:
