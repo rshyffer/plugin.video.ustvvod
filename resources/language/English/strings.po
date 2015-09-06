@@ -117,6 +117,10 @@ msgctxt "#30025"
 msgid "No"
 msgstr ""
 
+msgctxt "#30033"
+msgid "Hide Kodi Favorites"
+msgstr ""
+
 msgctxt "#31000"
 msgid "Connection"
 msgstr ""

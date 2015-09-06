@@ -871,14 +871,16 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 	if  addon.getSetting('show_export') == 'true':
 		export_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=ExportShowLibrary' + '&submode=exportshow'
 		contextmenu.append((smart_utf8(addon.getLocalizedString(39034)) % series_title, 'XBMC.RunPlugin(%s)' % export_u))
-	settings_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=contextmenu' + '&sitemode=settings'
-	contextmenu.append(("Settings", 'XBMC.RunPlugin(%s)' % settings_u))
+	if addon.getSetting('hide_kodi_favorites') == 'true':
+		settings_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=contextmenu' + '&sitemode=settings'
+		contextmenu.append(("Settings", 'XBMC.RunPlugin(%s)' % settings_u))
+		supress_bultin = True
 	if masterList and addon.getSetting('network_in_master') == 'true': 
 		displayname = name + ' on ' + network_name
 	else:
 		displayname = name
 	item = xbmcgui.ListItem(displayname, iconImage = thumb, thumbnailImage = thumb)
-	item.addContextMenuItems(contextmenu, True)
+	item.addContextMenuItems(contextmenu, supress_bultin)
 	item.setProperty('fanart_image', fanart)
 	item.setInfo(type = 'Video', infoLabels = infoLabels)
 	xbmcplugin.addDirectoryItem(pluginHandle, url = u, listitem = item, isFolder = True)
