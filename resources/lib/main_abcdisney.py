@@ -25,6 +25,7 @@ VIDEOLIST = 'http://api.watchabc.go.com/vp2/ws/s/contents/2015/videos/jsonp/%s/'
 VIDEOURL = 'http://api.watchabc.go.com/vp2/ws/s/contents/2015/videos/jsonp/%s'
 PLAYLISTMOV = 'http://www.kaltura.com/p/%s/sp/%s00/playManifest/format/rtmp/entryId/'
 PLAYLISTMP4 = 'http://www.kaltura.com/p/%s/sp/%s00/playManifest/format/applehttp/entryId/'
+PLAYLISTM3U = 'http://cdnapi.kaltura.com/p/%s/sp/%s00/playManifest/format/url/protocol/http/entryId/'
 CLOSEDCAPTIONHOST = 'http://cdn.video.abc.com'
 GETAUTHORIZATION = 'http://api.watchabc.go.com/vp2/ws-secure/entitlement/2015/authorize/json'
 SWFURL = 'http://livepassdl.conviva.com/ver/2.61.0.65970/LivePassModuleMain.swf'
@@ -35,7 +36,8 @@ BITRATETABLE = {	60 : 'a',
 					590 : 'e',
 					1010 : 'f',
 					2100 : 'g',
-					4800: 'h'}
+					4800 : 'h',
+					8000 : 'i'}
 
 def masterlist(SITE, BRANDID):
 	master_db = []
@@ -302,14 +304,18 @@ def play_video(SITE, BRANDID, PARTNERID):
 				video_format = 'MOV'
 				video_closedcaption = 'false'
 		video_id = video_id.replace('VDKA','')
-		if video_format == 'MP4':
-			video_url = PLAYLISTMP4 % (PARTNERID, PARTNERID) + video_id
+		if video_format != 'MOV':
+			if video_format == 'MP4':
+				video_url = PLAYLISTMP4 % (PARTNERID, PARTNERID) + video_id
+			else:
+				video_url = PLAYLISTM3U % (PARTNERID, PARTNERID) + video_id
 			video_data = connection.getURL(video_url)
 			video_url2 = m3u8.parse(video_data)
 			for video_index in video_url2.get('playlists'):
 				bitrate = int(video_index.get('stream_info')['bandwidth'])
-				if qbitrate is not None:
-					if bitrate > hbitrate and bitrate <= (sbitrate * 1000):
+				print bitrate, sbitrate * 1000
+				if qbitrate is  None:
+					if bitrate > hbitrate and bitrate <= sbitrate  * 1000 :
 						hbitrate = bitrate
 						playpath_url = video_index.get('uri')
 				else:
@@ -338,6 +344,8 @@ def play_video(SITE, BRANDID, PARTNERID):
 			if playpath_url is None:
 				playpath_url = lplaypath_url
 			finalurl = base_url + ' playpath=' + playpath_url + ' swfUrl=' + SWFURL + ' swfVfy=true'
+		#else:
+		#	finalurl = PLAYLISTM3U % (PARTNERID, PARTNERID) + video_id
 	else:
 		video_url = VIDEOLIST % BRANDID + '002/-1/-1/-1/' + video_id + '/-1/-1'
 		video_data = connection.getURL(video_url)
