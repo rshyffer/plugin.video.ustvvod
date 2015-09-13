@@ -37,22 +37,24 @@ def masterlist():
 	master_db = []
 	master_dict = {}
 	master_check = []
-	master_menu = simplejson.loads(connection.getURL(SHOWS, header = {'X-Requested-With' : 'XMLHttpRequest'}))
-	for master_item in master_menu.itervalues():
-		for master_item in master_item:
-			master_check.append(master_item['title'])
+	#master_menu = simplejson.loads(connection.getURL(SHOWS, header = {'X-Requested-With' : 'XMLHttpRequest'}))
+	#for master_item in master_menu.itervalues():
+	#	for master_item in master_item:
+#			master_check.append(master_item['title'])
 	while master_start < master_count:
-		master_data = cove.programs.filter(fields = 'mediafiles', order_by = 'title', limit_start = master_start)
+		master_data = cove.programs.filter(fields = 'mediafiles', order_by = 'title', limit_start = master_start, limit_end = 500)
 		master_menu = master_data['results']
 		master_count = master_data['count']
 		master_stop = master_data['stop']
-		del master_data
+		print master_stop, master_count
+		#del master_data
 		for master_item2 in master_menu:
 			website = master_item2['website']
 			if website is None:
 				website = ''
-			if master_item2['title'] in master_check and ('PBS Kids' !=  master_item2['nola_root']) and ('blog' not in website):
+			if  ('PBS Kids' !=  master_item2['nola_root']) and ('blog' not in website):
 				master_name = common.smart_utf8(master_item2['title'])
+				print master_name
 				season_url = re.compile('/cove/v1/programs/(.*?)/').findall(master_item2['resource_uri'])[0]
 				tvdb_name = common.get_show_data(master_name, SITE, 'seasons', common.smart_unicode(master_name) + '#' +season_url)[-1]
 				if season_url:
@@ -72,8 +74,14 @@ def masterlist():
 					print "No season"
 		master_start = master_stop
 	for master_name in master_dict:
-		season_url = master_dict[master_name]
-		master_db.append((master_name, SITE, 'seasons', season_url))
+		
+		try:
+			print "X",master_name
+			season_url = master_dict[master_name]
+			print season_url
+			master_db.append((master_name, SITE, 'seasons', season_url))
+		except Exception,e:
+			print "Exception", e
 	return master_db
 
 def seasons(season_urls = common.args.url):
