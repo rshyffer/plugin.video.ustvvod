@@ -20,8 +20,12 @@ if (addon.getSetting('enablelibraryfolder') == 'true'):
 	MOVIE_PATH = os.path.join(xbmc.translatePath('special://profile/addon_data/plugin.video.ustvvod'),'Movies')
 	TV_SHOWS_PATH = os.path.join(xbmc.translatePath('special://profile/addon_data/plugin.video.ustvvod/'),'TV')
 elif (addon.getSetting('customlibraryfolder') <> ''):
-	MOVIE_PATH = os.path.join(xbmc.translatePath(addon.getSetting('customlibraryfolder')),'Movies')
-	TV_SHOWS_PATH = os.path.join(xbmc.translatePath(addon.getSetting('customlibraryfolder')),'TV')    
+	if addon.getSetting('customlibraryfoldermovie') == '':
+		MOVIE_PATH = os.path.join(xbmc.translatePath(addon.getSetting('customlibraryfolder')),'Movies')
+		TV_SHOWS_PATH = os.path.join(xbmc.translatePath(addon.getSetting('customlibraryfolder')),'TV') 
+	else:
+		MOVIE_PATH = xbmc.translatePath(addon.getSetting('customlibraryfoldermovie'))
+		TV_SHOWS_PATH = xbmc.translatePath(addon.getSetting('customlibraryfolder')) 
 	
 
 class Main:

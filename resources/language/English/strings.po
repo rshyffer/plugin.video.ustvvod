@@ -434,7 +434,7 @@ msgid "Default Library Folder"
 msgstr ""
 
 msgctxt "#35002"
-msgid "Custom Library Folder"
+msgid "Custom Library TV Folder"
 msgstr ""
 
 msgctxt "#35003"
@@ -459,4 +459,8 @@ msgstr ""
 
 msgctxt "#35008"
 msgid "Clean Library"
+msgstr ""
+
+msgctxt "#35009"
+msgid "Custom Library Movie Folder"
 msgstr ""

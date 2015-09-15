@@ -47,6 +47,7 @@
 		<setting type="sep" />
 		<setting id="enablelibraryfolder" type="bool" label="35001" default="true"/>
 		<setting id="customlibraryfolder" type="folder" label="35002" default="" visible="eq(-1,False)"/>
+		<setting id="customlibraryfoldermovie" type="folder" label="35009" default="" visible="eq(-2,False)"/>
 		<setting id="updatelibrary" type="bool" label="35003" default="true"/>
 		<setting id="show_export" type="bool" label="39039" default="false" />
 		<setting id="check_auto_script" label="39040" type="action"  option="close" action="RunScript(plugin.video.ustvvod, -1, ?mode=script_check)"/>
