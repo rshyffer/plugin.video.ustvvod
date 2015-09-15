@@ -178,6 +178,7 @@ def episode_list():
 
 
 def get_episodes(network_name, site_mode, url = args.url, tvdb_id = None):
+	print "Get Episode"
 	network = get_network(network_name)
 	episodes = cache.cacheFunction(getattr(network, site_mode) , url)
 	newepisodes = []
@@ -187,6 +188,7 @@ def get_episodes(network_name, site_mode, url = args.url, tvdb_id = None):
 	except:
 		tvdb_setting = 0
 	if tvdb_id is not None and tvdb_setting !=1:
+		print tvdb_id
 		for episode in episodes:
 			try:
 				u, episode_name, episode_thumb, infoLabels, qmode, HD, media_type = episode
@@ -198,7 +200,11 @@ def get_episodes(network_name, site_mode, url = args.url, tvdb_id = None):
 					try:
 						episode_item = series_tree.find('episodename', text = episode_name).parent
 					except:
-						episode_item = series_tree.find('episodename', text = re.compile(episode_name.replace(' ', ' ?').replace('.', '\.').replace('The ', '(The )?').replace('.', '.,?').replace('-', '-?').replace(',', ',?|( and)?'), re.I)).parent
+						try:
+							episode_item = series_tree.find('episodename', text = re.compile(episode_name.replace(' ', ' ?').replace('.', '\.').replace('The ', '(The )?').replace('.', '.,?').replace('-', '-?').replace(',', ',?|( and)?'), re.I)).parent
+						except:
+							if '|' in episode_name:
+								episode_item = series_tree.find('episodename', text = re.compile(episode_name.split('|')[1].strip().replace('The ', '(The )?').replace('and ', '(and)|&')))
 					infoLabels['episode'] =  int(episode_item.episodenumber.string)
 					infoLabels['season'] =  int(episode_item.seasonnumber.string)
 			except:
