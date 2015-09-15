@@ -13,6 +13,8 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
+from bs4 import BeautifulSoup
+
 addon = xbmcaddon.Addon()
 pluginHandle = int(sys.argv[1]) 
 
@@ -27,7 +29,27 @@ elif (addon.getSetting('customlibraryfolder') <> ''):
 		MOVIE_PATH = xbmc.translatePath(addon.getSetting('customlibraryfoldermovie'))
 		TV_SHOWS_PATH = xbmc.translatePath(addon.getSetting('customlibraryfolder')) 
 	
-
+class Validate:
+	def __init__( self ):
+		sources = xbmc.translatePath('special://profile/sources.xml')
+		file = open(sources, 'r')
+		source_data = file.read()
+		file.close()
+		source_tree = BeautifulSoup(source_data, 'html.parser')
+		tv_path = source_tree.find('path', text = TV_SHOWS_PATH)
+		movie_path = source_tree.find('path', text = MOVIE_PATH)
+		msg = ""
+		if tv_path is None:
+			msg = "No source for " + TV_SHOWS_PATH + "\n"
+		if movie_path is None:
+			msg = "No source for " + MOVIE_PATH + "\n"
+		if msg != "":
+			dialog = xbmcgui.Dialog()
+			dialog.ok(addon.getLocalizedString(39042), msg)
+		else:
+			dialog = xbmcgui.Dialog()
+			dialog.ok(addon.getLocalizedString(39042), "Sources OK")
+	
 class Main:
 	active = False
 	def __init__( self ):

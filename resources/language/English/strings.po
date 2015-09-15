@@ -417,6 +417,10 @@ msgctxt "#39041"
 msgid "Library updater script not installed, check repo."
 msgstr ""
 
+msgctxt "#39042"
+msgid "Validate sources"
+msgstr ""
+
 msgctxt "#34000"
 msgid "Logins"
 msgstr ""
