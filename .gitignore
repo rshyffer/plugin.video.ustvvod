@@ -11,3 +11,4 @@ cookie.txt
 *.smi
 *.bak
 *.psd
+.DS_Store
