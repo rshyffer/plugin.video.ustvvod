@@ -205,7 +205,9 @@ def prepare_tor_proxy(cookie_handler):
 
 def getURL(url, values = None, header = {}, amf = False, savecookie = False, loadcookie = False, connectiontype = addon.getSetting('connectiontype'), cookiefile = 0):
 	success = True
-	while success:
+	retry = 0
+	while success and retry < 2:
+		retry = retry + 1
 		success = False;
 		old_opener = urllib2._opener
 		try:
@@ -243,16 +245,16 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 				try:
 					cj.load(ignore_discard = True)
 					cj.add_cookie_header(req)
-				except:
-					print 'Cookie Loading Error'
+				except Exception,e:
+					print 'Cookie Loading Error', e
 					pass
 			response = urllib2.urlopen(req, timeout = TIMEOUT)
 			link = response.read()
 			if (savecookie is True) and (len(cj) > 0):
 				try:
 					cj.save(ignore_discard = True)
-				except:
-					print 'Cookie Saving Error'
+				except Exception, e:
+					print 'Cookie Saving Error', e
 					success = True
 					pass
 			elif (savecookie is True) and (len(cj) == 0):
