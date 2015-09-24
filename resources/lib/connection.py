@@ -24,6 +24,7 @@ IPURL = 'http://icanhazip.com'
 IPFILE = os.path.join(ustvpaths.DATAPATH,'ip.txt')
 DNS_REFESH_DELAY = 10
 TIMEOUT = 80
+RETRY = 10
 
 class MyHTTPConnection(httplib.HTTPConnection):
 	_dnsproxy = []
@@ -206,7 +207,7 @@ def prepare_tor_proxy(cookie_handler):
 def getURL(url, values = None, header = {}, amf = False, savecookie = False, loadcookie = False, connectiontype = addon.getSetting('connectiontype'), cookiefile = 0):
 	success = True
 	retry = 0
-	while success and retry < 2:
+	while success and retry < RETRY:
 		retry = retry + 1
 		success = False;
 		old_opener = urllib2._opener
@@ -258,6 +259,7 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 					success = True
 					pass
 			elif (savecookie is True) and (len(cj) == 0):
+				#print "Won't save cookie", url
 				success = True
 			response.close()
 			if ((int(connectiontype) == 3) and (addon.getSetting('tor_use_local') == 'true') and (addon.getSetting('tor_as_service') == 'false')):
