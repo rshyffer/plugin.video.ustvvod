@@ -251,16 +251,13 @@ def getURL(url, values = None, header = {}, amf = False, savecookie = False, loa
 					pass
 			response = urllib2.urlopen(req, timeout = TIMEOUT)
 			link = response.read()
-			if (savecookie is True) and (len(cj) > 0):
+			if (savecookie is True):
 				try:
 					cj.save(ignore_discard = True)
 				except Exception, e:
 					print 'Cookie Saving Error', e
 					success = True
 					pass
-			elif (savecookie is True) and (len(cj) == 0):
-				#print "Won't save cookie", url
-				success = True
 			response.close()
 			if ((int(connectiontype) == 3) and (addon.getSetting('tor_use_local') == 'true') and (addon.getSetting('tor_as_service') == 'false')):
 				if not handler.kill_tor(): 
