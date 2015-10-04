@@ -29,7 +29,7 @@ TVDBURL = 'http://thetvdb.com'
 TVDBBANNERS = 'http://thetvdb.com/banners/'
 TVDBSERIESLOOKUP = 'http://www.thetvdb.com/api/GetSeries.php?seriesname='
 
-cache = StorageServer.StorageServer("ustvvodxxyyyy", 0) 
+cache = StorageServer.StorageServer("ustvvod", 0) 
 
 class XBMCPlayer( xbmc.Player ):
 	_counter = 0
@@ -76,7 +76,7 @@ class XBMCPlayer( xbmc.Player ):
 				else:
 					self.setSubtitles(os.path.join(ustvpaths.DATAPATH, 'subtitle-%s.smi' % str(self._counter )))
 			else:
-				if self._subtitles_direct is not None:
+				if self._subtitles_direct is None:
 					if self._subtitles_Type == "SRT":
 						self.setSubtitles(ustvpaths.SUBTITLE)
 					else:
