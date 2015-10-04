@@ -37,6 +37,7 @@ class XBMCPlayer( xbmc.Player ):
 	_segments_array = []
 	_subtitles_Enabled = False
 	_subtitles_Type = "SRT"
+	_subtitles_direct = None
 	_localHTTPServer = True
 
 	def __init__( self, *args, **kwargs  ):
@@ -75,10 +76,14 @@ class XBMCPlayer( xbmc.Player ):
 				else:
 					self.setSubtitles(os.path.join(ustvpaths.DATAPATH, 'subtitle-%s.smi' % str(self._counter )))
 			else:
-				if self._subtitles_Type == "SRT":
-					self.setSubtitles(ustvpaths.SUBTITLE)
+				if self._subtitles_direct is not None:
+					if self._subtitles_Type == "SRT":
+						self.setSubtitles(ustvpaths.SUBTITLE)
+					else:
+						self.setSubtitles(ustvpaths.SUBTITLESMI)
 				else:
-					self.setSubtitles(ustvpaths.SUBTITLESMI)
+					print "Setting subs to", self._subtitles_direct
+					self.setSubtitles(self._subtitles_direct)
 
 	def onPlayBackEnded( self ):
 		# Will be called when xbmc stops playing a segment
@@ -178,7 +183,6 @@ def episode_list():
 
 
 def get_episodes(network_name, site_mode, url = args.url, tvdb_id = None):
-	print "Get Episode"
 	network = get_network(network_name)
 	episodes = cache.cacheFunction(getattr(network, site_mode) , url)
 	newepisodes = []
@@ -188,7 +192,6 @@ def get_episodes(network_name, site_mode, url = args.url, tvdb_id = None):
 	except:
 		tvdb_setting = 0
 	if tvdb_id is not None and tvdb_setting !=1:
-		print tvdb_id
 		for episode in episodes:
 			try:
 				u, episode_name, episode_thumb, infoLabels, qmode, HD, media_type = episode
