@@ -29,7 +29,7 @@ TVDBURL = 'http://thetvdb.com'
 TVDBBANNERS = 'http://thetvdb.com/banners/'
 TVDBSERIESLOOKUP = 'http://www.thetvdb.com/api/GetSeries.php?seriesname='
 
-cache = StorageServer.StorageServer("ustvvodxxyyyy", 0) 
+cache = StorageServer.StorageServer("ustvvod", 0) 
 
 class XBMCPlayer( xbmc.Player ):
 	_counter = 0
@@ -37,6 +37,7 @@ class XBMCPlayer( xbmc.Player ):
 	_segments_array = []
 	_subtitles_Enabled = False
 	_subtitles_Type = "SRT"
+	_subtitles_direct = None
 	_localHTTPServer = True
 
 	def __init__( self, *args, **kwargs  ):
@@ -75,10 +76,14 @@ class XBMCPlayer( xbmc.Player ):
 				else:
 					self.setSubtitles(os.path.join(ustvpaths.DATAPATH, 'subtitle-%s.smi' % str(self._counter )))
 			else:
-				if self._subtitles_Type == "SRT":
-					self.setSubtitles(ustvpaths.SUBTITLE)
+				if self._subtitles_direct is None:
+					if self._subtitles_Type == "SRT":
+						self.setSubtitles(ustvpaths.SUBTITLE)
+					else:
+						self.setSubtitles(ustvpaths.SUBTITLESMI)
 				else:
-					self.setSubtitles(ustvpaths.SUBTITLESMI)
+					print "Setting subs to", self._subtitles_direct
+					self.setSubtitles(self._subtitles_direct)
 
 	def onPlayBackEnded( self ):
 		# Will be called when xbmc stops playing a segment
@@ -198,7 +203,11 @@ def get_episodes(network_name, site_mode, url = args.url, tvdb_id = None):
 					try:
 						episode_item = series_tree.find('episodename', text = episode_name).parent
 					except:
-						episode_item = series_tree.find('episodename', text = re.compile(episode_name.replace(' ', ' ?').replace('.', '\.').replace('The ', '(The )?').replace('.', '.,?').replace('-', '-?').replace(',', ',?|( and)?'), re.I)).parent
+						try:
+							episode_item = series_tree.find('episodename', text = re.compile(episode_name.replace(' ', ' ?').replace('.', '\.').replace('The ', '(The )?').replace('.', '.,?').replace('-', '-?').replace(',', ',?|( and)?'), re.I)).parent
+						except:
+							if '|' in episode_name:
+								episode_item = series_tree.find('episodename', text = re.compile(episode_name.split('|')[1].strip().replace('The ', '(The )?').replace('and ', '(and)|&')))
 					infoLabels['episode'] =  int(episode_item.episodenumber.string)
 					infoLabels['season'] =  int(episode_item.seasonnumber.string)
 			except:
@@ -871,14 +880,18 @@ def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, h
 	if  addon.getSetting('show_export') == 'true':
 		export_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=ExportShowLibrary' + '&submode=exportshow'
 		contextmenu.append((smart_utf8(addon.getLocalizedString(39034)) % series_title, 'XBMC.RunPlugin(%s)' % export_u))
-	settings_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=contextmenu' + '&sitemode=settings'
-	contextmenu.append(("Settings", 'XBMC.RunPlugin(%s)' % settings_u))
+	if addon.getSetting('hide_kodi_favorites') == 'true':
+		settings_u = sys.argv[0] + '?url="' + urllib.quote_plus('<join>'.join([orig_series_title, mode, sitemode,url])) + '&mode=contextmenu' + '&sitemode=settings'
+		contextmenu.append(("Settings", 'XBMC.RunPlugin(%s)' % settings_u))
+		supress_bultin = True
+	else:
+		supress_bultin = False
 	if masterList and addon.getSetting('network_in_master') == 'true': 
 		displayname = name + ' on ' + network_name
 	else:
 		displayname = name
 	item = xbmcgui.ListItem(displayname, iconImage = thumb, thumbnailImage = thumb)
-	item.addContextMenuItems(contextmenu, True)
+	item.addContextMenuItems(contextmenu, supress_bultin)
 	item.setProperty('fanart_image', fanart)
 	item.setInfo(type = 'Video', infoLabels = infoLabels)
 	xbmcplugin.addDirectoryItem(pluginHandle, url = u, listitem = item, isFolder = True)

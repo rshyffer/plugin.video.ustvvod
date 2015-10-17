@@ -3,6 +3,7 @@
 import common
 import main_abcdisney
 
+ALIAS = ["ABC (US)"]
 BRANDID = "001"
 PARTNERID = "585231"
 SITE = "abcchannel"

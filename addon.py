@@ -49,13 +49,15 @@ def modes():
 		xbmcplugin.addSortMethod(pluginHandle, xbmcplugin.SORT_METHOD_PLAYLIST_ORDER)
 		common.set_view()
 		xbmcplugin.endOfDirectory(pluginHandle)
-	elif common.args.mode.startswith('script'):
+	elif common.args.mode.startswith('script_check'):
 		try:
 			updater = xbmcaddon.Addon('script.ustvvodlibraryautoupdate')
 			updater.openSettings()
 		except:
 			dialog = xbmcgui.Dialog()
 			dialog.ok(addon.getAddonInfo('name'), addon.getLocalizedString(39041))
+	elif common.args.mode.startswith('script_sources'):
+		xbmclibrary.Validate()
 	elif common.args.mode.endswith('Library'):
 		xbmclibrary.Main()
 	elif common.args.mode == 'Masterlist':

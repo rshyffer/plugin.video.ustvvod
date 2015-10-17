@@ -66,7 +66,7 @@ msgid "5000"
 msgstr ""
 
 msgctxt "#30013"
-msgid "10000"
+msgid "15000"
 msgstr ""
 
 msgctxt "#30014"
@@ -115,6 +115,10 @@ msgstr ""
 
 msgctxt "#30025"
 msgid "No"
+msgstr ""
+
+msgctxt "#30033"
+msgid "Hide Kodi Favorites"
 msgstr ""
 
 msgctxt "#31000"
@@ -413,6 +417,10 @@ msgctxt "#39041"
 msgid "Library updater script not installed, check repo."
 msgstr ""
 
+msgctxt "#39042"
+msgid "Validate sources"
+msgstr ""
+
 msgctxt "#34000"
 msgid "Logins"
 msgstr ""
@@ -430,7 +438,7 @@ msgid "Default Library Folder"
 msgstr ""
 
 msgctxt "#35002"
-msgid "Custom Library Folder"
+msgid "Custom Library TV Folder"
 msgstr ""
 
 msgctxt "#35003"
@@ -455,4 +463,8 @@ msgstr ""
 
 msgctxt "#35008"
 msgid "Clean Library"
+msgstr ""
+
+msgctxt "#35009"
+msgid "Custom Library Movie Folder"
 msgstr ""

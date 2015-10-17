@@ -39,7 +39,7 @@ def masterlist():
 	master_data = connection.getURL(SHOWS)
 	master_menu = simplejson.loads(master_data)['shows']
 	for master_item in master_menu:
-		if master_item['external_link'] is None and (master_item['fullepisodes'] == 'true' or addon.getSetting('hide_clip_only') == 'false'):
+		if master_item['external_link'] is None and (master_item['fullepisodes'] or addon.getSetting('hide_clip_only') == 'false'):
 			master_name = master_item['title']
 			master_db.append((master_name, SITE, 'seasons', master_name))
 	return master_db
@@ -132,10 +132,10 @@ def play_video(video_url = common.args.url):
 	video_tree = BeautifulSoup(video_data, 'html.parser')
 	if (addon.getSetting('enablesubtitles') == 'true'):
 		try:
-			closedcaption = video_tree.find('textstream', src = True)['src']
-			convert_subtitles(closedcaption)
+			closedcaption = video_tree.find('textstream', src = True, type="text/srt")['src']
 			video_closedcaption = 'true'
 			player._subtitles_Enabled = True
+			player._subtitles_direct = closedcaption
 		except:
 			video_closedcaption = 'false'
 	video_url2 = video_tree.find('video', src = True)['src']
