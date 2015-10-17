@@ -7,14 +7,22 @@ import re
 import simplejson
 import sys
 import urllib
-import xbmcaddon
+import xbmcgui
+import xbmcplugin
+import json
 from bs4 import BeautifulSoup
+
+pluginHandle = int(sys.argv[1])
+
 
 SITE = "spike"
 NAME = "Spike TV"
 DESCRIPTION = "Spike TV knows what guys like. The brand speaks to the bold, adventuresome side of men with action-packed entertainment, including a mix of comedy, blockbuster movies, sports, innovative originals and live events. Popular shows like The Ultimate Fighter, TNA iMPACT!, Video Game Awards, DEA, MANswers, MXC, and CSI: Crime Scene Investigation, plus the Star Wars and James Bond movie franchises, position Spike TV as the leader in entertainment for men."
 BASE = "http://www.spike.com"
 SHOWS = "http://www.spike.com/shows/"
+
+PN_API = "http://www.powernationtv.com/api/"
+PN_URL = "http%3A%2F%2Fapi.brightcove.com%2Fservices%2Flibrary%3Fmedia_delivery%3Dhttp%26command%3Dfind_video_by_reference_id%26token%3Doad4MXnw--kXX1LAE3O3tFREdftYEX3LProaX0OseIo6j2zfqp9SZA..%26video_fields%3DaccountId%2Cname%2CshortDescription%2CreferenceId%2Cid%2CcustomFields%2CvideoFullLength%2CHLSURL%2CvideoStillURL%2CcuePoints%2Crenditions%2Clength%26api%3Dpowernation%26reference_id%3D"
 
 def masterlist():
 	master_dict = {}
@@ -144,6 +152,11 @@ def seasons(show_url = common.args.url):
 	    the HTML page. A consequence of this is that some shows can have mixed results: full
 	    episides pages does not have a manifest, but clips does. This can lead to duplication of
 	    container items. Many shows seem to contain a feed for full episodes, but this feed is empty """
+
+	# Powernation has a separate API, so lets redirect to the appropriate function
+	if 'powernation' in show_url:
+		return seasons_powernation()
+
 	seasons = []
 	if ',' in show_url:
 		multiSeason = True
@@ -176,6 +189,17 @@ def seasons(show_url = common.args.url):
 					title = season_tree.find('title').string.split('|')[0].strip().title()
 					seasons.append((title + ' ' + season_name2, SITE, 'episodes', season_url3, -1, -1))
 	return seasons
+
+def seasons_powernation():
+	shows = []
+	master_data = connection.getURL(PN_API + "shows")
+	show_json = json.loads(master_data)
+	for show in show_json['shows']:
+		show_name = show['title']
+		show_id = show['episode_prefix']
+		shows.append((show_name, SITE, 'episodes', PN_API + "episodes/all/show/" + show_id, -1, -1))
+	
+	return shows
 
 def episodes_from_html(episode_url = common.args.url):
 	episode_data = connection.getURL(episode_url)
@@ -278,6 +302,11 @@ def add_video_from_manifestfile(manifest_feed, full_episodes = False):
 def episodes(episode_url = common.args.url):
 	""" Add individual episodes. If the URL is a manifest feed, load from JSON, else analyse
 	    the HTML of the page """
+
+	# Redirect to powernation episode function
+	if 'powernation' in episode_url:
+		return episodes_powernation(episode_url)
+
 	if 'fullEpisodes=1' in episode_url:
 		fullEps = True
 		surfix = 'fullEpisodes=1'
@@ -296,6 +325,32 @@ def episodes(episode_url = common.args.url):
 	else:
 		allepisodes = episodes_from_html(episode_url)
 	return allepisodes
+
+def episodes_powernation(episode_url):
+	episodes = []
+	episodes_data = connection.getURL(episode_url)
+	episodes_json = json.loads(episodes_data)
+	for episode_item in episodes_json['episodes']:
+		episode_name = episode_item['description']['title']
+		episode_plot = episode_item['description']['description_long']
+		episode_thumb = episode_item['description']['image_url']
+		episode_id = episode_item['description']['episode_id']
+
+		
+		season_num, episode_num = episode_id.split('-')
+
+		u = sys.argv[0]
+		u += '?url="' + PN_URL + episode_id + '"'
+		u += '&mode="' + SITE + '"'
+		u += '&sitemode="play_video"'
+		infoLabels={	'title' : episode_name,
+						'plot' : episode_plot, 
+						'TVShowTitle' : episode_item['description']['show_name'],
+						'season' : episode_item['description']['season'],
+						'episode' : episode_num}
+
+		episodes.append((u, episode_name, episode_thumb, infoLabels, None, False, None))
+	return episodes
 
 def add_clips(episode_tree):
 	episodes = []
@@ -346,9 +401,29 @@ def add_clips(episode_tree):
 	return episodes
 
 def play_video(video_uri = common.args.url):
-	video_data = connection.getURL(video_uri)
-	video_url = BeautifulSoup(video_data, 'html5lib').find('div', class_ = 'video_player')['data-mgid']
-	main_viacom.play_video(BASE, video_url)	
+	# Handle the poewrnation specific video loading
+	if 'powernation' in video_uri:
+		video_data = connection.getURL(video_uri)
+		video_json = json.loads(video_data)
+		video_url = video_json['HLSURL']
+		
+		item = xbmcgui.ListItem(path = video_url)
+		try:
+			item.setThumbnailImage(common.args.thumb)
+		except:
+			pass
+		try:
+			item.setInfo('Video', {	'title' : common.args.name,
+									'season' : common.args.season_number,
+									'episode' : common.args.episode_number,
+									'TVShowTitle' : common.args.show_title})
+		except:
+			pass
+		xbmcplugin.setResolvedUrl(pluginHandle, True, item)
+	else:
+		video_data = connection.getURL(video_uri)
+		video_url = BeautifulSoup(video_data, 'html5lib').find('div', class_ = 'video_player')['data-mgid']
+		main_viacom.play_video(BASE, video_url)	
 
 def list_qualities(video_url = common.args.url):
 	video_data = connection.getURL(video_url)
