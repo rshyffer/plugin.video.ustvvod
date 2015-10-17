@@ -324,38 +324,42 @@ def get_videos(queue, i, video_item, qbitrate, rtmp = False):
 			hbitrate = -1
 			lbitrate = -1
 			m3u8_url = None
-			m3u8_master_data = connection.getURL(video_menu, savecookie = True, cookiefile = i)
-			m3u8_master = m3u8.parse(m3u8_master_data)
-			sbitrate = int(addon.getSetting('quality')) * 1024
-			for video_index in m3u8_master.get('playlists'):
-				bitrate = int(video_index.get('stream_info')['bandwidth'])
-				if qbitrate is None:
-					if bitrate < lbitrate or lbitrate == -1:
-						lbitrate = bitrate
-						lm3u8_url = video_index.get('uri')
-					if bitrate > hbitrate and bitrate <= sbitrate:
-						hbitrate = bitrate
+			#can we just pass video_menu
+			if addon.getSetting('sel_quality') == 'true' or qbitrate is not None or  int(xbmc.getInfoLabel( "System.BuildVersion" )[:2]) < 14 or common.use_proxy() :
+				m3u8_master_data = connection.getURL(video_menu, savecookie = True, cookiefile = i)
+				m3u8_master = m3u8.parse(m3u8_master_data)
+				sbitrate = int(addon.getSetting('quality')) * 1024
+				for video_index in m3u8_master.get('playlists'):
+					bitrate = int(video_index.get('stream_info')['bandwidth'])
+					if qbitrate is None:
+						if bitrate < lbitrate or lbitrate == -1:
+							lbitrate = bitrate
+							lm3u8_url = video_index.get('uri')
+						if bitrate > hbitrate and bitrate <= sbitrate:
+							hbitrate = bitrate
+							m3u8_url = video_index.get('uri')
+					elif (qbitrate * (100 - BITRATERANGE)) / 100 < bitrate and (qbitrate * (100 + BITRATERANGE)) / 100 > bitrate:
 						m3u8_url = video_index.get('uri')
-				elif (qbitrate * (100 - BITRATERANGE)) / 100 < bitrate and (qbitrate * (100 + BITRATERANGE)) / 100 > bitrate:
-					m3u8_url = video_index.get('uri')
-			if 	((m3u8_url is None) and (qbitrate is None)):
-				m3u8_url = lm3u8_url
-			m3u8_data = connection.getURL(m3u8_url, loadcookie = True, cookiefile = i)
-			key_url = re.compile('URI="(.*?)"').findall(m3u8_data)[0]
-			key_data = connection.getURL(key_url, loadcookie = True, cookiefile = i)
-			key_file = open(ustvpaths.KEYFILE % str(i), 'wb')
-			key_file.write(key_data)
-			key_file.close()
-			video_url = re.compile('(http:.*?)\n').findall(m3u8_data)
-			for video_item in video_url:
-				newurl = base64.b64encode(video_item)
-				newurl = urllib.quote_plus(newurl)
-				m3u8_data = m3u8_data.replace(video_item, 'http://127.0.0.1:12345/' + str(i) + '/foxstation/' + newurl)
-			m3u8_data = m3u8_data.replace(key_url, 'http://127.0.0.1:12345/play%s.key' % str(i))
-			file_name = ustvpaths.PLAYFILE.replace('.m3u8', str(i) + '.m3u8')
-			playfile = open(file_name, 'w')
-			playfile.write(m3u8_data)
-			playfile.close()
+				if 	((m3u8_url is None) and (qbitrate is None)):
+					m3u8_url = lm3u8_url
+				m3u8_data = connection.getURL(m3u8_url, loadcookie = True, cookiefile = i)
+				key_url = re.compile('URI="(.*?)"').findall(m3u8_data)[0]
+				key_data = connection.getURL(key_url, loadcookie = True, cookiefile = i)
+				key_file = open(ustvpaths.KEYFILE % str(i), 'wb')
+				key_file.write(key_data)
+				key_file.close()
+				video_url = re.compile('(http:.*?)\n').findall(m3u8_data)
+				for video_item in video_url:
+					newurl = base64.b64encode(video_item)
+					newurl = urllib.quote_plus(newurl)
+					m3u8_data = m3u8_data.replace(video_item, 'http://127.0.0.1:12345/' + str(i) + '/foxstation/' + newurl)
+				m3u8_data = m3u8_data.replace(key_url, 'http://127.0.0.1:12345/play%s.key' % str(i))
+				file_name = ustvpaths.PLAYFILE.replace('.m3u8', str(i) + '.m3u8')
+				playfile = open(file_name, 'w')
+				playfile.write(m3u8_data)
+				playfile.close()
+			else:
+				file_name = video_menu
 			queue.put([i, file_name, duration, closedcaption])
 		except:
 			pass	
