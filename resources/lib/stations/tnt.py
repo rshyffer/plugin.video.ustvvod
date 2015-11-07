@@ -30,12 +30,14 @@ def seasons(url = common.args.url):
 def episodes(url = common.args.url):
 	return main_turner.episodes_json(SITE, url)
 	
-def episodes_web():
+def episodes_web(master_name = common.args.url):
 	episodes = []
-	master_name = common.args.url
+	
 	webdata = connection.getURL(WEBSHOWS)
+	
 	web_tree =  BeautifulSoup(webdata, 'html.parser', parse_only = SoupStrainer('div', id = 'page-shows'))
-	show = web_tree.find('h2', text = master_name).parent.parent
+	show = web_tree.find(text = master_name).parent.parent.parent.parent.parent
+	print show
 	for item in show.findAll('div', class_ = 'item'):
 		print item.find('span')
 		if item.find('span', contenttypename = "FullEpisode") is not None:

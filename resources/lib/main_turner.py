@@ -55,7 +55,8 @@ def seasons(SITE, FULLEPISODES, CLIPSSEASON, CLIPS, WEBSHOWS = None, show_id = c
 
 			webdata = connection.getURL(WEBSHOWS)
 			web_tree =  BeautifulSoup(webdata, 'html.parser', parse_only = SoupStrainer('div', id = 'page-shows'))
-			show = web_tree.find('h2', text = master_name)
+			show = web_tree.find(text = master_name)
+			print web_tree
 			episodes = show.findNext('p', attrs = {'data-id' : 'num-full-eps-avail'})['data-value']
 			if int(episodes) > 0:
 				seasons.append(('Full Episodes',  SITE, 'episodes_web', master_name, -1, -1))
