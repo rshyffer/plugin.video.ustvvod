@@ -19,7 +19,8 @@ SITE = "amc"
 NAME = "AMC"
 DESCRIPTION = "AMC reigns as the only cable network in history to ever win the Emmy' Award for Outstanding Drama Series three years in a row, as well as the Golden Globe' Award for Best Television Series - Drama for three consecutive years.  Whether commemorating favorite films from every genre and decade or creating acclaimed original programming, the AMC experience is an uncompromising celebration of great stories.  AMC's original stories include 'Mad Men,' 'Breaking Bad,' 'The Walking Dead,' 'The Killing' and 'Hell on Wheels.'  AMC further demonstrates its commitment to the art of storytelling with AMC's Docu-Stories, a slate of unscripted original series, as well as curated movie franchises like AMC's Can't Get Enough and AMC's Crazy About.  Available in more than 97 million homes (Source: Nielsen Media Research), AMC is owned and operated by AMC Networks Inc. and its sister networks include IFC, Sundance Channel and WE tv.  AMC is available across all platforms, including on-air, online, on demand and mobile.  AMC: Story Matters HereSM."
 APIBASE = "http://www.amc.com/api/mobile-feeds/v1/"
-VIDEOURL = "http://link.theplatform.com/s/M_UwQC/media/"
+#VIDEOURL = "http://link.theplatform.com/s/M_UwQC/media/"
+VIDEOURL = "http://link.theplatform.com/s/M_UwQC/media/%s?mbr=true&player=AMC%%20Default%%20-%%20IMA%%20Update%%20-%%20Flash%%20-%%200.0.3&policy=47257419&mvpd=NonAuth&format=SMIL&Tracking=true&Embedded=true&formats=MPEG4,FLV,MP3&manifest=m3u"
 
 def masterlist():
 	master_db = []
@@ -73,11 +74,11 @@ def episodes(filter = common.args.url):
 def play_video(episode_url = common.args.url):
 	episode_data = connection.getURL(APIBASE + 'episode-details?episode_id=' + episode_url)
 	episode_json = json.loads(episode_data)
-	video_url = VIDEOURL
-	video_url += episode_json['data']['Episode']['FullEpisode']['PID']
-	video_url += '?mbr=true&manifest=m3u&Tracking=true&Embedded=true&formats=F4M,MPEG4'
-
-	finalurl = video_url
+	video_url = VIDEOURL % episode_json['data']['Episode']['FullEpisode']['PID']
+	print video_url
+	video_data = connection.getURL(video_url)
+	video_tree = BeautifulSoup(video_data)
+	finalurl = video_tree.video['src']
 	item = xbmcgui.ListItem(path = finalurl)
 	try:
 		item.setThumbnailImage(common.args.thumb)
