@@ -56,7 +56,7 @@ def masterlist():
 				master_dict[master_name] = season_url
 	#check for missing shows
 	web_data = connection.getURL(BASE)
-	web_tree = BeautifulSoup(web_data)
+	web_tree = BeautifulSoup(web_data, 'html.parser')
 	for item in web_tree.find('div', id='show-drop-down').find_all('a'):
 		if item.text not in master_dict:
 			master_db.append((item.text , SITE, 'seasons', BASE + item['href'] + 'video'))
