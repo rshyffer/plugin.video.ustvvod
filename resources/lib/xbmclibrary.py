@@ -12,6 +12,7 @@ import ustvpaths
 import xbmc
 import xbmcaddon
 import xbmcgui
+import xbmcvfs
 
 from bs4 import BeautifulSoup
 
@@ -108,15 +109,15 @@ class Main:
 
 	def SaveFile(self, filename, data, dir):
 		path = os.path.join(dir, filename)
-		file = open(path, 'w')
+		file = xbmcvfs.File(path, 'w')
 		data = common.smart_utf8(data)
 		file.write(data)
 		file.close()
 
 	def CreateDirectory(self, dir_path):
-		dir_path = dir_path.strip()
-		if not os.path.exists(dir_path):
-			os.makedirs(dir_path)
+		os.path.join(dir_path, '') # ensure the path terminates in a '/'
+		if not xbmcvfs.exists(dir_path):
+			xbmcvfs.mkdirs(dir_path)
 	
 	def cleanfilename(self, name):    
 		valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
