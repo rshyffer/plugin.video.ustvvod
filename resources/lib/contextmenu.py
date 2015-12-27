@@ -4,6 +4,8 @@ import common
 import database
 import base64
 import urllib
+import os
+import plistlib
 import sys
 import xbmc
 import xbmcgui
@@ -71,6 +73,76 @@ def refresh_show():
 
 def refresh_db():
 	common.refresh_db()
+	
+def export_fav():
+	print 'fav'
+	dialog = xbmcgui.Dialog()
+	print 'd'
+	try:
+		r = dialog.browse(3, 'Folder', 'files')
+		print r
+		path = os.path.join(r, 'favorites.txt')
+		shows = common.fetch_showlist(1)
+		sd = {}
+		for show in shows:
+			sd[show[0]] = show
+		import json
+		with open(path, 'w') as outfile:
+			json.dump(sd, outfile)
+		
+	except Exception,e:
+		print e
+		
+def import_fav():
+	print 'fav'
+	dialog = xbmcgui.Dialog()
+	print 'd'
+	try:
+		r = dialog.browse(3, 'Folder', 'files')
+		print r
+		path = os.path.join(r, 'favorites.txt')
+		shows = common.fetch_showlist(1)
+		sd = {}
+		for show in shows:
+			sd[show[0]] = show
+		import json
+		print r
+		json_data=open(path).read()
+		#print json_data
+		jd = json.loads(json_data)
+		for title in jd:
+			show = jd[title]
+			series_title = show[0]
+			mode = show[1]
+			submode = show[2]
+			series_title = urllib.unquote_plus(series_title)
+			command = 'update shows set favor = 1 where series_title = ? and mode = ? and submode = ?;'
+			values = (series_title, mode, submode)
+			print values
+			database.execute_command(command, values, commit = True)
+		
+	except Exception,e:
+		print e
+		
+def del_fav():
+	print 'del fav'
+	dialog = xbmcgui.Dialog()
+	try:
+		r = dialog.yesno('Delete All Favorites' ,'Are you sure?')
+		if r:
+			print 'Deleting favorites'
+			common.del_favorites()
+		# path = os.path.join(r, 'favorites.txt')
+		# shows = common.fetch_showlist(1)
+		# sd = {}
+		# for show in shows:
+			# sd[show[0]] = show
+		# import json
+		# with open(path, 'w') as outfile:
+			# json.dump(sd, outfile)
+		
+	except Exception,e:
+		print e
 
 def refresh_menu(mode, submode, url):
 	exec 'import resources.lib.%s as sitemodule' % mode

@@ -743,6 +743,11 @@ def fetch_showlist(favored = 0):
 	database.check_db_version()
 	command = "select * from shows  where url <> '' and hide <> 1 and favor = ? order by series_title"
 	return database.execute_command(command, fetchall = True, values = [favored]) 
+	
+def del_favorites():
+
+	command = "update shows  set favor = 0 where favor = 1"
+	database.execute_command(command, commit = True) 
 
 def add_show(series_title = '', mode = '', sitemode = '', url = '', favor = 0, hide = 0, masterList = False, showdata = None, sitedata = None):
 	infoLabels = {}

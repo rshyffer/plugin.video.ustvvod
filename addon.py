@@ -30,6 +30,17 @@ def modes():
 		count = 0
 		cmlib = [ (common.smart_utf8(addon.getLocalizedString(39034)) % common.smart_utf8(addon.getLocalizedString(39000)), "XBMC.RunPlugin(%s?mode='ForceFavoriteEpisodesLibrary')" % ( sys.argv[0] ) ) ]
 		cmlib.append( (common.smart_utf8(addon.getLocalizedString(39035)), "XBMC.RunPlugin(%s?mode='ClearLibrary')" % ( sys.argv[0] ) ) )
+		export_u = sys.argv[0] + '?url="<join>"' + sys.argv[0] + '?url="' + '&mode=contextmenu' + '&sitemode=export_fav' 
+	
+		cmlib.append(('Export Favorites', 'XBMC.RunPlugin(%s)' % export_u))
+		del_u = sys.argv[0] + '?url="<join>"' + sys.argv[0] + '?url="' + '&mode=contextmenu' + '&sitemode=del_fav' 
+		
+	
+		cmlib.append(('Delete Favorites', 'XBMC.RunPlugin(%s)' % del_u))
+		import_u = sys.argv[0] + '?url="<join>"' + sys.argv[0] + '?url="' + '&mode=contextmenu' + '&sitemode=import_fav' 
+		
+	
+		cmlib.append(('Import Favorites', 'XBMC.RunPlugin(%s)' % import_u))
 		common.add_directory(common.smart_utf8(addon.getLocalizedString(39000)), 'Favorlist', 'NoUrl', thumb = ustvpaths.FAVICON, count = count, description = common.smart_utf8(addon.getLocalizedString(39001)) + '\n' + all_description,  contextmenu = cmlib)
 		count += 1
 		cmlib = [ (common.smart_utf8(addon.getLocalizedString(39034)) % common.smart_utf8(addon.getLocalizedString(39002)), "XBMC.RunPlugin(%s?mode='AllShowsLibrary')" % ( sys.argv[0] ) ) ]
