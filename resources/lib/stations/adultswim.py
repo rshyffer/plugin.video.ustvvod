@@ -5,6 +5,8 @@ import connection
 import main_turner
 import plistlib
 import json
+import sys
+import urllib
 from bs4 import BeautifulSoup
 
 SITE = "adultswim"
@@ -12,14 +14,13 @@ NAME = "Adult Swim"
 DESCRIPTION = "Cartoon Network (CartoonNetwork.com), currently seen in more than 97 million U.S. homes and 166 countries around the world, is Turner Broadcasting System, Inc.'s ad-supported cable service now available in HD offering the best in original, acquired and classic entertainment for youth and families.  Nightly from 10 p.m. to 6 a.m. (ET, PT), Cartoon Network shares its channel space with Adult Swim, a late-night destination showcasing original and acquired animated and live-action programming for young adults 18-34 "
 SHOWS = "http://www.adultswim.com/mobile/tools/feeds/shows.plist"
 S = "http://www.adultswim.com/videos/app/show/%s?filterByPlatform=mobile"
-#fset=0&sortByDate=DESC&filterByEpisodeType=EPI,TVE&filterByCollectionId=Mg-VjYmzQPiuqDAuwK0Auw
 SEASONSCLIPS = "http://www.adultswim.com/videos/api/v1/videos?limit=0&offset=0&sortByDate=DESC&filterByEpisodeType=PRE,CLI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true"
 SEASONSEPISODES = "http://www.adultswim.com/videos/api/v1/videos?limit=0&offset=0&sortByDate=DESC&filterByEpisodeType=EPI,TVE&filterByCollectionId=%s&networkName=AS&filterByAuthType=true"
 SEASONSCLIPSEXTRA = "http://www.adultswim.com/videos/api/v1/videos?limit=1&offset=0&sortByDate=DESC&filterByEpisodeType=PRE,CLI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true"
 SEASONSEPISODESEXTRA = "http://www.adultswim.com/videos/api/v1/videos?limit=1&offset=0&sortByDate=DESC&filterByEpisodeType=EPI&filterByCollectionId=%s&networkName=AS&filterByAuthType=true"
 CLIPS = "http://www.adultswim.com/videos/api/v1/videos?limit=50&offset=0&sortByDate=DESC&filterByEpisodeType=CLI&filterByCollectionId=%s&filterByAuthType=true&networkName=AS"
 FULLEPISODES = "http://www.adultswim.com/videos/api/v1/videos?limit=50&offset=0&sortByDate=DESC&filterByEpisodeType=EPI,TVE&filterByCollectionId=%s&filterByAuthType=true&networkName=AS&filterByPlatform=mobile"
-EPISODE = "http://www.adultswim.com/videos/api/v1/assets?id=%s&networkName=AS"
+EPISODE = "http://www.adultswim.com/videos/api/v0/assets?id=%s&networkName=AS"
 HLSPATH = "adultswim"
 
 def masterlist():
@@ -50,27 +51,6 @@ def seasons(collection_ids = common.args.url):
 		episode_json = json.loads(season_data)
 		for season in  episode_json['show']['collections']:
 			seasons.append((season['title'],  SITE, 'episodes', season_url % collection_id + '#' + str(season['id']), -1, -1))
-		# episode_count = int(season_tree.episodes['totalitems'])
-		# if episode_count > 0:
-			# if ',' not in collection_ids:
-				# display = 'Episodes'
-			# else:
-				# display = 'Episodes - %s' % season_tree.episode['collectiontitle']
-			# seasons.append((display,  SITE, 'episodes', FULLEPISODES % collection_id, -1, -1))
-	# for collection_id in collection_ids.split(','):
-		# if ',' not in collection_ids:
-			# seasonclips_url = SEASONSCLIPS
-		# else:
-			# seasonclips_url = SEASONSCLIPSEXTRA
-		# season_data2 = connection.getURL(seasonclips_url % collection_id)
-		# season_tree2 = BeautifulSoup(season_data2, 'html.parser')
-		# episode_count = int(season_tree2.episodes['totalitems'])
-		# if episode_count > 0:
-			# if ',' not in collection_ids:
-				# display = 'Clips'
-			# else:
-				# display = 'Clips - %s' % season_tree2.episode['collectiontitle']
-			# seasons.append((display,  SITE, 'episodes', CLIPS % collection_id, -1, -1))
 
 	return seasons
 
@@ -85,10 +65,8 @@ def episodes(url = common.args.url):
 	episode_menu = json.loads(episode_data)['show']['collections']
 	for episode_season in episode_menu:
 		if episode_season['id'] == int(season):
-		
-			#print episode_menu
+
 			for episode_item in episode_season['videos']:
-				print episode_item
 				url = episode_item['id']
 				try:
 
@@ -106,13 +84,7 @@ def episodes(url = common.args.url):
 				except:
 					episode_plot = ''
 				episode_name = episode_item['title']
-				# if episode_name == master_name:
-					# video_url = EPISODE % url
-					# video_data = connection.getURL(video_url)
-					# video_tree = BeautifulSoup(video_data, 'html.parser')
-					# episode_name = video_tree.headline.string
-				# elif episode_name == "":
-					# episode_name = episode_plot
+
 				try:
 
 					season_number = int(episode_item['season_number'])
@@ -123,62 +95,35 @@ def episodes(url = common.args.url):
 					episode_number =  int(episode_item['episode_number'])
 				except:
 					episode_number = -1
-				# if episode_number > 100:
-					# try:
-
-						# episode_number = int(re.compile('episode-(\d*)').findall(connection.getRedirect(episode_item['shareURL']))[0])
-
-					# except:
-						# try:
-							# web_data = _connection.getURL(episode_item['shareURL'])
-							# web_tree = BeautifulSoup(web_data, 'html.parser')
-							# episode_number = web_tree.find('h2', text = episode_name).findNext(itemprop = 'episodeNumber').string
-							# season_number = web_tree.find('h2', text = episode_name).findNext(itemprop = 'seasonNumber').string
-						# except:
-							# pass
 				try:
 
 					episode_thumb = episode_item['images'][1]['url']
 				except:
 					episode_thumb = None
 				episode_mpaa = episode_item['tv_rating']
+				print episode_mpaa
 				try:
 					episode_type = episode_item['type']
 				except:
 					episode_type = None
-				# if 'Movie' in master_name:
-					# type = 'Movie'
-				# elif episode_type == 1:
-					# type = 'Full Episode'
-				# else:
-					# type = 'Clips'
-				# if type != 'Movie':
-					# show_title = master_name
-				# else:
-					# show_title = None
 				show_title = episode_item['collectionSlug'].replace('-', ' ').title()
-				# try:
-					# episode_year = episode_item['year']
-				# except:
-					# episode_year = None
-				# try:
-					# episode_actors = episode_item['actors'].split(',')
-				# except:
-					# episode_actors = []
-				u = sys.argv[0]
-				u += '?url="' + urllib.quote_plus(url) + '"'
-				u += '&mode="' + SITE + '"'
-				u += '&sitemode="play_video"'
-				infoLabels={    'title' : episode_name,
-								'durationinseconds' : episode_duration,
-								'season' : season_number,
-								'episode' : episode_number,
-								'plot' : episode_plot,
-								'premiered' : episode_airdate ,
-								#'year' : episode_year,
-								'mpaa' : episode_mpaa,
-								'TVShowTitle': show_title}
-								#'cast' : episode_actors}
+
+				try:
+					u = sys.argv[0]
+					u += '?url="' + urllib.quote_plus(url) + '"'
+					u += '&mode="' + SITE + '"'
+					u += '&sitemode="play_video"'
+					infoLabels={    'title' : episode_name,
+									'durationinseconds' : episode_duration,
+									'season' : season_number,
+									'episode' : episode_number,
+									'plot' : episode_plot,
+									'premiered' : episode_airdate ,
+									'mpaa' : episode_mpaa,
+									'TVShowTitle': show_title}
+					print infoLabels
+				except Exception, e:
+					print e
 				episodes.append((u, episode_name, episode_thumb, infoLabels, 'list_qualities', False, type ))
 	return episodes
 
