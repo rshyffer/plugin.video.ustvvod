@@ -26,8 +26,12 @@ def masterlist(SITE, SHOWS):
 	master_tree = simplejson.loads(master_data)
 	for master_item in master_tree:
 		if (master_item['hasNoVideo'] == 'false'):
-			master_name = common.smart_utf8(master_item['detailTitle'])
-			master_db.append((master_name, SITE, 'seasons', urllib.quote_plus(master_item['showID'])))
+			#print master_item
+			try:
+				master_name = common.smart_unicode(master_item['detailTitle'])
+				master_db.append((master_name, SITE, 'seasons', urllib.quote_plus(master_item['showID'])))
+			except Exception,e:
+				print "Exception", e, master_item
 	return master_db
 
 def seasons(SITE, SEASONSEPISODE, SEASONSCLIPS, EPISODES, CLIPS, season_url = common.args.url):
