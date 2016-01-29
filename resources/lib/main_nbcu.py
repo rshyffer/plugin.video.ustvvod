@@ -221,10 +221,13 @@ def play_video(SWFURL, M3UURL = None, BASE = None):
 	video_data = connection.getURL(video_url)
 	if 'link.theplatform.com' not in video_url:
 		video_tree =  BeautifulSoup(video_data, 'html.parser')
+		print "Getting plauer url"
 		try:
 			player_url = 'http:' + video_tree.find('div', class_ = 'video-player-wrapper').iframe['src']
 		except:
-			player_url = 'http:' + video_tree.find('div', id = 'pdk-player')['data-src']
+
+			player_url = 'http:' + video_tree.find('div', class_='pdk-player')['data-src']
+		print player_url
 		player_data = connection.getURL(player_url)
 		player_tree =  BeautifulSoup(player_data, 'html.parser')
 		video_url = player_tree.find('link', type = "application/smil+xml")['href']
