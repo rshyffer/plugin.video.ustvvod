@@ -44,6 +44,7 @@ def masterlist(SITE, BRANDID):
 	master_data = connection.getURL(SHOWS % BRANDID)
 	master_menu = simplejson.loads(master_data)['shows']['show']
 	for master_item in master_menu:
+		print master_item
 		fullepisodes = 0
 		clips = 0
 		try:
@@ -67,7 +68,9 @@ def masterlist(SITE, BRANDID):
 						fullepisodes = int(master_item['fullepisodes']['count']['video'][0]['$'])
 			if fullepisodes > 0 or (clips > 0 and addon.getSetting('hide_clip_only') == 'false'):
 				master_name = master_item['title'].strip()
+				print master_name
 				season_url = master_item['@id']
+				print season_url
 				try:
 					thumb = master_item['thumbnails']['thumbnail']['$']
 				except:
@@ -75,7 +78,7 @@ def masterlist(SITE, BRANDID):
 				try:
 					genre = master_item['genre'].title()
 				except:
-					genre = None
+					genre = 'Special'
 				if genre == 'Movies':
 					master_name = '--' + master_name
 					mode = 'episodes'
@@ -86,6 +89,7 @@ def masterlist(SITE, BRANDID):
 							'thumb' : thumb,
 							'genre' : genre}
 				if 'Long Form' not in genre:
+					print master_name, SITE, mode, season_url, site_data
 					master_db.append((master_name, SITE, mode, season_url, site_data))
 	return master_db
 
