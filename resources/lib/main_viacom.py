@@ -50,12 +50,15 @@ def masterlist(SITE, SHOWS):
 	master_data = connection.getURL(SHOWS)
 	master_tree = simplejson.loads(master_data)
 	for master_item in master_tree['promoList']['promos']:
-		master_item = master_item['promo']['associatedContent']['series']
-		master_name = master_item['title']
-		master_id = master_item['seriesId']
-		if master_id is not None:
-			master_db.append((master_name, SITE, 'seasons', master_id))
-		else:
+		try:
+			master_item = master_item['promo']['associatedContent']['series']
+			master_name = master_item['title']
+			master_id = master_item['seriesId']
+			if master_id is not None:
+				master_db.append((master_name, SITE, 'seasons', master_id))
+			else:
+				pass
+		except:
 			pass
 	return master_db
 
