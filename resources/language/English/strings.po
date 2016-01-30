@@ -338,11 +338,11 @@ msgid "USTV VoD - Refresh All TVDB Data"
 msgstr ""
 
 msgctxt "#39022"
-msgid "Select Quality"
+msgid "Choose Playback Bitrate"
 msgstr ""
 
 msgctxt "#39023"
-msgid "Page Limit"
+msgid "Number of Episode Pages to read"
 msgstr ""
 
 msgctxt "#39024"
