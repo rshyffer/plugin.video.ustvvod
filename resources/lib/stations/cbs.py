@@ -101,8 +101,11 @@ def episodes(episode_url = common.args.url):
 	episode_json = simplejson.loads(episode_data)['result']
 	episode_menu = episode_json['data']
 	title = episode_json['title']
+	valid_login = None
 	for episode_item in episode_menu:
-		if episode_item['status'] == 'AVAILABLE' or (addon.getSetting('cbs_use_login') == 'true' and episode_item['status'] == 'PREMIUM'):
+		if episode_item['status'] == 'PREMIUM' and valid_login is None:
+			valid_login = True#login()
+		if episode_item['status'] == 'AVAILABLE' or (valid_login and episode_item['status'] == 'PREMIUM'):
 			videourl = episode_item['streaming_url']
 			HD = False
 			url = BASE + episode_item['url']
@@ -179,17 +182,25 @@ def list_qualities(video_url = common.args.url):
 	else:
 		common.show_exception(video_tree.ref['title'], video_tree.ref['abstract'])
 
-def play_video(video_url = common.args.url):
+def login(url):
 	if  addon.getSetting('cbs_use_login') == 'true':
 		username = addon.getSetting('cbs_username')
 		password = addon.getSetting('cbs_password')
-		login_values = values = {'j_username' : username, 'j_password' : password, '_remember_me' : '1' }
+		#Get token
+		data = connection.getURL(url)
+		token = re.compile("authToken = '(.*?)';").findall(data)[0]
+		login_values = values = {'j_username' : username, 'j_password' : password, '_remember_me' : '1', 'tk_trp' : token }
 		login_response = connection.getURL(LOGIN_URL, login_values, savecookie = True)
 		response = simplejson.loads(login_response)
-		print  login_response
 		if response['success'] == False:
 			print 'Login failed'
 			common.show_exception(NAME, response['message'])
+			return False
+		else:
+			return True
+			
+def play_video(video_url = common.args.url):
+	logged_in = login(video_url)
 	try:
 		qbitrate = common.args.quality
 	except:
