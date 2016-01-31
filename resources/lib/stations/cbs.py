@@ -103,12 +103,14 @@ def episodes(episode_url = common.args.url):
 	title = episode_json['title']
 	valid_login = None
 	for episode_item in episode_menu:
+		url = BASE + episode_item['url']
 		if episode_item['status'] == 'PREMIUM' and valid_login is None:
-			valid_login = True#login()
+			valid_login = login(url)
+			print "login", valid_login
 		if episode_item['status'] == 'AVAILABLE' or (valid_login and episode_item['status'] == 'PREMIUM'):
 			videourl = episode_item['streaming_url']
 			HD = False
-			url = BASE + episode_item['url']
+			
 			episode_duration = int(common.format_seconds(episode_item['duration']))
 			episode_airdate = common.format_date(episode_item['airdate'], '%m/%d/%y')
 			if len(episode_item['label']) < len(episode_item['title']) and episode_item['label']:
@@ -193,8 +195,12 @@ def login(url):
 		login_response = connection.getURL(LOGIN_URL, login_values, savecookie = True)
 		response = simplejson.loads(login_response)
 		if response['success'] == False:
-			print 'Login failed'
-			common.show_exception(NAME, response['message'])
+			print 'Login failed', response
+			try:
+				msg = response['message']
+			except:
+				msg = response['messages']
+			common.show_exception(NAME, msg)
 			return False
 		else:
 			return True
