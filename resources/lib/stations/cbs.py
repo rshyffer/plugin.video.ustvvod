@@ -186,8 +186,10 @@ def play_video(video_url = common.args.url):
 		login_values = values = {'j_username' : username, 'j_password' : password, '_remember_me' : '1' }
 		login_response = connection.getURL(LOGIN_URL, login_values, savecookie = True)
 		response = simplejson.loads(login_response)
+		print  login_response
 		if response['success'] == False:
-			common.show_exception(NAME, response['messages'])
+			print 'Login failed'
+			common.show_exception(NAME, response['message'])
 	try:
 		qbitrate = common.args.quality
 	except:

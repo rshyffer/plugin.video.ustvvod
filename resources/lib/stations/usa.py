@@ -14,7 +14,7 @@ DESCRIPTION = "USA Network is cable television's leading provider of original se
 SHOWS = "http://feed.theplatform.com/f/OyMl-B/8IyhuVgUXDd_/categories?form=json&sort=order"
 CLIPS = "http://feed.theplatform.com/f/OyMl-B/8IyhuVgUXDd_?count=true&form=json&byCustomValue={fullEpisode}{false}&byCategories=%s"
 FULLEPISODES = "http://feed.theplatform.com/f/OyMl-B/8IyhuVgUXDd_?count=true&form=json&byCustomValue={fullEpisode}{true}&byCategories=%s"
-FULLEPISODESWEB = "http://www.usanetwork.com/%s/episodes"
+FULLEPISODESWEB = "http://www.usanetwork.com/%s/videos"
 SWFURL = "http://www.usanetwork.com/videos/pdk/swf/flvPlayer.swf"
 BASE = "http://www.usanetwork.com"
 
