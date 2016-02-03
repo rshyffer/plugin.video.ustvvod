@@ -94,6 +94,7 @@
 		<setting id="marvelkids" type="bool" label="Marvel Kids" default="true"/>
 		<setting id="msnbc" type="bool" label="MSNBC" default="true"/>
 		<setting id="mtv" type="bool" label="MTV" default="true"/>
+		<setting id="mtv2" type="bool" label="MTV2" default="true"/>
 		<setting id="natgeo" type="bool" label="National Geographic" default="true"/>
 		<setting id="natgeowild" type="bool" label="Nat Geo Wild" default="true"/>
 		<setting id="nbc" type="bool" label="NBC" default="true"/>
